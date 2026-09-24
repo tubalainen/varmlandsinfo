@@ -1,4 +1,7 @@
 .git
 .github
+.env
+tests
 **/__pycache__
+.pytest_cache
 *.md
