@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-24
+
 ### Ändrat
 - Fråga AI besvarar enkla sökfrågor ("När spelar Färjestad nästa gång?", "Vad händer idag?") direkt med en
   sökning bland evenemangen, i datumordning och utan AI. AI:n används bara för frågor som kräver en bedömning,
@@ -146,7 +148,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.4.0...v0.5.0
