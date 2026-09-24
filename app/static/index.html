@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evenemang i Värmland</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>Evenemang i Värmland</h1>
+    <p id="status" class="muted">Hämtar evenemang …</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="filters" aria-label="Filter">
+    <input id="q" type="search" placeholder="Sök titel, plats, arrangör …" autocomplete="off">
+    <select id="municipality"><option value="">Alla kommuner</option></select>
+    <label>Från <input id="from" type="date"></label>
+    <label>Till <input id="to" type="date"></label>
+    <label class="check"><input id="expand" type="checkbox"> Visa varje tillfälle</label>
+    <button id="reset" type="button">Rensa</button>
+  </section>
+
+  <section id="cats" class="cats" aria-label="Evenemangstyper"></section>
+  <p id="count" class="muted"></p>
+  <section id="list"></section>
+</main>
+
+<dialog id="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button>Stäng</button></form></dialog>
+
+<footer class="wrap muted">Källa: <a href="https://visitvarmland.com/evenemang" target="_blank" rel="noopener">Visit Värmland</a> (turid.visitvarmland.com)</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
