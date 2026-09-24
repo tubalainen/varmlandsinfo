@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Värmlandsinfo">
+  <title>Värmlandsinfo</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#23844f"/>
+      <stop offset="1" stop-color="#155a34"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.42" cy="0.38" r="0.7">
+      <stop offset="0" stop-color="#fff3a3"/>
+      <stop offset="0.55" stop-color="#ffd23f"/>
+      <stop offset="1" stop-color="#f5a300"/>
+    </radialGradient>
+    <clipPath id="clip"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <path fill="#ffc21a" d="M271.0,120.0 L256.0,36.0 L241.0,120.0 Z M309.0,132.7 L319.5,78.6 L288.7,124.3 Z M345.8,163.4 L394.6,93.4 L324.6,142.2 Z M363.7,199.3 L409.4,168.5 L355.3,179.0 Z M368.0,247.0 L452.0,232.0 L368.0,217.0 Z M355.3,285.0 L409.4,295.5 L363.7,264.7 Z M324.6,321.8 L394.6,370.6 L345.8,300.6 Z M288.7,339.7 L319.5,385.4 L309.0,331.3 Z M241.0,344.0 L256.0,428.0 L271.0,344.0 Z M203.0,331.3 L192.5,385.4 L223.3,339.7 Z M166.2,300.6 L117.4,370.6 L187.4,321.8 Z M148.3,264.7 L102.6,295.5 L156.7,285.0 Z M144.0,217.0 L60.0,232.0 L144.0,247.0 Z M156.7,179.0 L102.6,168.5 L148.3,199.3 Z M187.4,142.2 L117.4,93.4 L166.2,163.4 Z M223.3,124.3 L192.5,78.6 L203.0,132.7 Z"/>
+    <circle cx="256" cy="232" r="96" fill="url(#sun)"/>
+    <path fill="#8fd3f4" d="M0,402 C64,372 128,372 192,398 C256,424 320,424 384,398 C448,372 490,376 512,386 L512,512 L0,512 Z"/>
+    <path fill="#4fa9dc" d="M0,446 C64,418 128,418 192,442 C256,466 320,466 384,442 C448,418 490,422 512,432 L512,512 L0,512 Z"/>
+  </g>
+</svg>

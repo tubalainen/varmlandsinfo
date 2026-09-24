@@ -1,3 +1,5 @@
+<p align="center"><img src="app/static/icons/icon.svg" alt="Värmlandsinfo" width="120"></p>
+
 # Värmlandsinfo
 
 En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland** i datumordning,
@@ -13,6 +15,9 @@ Första datakällan är Visit Värmlands öppna API:
 - **Detaljer:** sammanfattning, längre beskrivning, plats (med kartlänk) och arrangör.
 - **Länkar:** till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
 - **Bilder:** från evenemanget (klicka för att förstora).
+- **Kalendervy:** växla mellan *Lista* och *Kalender*. Kalendern visar en månad med en vecka per rad
+  (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
+  dagens evenemang med bilder och länkar.
 - **Filter:** fritextsök, kategori, kommun och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
 - **AI-chatt:** knappen *Fråga AI* öppnar en chatt kopplad till din egen Ollama. Ställ frågor som
@@ -21,6 +26,15 @@ Första datakällan är Visit Värmlands öppna API:
   fungerar också.
 - **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
   automatisk uppdatering varje dag (standard 05:00).
+- **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
+  utan att API:et anropas i onödan.
+
+## Ikon
+
+Appens ikon är en sol över en våg, inspirerad av Karlstad, "Solstaden", och Vänern. Det är en egen
+design och ingen kopia av Karlstads kommuns logotyp. Källfilen är `app/static/icons/icon.svg`. PNG-filerna
+(favicon, Apple touch-ikon och webbappikoner) är renderade från den. Appen kan läggas till på
+hemskärmen i mobilen.
 
 ## Kom igång
 
@@ -39,6 +53,7 @@ docker compose up -d
 Vill du bygga imagen själv i stället: `docker compose up -d --build`.
 
 Första hämtningen tar ungefär 10–30 sekunder, eftersom API:et ger max 50 evenemang per sida.
+Därefter sparas datan och laddas direkt vid omstart.
 
 ### Köra en viss version
 
@@ -60,8 +75,46 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
 | `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
 | `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
-| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av). |
+| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
+| `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
+| `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
+
+## Hur API:et anropas
+
+Visit Värmlands API saknar stöd för att bara hämta ändringar och ger högst 50 evenemang per sida.
+En hämtning är därför cirka 15 anrop (en per sida). Kommunlistan hämtas bara en gång i veckan.
+API:et tillåter 60 anrop per minut, och appen är byggd för att hålla sig långt under det:
+
+- **Normalt:** en hämtning per dygn (`DAILY_REFRESH_TIME`), alltså cirka 15 anrop per dag.
+- **Vid start** används sparad data, och API:et anropas bara om datan är inaktuell.
+- **Knappen** *Uppdatera evenemang* hämtar inte om datan är yngre än 5 minuter.
+- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter. Lägre värden höjs till 30.
+- **Om API:et svarar `429 Too Many Requests`** väntar appen enligt `Retry-After` och ger upp efter
+  några försök. Är kvoten nästan slut pausar hämtningen i en minut.
+- **Om en hämtning misslyckas** görs ett nytt försök efter 30 minuter. Under tiden visas senast
+  sparade data.
+- Antalet anrop sedan start syns som `api_calls` i `/api/health`.
+
+## Lagring av data
+
+Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./data` bredvid
+`docker-compose.yaml`. Katalogen monteras som volym till `/data` i containern och skapas automatiskt.
+
+| Fil                        | Innehåll |
+|----------------------------|----------|
+| `data/visitvarmland.json`  | Rådata från API:et (alla evenemang och kommuner) samt tidpunkt för hämtningen. |
+
+- **Vid start** läses filen in och evenemangen visas direkt. API:et anropas bara om datan är äldre än
+  den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
+- **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
+  en krasch inte lämnar en trasig fil.
+- **Om en hämtning misslyckas** behålls senast sparade data.
+- Eftersom rådata sparas kan en ny version av appen tolka om den utan att hämta allt på nytt.
+- Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
+  och sätt dem i `.env`.
+- Vill du lägga datan någon annanstans sätter du `VARMLANDSINFO_DATA`, till exempel `/srv/varmlandsinfo`.
+- Radera `data/visitvarmland.json` för att tvinga fram en helt ny hämtning vid nästa start.
 
 ## AI-chatt med Ollama
 
@@ -91,7 +144,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
-| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering. |
+| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering, lagringsstatus. |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
 | POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
@@ -101,7 +154,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 Projektet använder semantisk versionering. Versionen står i `app/version.py` och visas i sidfoten.
 Ändringar listas i [CHANGELOG.md](CHANGELOG.md).
 
-En tagg `vX.Y.Z` skapar automatiskt en GitHub-release och publicerar imagen
+När en ny version når `main` skapas automatiskt en GitHub-release och imagen
 `ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
 Hela arbetsflödet med issues, pull requests och releaser beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -119,9 +172,12 @@ app/
   categories.py    Klassificering och beskrivning av evenemangstyper
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
+  static/icons/    Appens ikon (SVG och PNG i flera storlekar)
 tests/             Tester (pytest)
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile
+docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID
 docker-compose.yaml
 .env.example
+data/                 Sparad data (skapas vid körning, ingår inte i git)
 ```

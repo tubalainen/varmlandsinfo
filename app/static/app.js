@@ -1,7 +1,14 @@
 "use strict";
 
 const $ = (s) => document.querySelector(s);
-const state = { events: [], today: null, cats: new Set() };
+function stored(key, fallback) {
+  try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
+}
+function store(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* inte kritiskt */ }
+}
+
+const state = { events: [], today: null, cats: new Set(), view: stored("view", "list"), calMonth: null };
 
 const fmtDay = new Intl.DateTimeFormat("sv-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const fmtShort = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" });
@@ -52,6 +59,7 @@ function showStatus(data) {
     text = `${data.events.length} aktuella evenemang · uppdaterad ${fmtTime(data.updated)}`;
     if (data.next_refresh) text += ` · nästa automatiska uppdatering ${fmtTime(data.next_refresh)}`;
     if (data.error) text += ` · senaste uppdateringen misslyckades: ${data.error}`;
+    if (data.storage?.error) text += ` · ${data.storage.error}`;
   }
   $("#status").textContent = text;
   $("#version").textContent = data.version ? `v${data.version}` : "";
@@ -83,7 +91,9 @@ async function refreshEvents() {
   try {
     const r = await fetch("/api/refresh", { method: "POST" });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const res = await r.json();
     await load();
+    if (res.message) $("#status").textContent += ` · ${res.message}`;
   } catch (e) {
     $("#status").textContent = "Uppdateringen misslyckades: " + e.message;
   } finally {
@@ -129,6 +139,15 @@ function matches(e, q, muni) {
 }
 
 function render() {
+  const cal = state.view === "calendar";
+  document.body.classList.toggle("cal-mode", cal);
+  $("#list").hidden = cal;
+  $("#calendar").hidden = !cal;
+  for (const b of document.querySelectorAll(".viewtoggle button")) b.setAttribute("aria-pressed", b.dataset.view === state.view);
+  cal ? renderCalendar() : renderList();
+}
+
+function renderList() {
   const q = $("#q").value.trim().toLowerCase();
   const muni = $("#municipality").value;
   const from = $("#from").value || state.today;
@@ -209,5 +228,8 @@ $("#reset").addEventListener("click", () => {
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
 $("#refresh").addEventListener("click", refreshEvents);
+for (const b of document.querySelectorAll(".viewtoggle button")) {
+  b.addEventListener("click", () => { state.view = b.dataset.view; store("view", state.view); render(); });
+}
 $("#lightbox").addEventListener("click", (ev) => { if (ev.target.id === "lightbox") ev.target.close(); });
 load();
