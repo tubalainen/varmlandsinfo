@@ -13,7 +13,8 @@ a { color: var(--accent); }
 .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
 .muted { color: var(--muted); }
 .top { background: var(--accent); color: #fff; padding: 18px 0 12px; margin-bottom: 16px; }
-.top h1 { margin: 0; font-size: 1.6rem; }
+.top h1 { margin: 0; font-size: 1.6rem; display: flex; align-items: center; gap: 12px; }
+.top .logo { width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
 .top .muted { color: #e6f2eb; margin: 4px 0 0; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }

@@ -1,3 +1,5 @@
+<p align="center"><img src="app/static/icons/icon.svg" alt="Värmlandsinfo" width="120"></p>
+
 # Värmlandsinfo
 
 En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland** i datumordning,
@@ -26,6 +28,13 @@ Första datakällan är Visit Värmlands öppna API:
   automatisk uppdatering varje dag (standard 05:00).
 - **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
   utan att API:et anropas i onödan.
+
+## Ikon
+
+Appens ikon är en sol över en våg, inspirerad av Karlstad, "Solstaden", och Vänern. Det är en egen
+design och ingen kopia av Karlstads kommuns logotyp. Källfilen är `app/static/icons/icon.svg`. PNG-filerna
+(favicon, Apple touch-ikon och webbappikoner) är renderade från den. Appen kan läggas till på
+hemskärmen i mobilen.
 
 ## Kom igång
 
@@ -163,6 +172,7 @@ app/
   categories.py    Klassificering och beskrivning av evenemangstyper
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
+  static/icons/    Appens ikon (SVG och PNG i flera storlekar)
 tests/             Tester (pytest)
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile

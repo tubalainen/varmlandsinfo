@@ -16,6 +16,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Skydd för Visit Värmlands API: knappen hämtar högst var 5:e minut, `REFRESH_MINUTES` är minst 30,
   takten anpassas efter API:ets kvot, kommunlistan hämtas en gång per vecka och ett misslyckat
   försök görs om efter 30 minuter (#9)
+- Egen ikon och logga (en sol inspirerad av Solstaden Karlstad), favicon och webbappmanifest så att
+  appen kan läggas till på hemskärmen (#10)
 
 ### Ändrat
 - Containern startar som root bara för att ge `/data` rätt ägare och kör sedan appen som
