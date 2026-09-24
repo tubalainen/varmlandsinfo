@@ -9,7 +9,7 @@
     ["list", "Evenemangslista", "Alla kommande och pågående evenemang, dag för dag. Varje evenemang visar tid, plats med länk till Google Maps, arrangör, typ, beskrivning, bilder och länkar till mer information och biljetter."],
     ["calendar", "Kalender", "En månad i taget med en vecka per rad och veckonummer. Evenemangen är färgkodade per typ. Klicka på en dag för att se alla dagens evenemang."],
     ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Kategorin Gratis visar evenemang med fri entré. Återkommande evenemang kan visas en gång eller för varje tillfälle."],
-    ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska, till exempel \"Vad händer i Karlstad i helgen?\". AI:n väljer ut relevanta evenemang, svarar med länkar och visar vilket underlag svaret bygger på. Följdfrågor fungerar."],
+    ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska. Enkla sökningar, som \"När spelar Färjestad nästa gång?\", besvaras direkt med en lista. Frågor som kräver en bedömning, som \"Vad skulle passa min 8-åriga son i helgen?\", besvaras av AI:n med länkar och underlag. Följdfrågor fungerar."],
     ["layers", "Flera källor", "Evenemang hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång, med länkar till alla källor."],
     ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt en gång per dygn. Källorna anropas sparsamt, och senast uppdaterad visas vid versionen i menyn."],
     ["database", "Sparad data", "Allt som hämtas sparas på servern. Vid omstart visas evenemangen direkt, utan nya anrop till källorna."],
@@ -61,6 +61,7 @@
         el("p", {}, "AI-chatten använder en språkmodell i din egen Ollama-server. För varje fråga tolkar appen tidsuttryck (idag, i helgen, nästa vecka, 3 oktober …), kommuner, evenemangstyper och sökord. Sedan skickar den de mest relevanta evenemangen till modellen, som instrueras att bara svara utifrån dem."),
         el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon molntjänst. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
         el("p", {}, "AI:n svarar bara på frågor om evenemang och aktiviteter i appen och ger personliga rekommendationer, till exempel utifrån barns ålder. Andra frågor får ett fast svar, och försök att ändra AI:ns uppdrag stoppas."),
+        el("p", {}, "Alla frågor behöver inte AI. Frågor som bara söker evenemang (när, var, vilka, vad händer …) besvaras direkt med en sökning bland evenemangen, sorterad efter datum. Det går snabbt och fungerar även utan Ollama. AI:n används när frågan kräver en bedömning: rekommendationer, jämförelser eller personliga önskemål som ålder och intressen."),
         el("p", {}, "Svaren sparas. Ställs samma fråga samma dag och evenemangen inte har ändrats, visas det sparade svaret direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna frågorna."),
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 

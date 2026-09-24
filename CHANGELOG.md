@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Fråga AI besvarar enkla sökfrågor ("När spelar Färjestad nästa gång?", "Vad händer idag?") direkt med en
+  sökning bland evenemangen, i datumordning och utan AI. AI:n används bara för frågor som kräver en bedömning,
+  som rekommendationer och personliga önskemål. Direktsökningen fungerar även utan Ollama (#37)
+
 ## [0.7.0] - 2026-09-24
 
 ### Tillagt

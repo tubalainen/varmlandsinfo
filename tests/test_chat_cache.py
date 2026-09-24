@@ -53,7 +53,7 @@ def test_chat_stream_uses_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(chat, "OLLAMA_MODEL", "m")
     monkeypatch.setattr(chat, "cache", AnswerCache(tmp_path / "c.json"))
 
-    q = chat.QUICK[0]["q"]
+    q = chat.SUGGESTIONS[0]["q"]                                    # en AI-fråga (tips)
     first = collect(chat.chat_stream([{"role": "user", "content": q}], [], date(2026, 9, 24), "v1"))
     assert "".join(e.get("text", "") for e in first) == "Hej där" and len(calls) == 1
     assert chat.normalize_question(q) in chat.cache.presets        # förval sparas alltid
@@ -117,5 +117,24 @@ def test_long_question_rejected(tmp_path, monkeypatch):
 
 def test_normal_answer_streams_after_check(tmp_path, monkeypatch):
     fake_ollama(monkeypatch, tmp_path, ["Här", " är", " tips"])
-    out = collect(chat.chat_stream([{"role": "user", "content": "Vad händer i helgen?"}], [], date(2026, 9, 24), "v"))
+    out = collect(chat.chat_stream([{"role": "user", "content": "Vad skulle passa oss i helgen?"}], [], date(2026, 9, 24), "v"))
     assert out[0]["type"] == "sources" and text_of(out) == "Här är tips" and out[-1] == {"type": "done"}
+
+
+def test_search_questions_are_answered_without_ai(tmp_path, monkeypatch):
+    calls = fake_ollama(monkeypatch, tmp_path, ["hej"])
+    monkeypatch.setattr(chat, "OLLAMA_URL", "")                      # fungerar även utan Ollama
+    evs = [{"title": "Färjestad BK - Rögle BK", "summary": "", "description": "", "organizer": None, "place": {"title": "Löfbergs Arena"},
+            "municipality": "Karlstad", "url": "https://x/fbk", "categories": [{"title": "Sport, motion och hälsa"}],
+            "occasions": [{"date_start": "2026-09-26", "date_end": "2026-09-26", "time_start": "19:00", "time_end": None}]}]
+    out = collect(chat.chat_stream([{"role": "user", "content": "När spelar Färjestad nästa gång?"}], evs, date(2026, 9, 24), "v"))
+    assert out[-1] == {"type": "done", "mode": "search"} and calls == []
+    assert "Färjestad BK - Rögle BK" in text_of(out) and "lör 26 sep kl. 19:00" in text_of(out)
+    assert chat.cache.recent == []                                   # sökningar sparas inte som AI-svar
+
+
+def test_ai_questions_require_ollama(tmp_path, monkeypatch):
+    fake_ollama(monkeypatch, tmp_path, ["hej"])
+    monkeypatch.setattr(chat, "OLLAMA_URL", "")
+    out = collect(chat.chat_stream([{"role": "user", "content": "Vad passar min 8-åriga son i helgen?"}], [], date(2026, 9, 24), "v"))
+    assert out[0]["type"] == "error"

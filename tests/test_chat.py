@@ -116,3 +116,36 @@ def test_system_prompt_delimits_and_cleans_event_data():
     data = prompt.split("<evenemangsdata>")[1]
     assert data.count("</evenemangsdata>") == 1 and "[UTANFÖR]" not in data and "<b>" not in data
     assert chat.OFF_TOPIC in prompt.split("<evenemangsdata>")[0]    # regeln står i instruktionen
+
+
+def test_classify_simple_searches_and_ai_questions():
+    for q in ["När spelar Färjestad nästa gång?", "Vad händer idag?", "Vilka konserter finns i Karlstad i oktober?",
+              "Finns det något med Eva Dahlgren?", "Var spelas Rögle BK?", "Visa loppisar i Arvika"]:
+        assert chat.classify(q) == "search", q
+    for q in ["Vilka evenemang skulle passa min 8-årige son?", "Vad rekommenderar du i helgen?",
+              "Skriv en dikt om hösten", "Hur tar jag mig till Löfbergs Arena?", "Ge mig de bästa tipsen i helgen",
+              "Jämför konserterna i helgen", "och imorgon?"]:
+        assert chat.classify(q) == "ai", q
+    assert chat.classify("Vilka konserter finns " + "i Karlstad " * 20) == "ai"   # långa frågor går till AI
+
+
+def test_search_answer_lists_hits_in_date_order():
+    events = [ev("Färjestad BK - Luleå", "2026-10-02", cat="Sport, motion och hälsa"), ev("Färjestad BK - Rögle BK", "2026-09-26", cat="Sport, motion och hälsa"),
+              ev("Loppis i Arvika", "2026-09-25", municipality="Arvika", cat="Marknad, mässa, auktion och loppis"),
+              ev("Matlagningskurs", "2026-09-25", cat="Mat och dryck")]
+    text, sources = chat.search_answer("När spelar Färjestad nästa gång?", events, THU)
+    assert text.startswith("**Nästa tillfälle:** [Färjestad BK - Rögle BK](")
+    assert "**2 evenemang**" in text and text.index("Rögle") < text.index("Luleå")
+    assert [s["title"] for s in sources] == ["Färjestad BK - Rögle BK", "Färjestad BK - Luleå"]
+
+    text, _ = chat.search_answer("Vilka matcher finns?", events, THU)    # "mat" ska inte träffa "matcher"
+    assert "Matlagningskurs" not in text
+
+    text, sources = chat.search_answer("Vilka konserter finns i Arvika?", events, THU)
+    assert sources == [] and "inga evenemang" in text
+
+
+def test_category_words_are_not_required_as_keywords():
+    events = [ev("Sagostund", "2026-09-26", cat="Barn"), ev("Rockkväll", "2026-09-26")]
+    text, sources = chat.search_answer("Vilka barnaktiviteter finns i helgen?", events, THU)
+    assert [s["title"] for s in sources] == ["Sagostund"]

@@ -75,9 +75,9 @@
     const msg = addMsg("assistant");
     const body = el("div", {},
       el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")),
-        "Den lokala AI-modellen arbetar. Det kan ta en stund …"));
+        "Söker bland evenemangen. Kräver frågan AI kan det ta en stund …"));
     msg.append(body);
-    let answer = "", sources = [], cached = null;
+    let answer = "", sources = [], cached = null, search = false;
 
     try {
       const r = await fetch("/api/chat", {
@@ -100,6 +100,7 @@
           const ev = JSON.parse(line);
           if (ev.type === "sources") sources = ev.events;
           else if (ev.type === "done" && ev.cached) cached = ev;
+          else if (ev.type === "done" && ev.mode === "search") search = true;
           else if (ev.type === "delta") {
             answer += ev.text;
             body.classList.add("typing");   // skrivmarkör medan svaret strömmar in
@@ -122,7 +123,11 @@
         msg.append(el("p", { class: "cached-note" }, icon("database"),
           `Sparat svar${when ? " från " + when : ""}. Evenemangen har inte ändrats sedan dess, så AI:n behövde inte svara igen.`));
       }
-      if (sources.length && !msg.classList.contains("error")) {
+      if (search) {
+        msg.append(el("p", { class: "cached-note" }, icon("search"),
+          "Sökresultat direkt från appen. Frågan gällde att hitta evenemang, så ingen AI behövdes."));
+      }
+      if (sources.length && !search && !msg.classList.contains("error")) {
         msg.append(el("details", { class: "sources" },
           el("summary", {}, `Underlag: ${sources.length} evenemang`),
           el("ul", {}, sources.map((src) => el("li", {}, `${src.date} – `, src.url ? link(src.title, src.url) : src.title)))));

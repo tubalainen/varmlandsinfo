@@ -87,18 +87,23 @@ MONTHS = ["januari", "februari", "mars", "april", "maj", "juni", "juli",
           "augusti", "september", "oktober", "november", "december"]
 
 # Ordstammar som pekar ut en evenemangstyp
+# Ordstammar som pekar ut en evenemangstyp. "$" i slutet betyder exakt ord (korta stammar som annars
+# träffar fel: "mat" i "match", "bil" i "biljett", "lopp" i "loppis", "band" i "bandy").
 CATEGORY_WORDS = {
-    "Musik": ["musik", "konsert", "spelning", "band", "kör", "jazz", "rock", "opera", "sång", "artist"],
-    "Teater och underhållning": ["teater", "revy", "standup", "stand-up", "komik", "show", "föreställning", "underhållning", "musikal", "film", "bio"],
+    "Musik": ["musik", "konsert", "spelning", "band$", "banden$", "kör$", "körer$", "jazz", "rock", "opera", "sång", "artist"],
+    "Teater och underhållning": ["teater", "revy", "standup", "stand-up", "komik", "show", "föreställning", "underhållning",
+                                 "musikal", "film", "bio$"],
     "Dans": ["dans"],
     "Utställning": ["utställning", "konst", "museum", "museer", "galleri", "vernissage"],
     "Föreläsning och workshop": ["föreläsning", "föredrag", "workshop", "kurs", "seminarium", "prova på"],
-    "Sport, motion och hälsa": ["sport", "idrott", "hockey", "fotboll", "match", "lopp", "motion", "hälsa", "yoga", "löpning", "skid", "cykel", "träning"],
-    "Barn": ["barn", "familj", "unga", "ungdom", "kids", "lov"],
+    "Sport, motion och hälsa": ["sport", "idrott", "hockey", "fotboll", "match", "lopp$", "loppet$", "motion", "hälsa", "yoga",
+                                "löpning", "skid", "cykel", "träning"],
+    "Barn": ["barn", "familj", "unga$", "ungdom", "kids", "lov$", "lovet$", "höstlov", "sportlov"],
     "Marknad, mässa, auktion och loppis": ["marknad", "mässa", "auktion", "loppis", "julmarknad", "hantverk"],
-    "Mat och dryck": ["mat", "dryck", "middag", "lunch", "provning", "vin", "öl", "restaurang", "brunch", "fika"],
+    "Mat och dryck": ["mat$", "maten$", "matupplevelse", "dryck", "middag", "lunch", "provning", "vin$", "vinprovning", "öl$",
+                      "restaurang", "brunch", "fika"],
     "Guidning": ["guid", "visning", "rundtur", "vandring"],
-    "Motor": ["motor", "bil", "veteranbil", "mc", "motorcykel", "traktor"],
+    "Motor": ["motor", "bil$", "bilar$", "bilträff", "veteranbil", "mc$", "motorcykel", "traktor"],
     "På vatten": ["båt", "vatten", "paddl", "kanot", "segl"],
     "Gratis": ["gratis", "fri entré", "fritt inträde", "gratisevenemang", "kostnadsfri"],
 }
@@ -110,6 +115,8 @@ mot mycket någon något några när nästa och om oss på sig ska skulle som s�
 vad var vi vilka vilken vilket vill visa värmland värmlands år är åt över evenemang evenemanget händer
 aktivitet aktiviteter aktiviteterna skulle passa passar passande lämplig lämpliga gamla gammal min mitt mina
 son sonen dotter dottern barnen familjen ålder åring åringen nu till för
+spelar spela spelas spelade går pågår gång gången hemma hemmamatch hemmamatcher borta kommande framöver snart
+tillfälle tillfället datum tid tider lista visa sök hitta
 hända hänt helgen helg vecka veckan veckor dag dagar kväll ikväll morgon månad månaden gärna ge någon
 något ngt finns några blir kul roligt göra gör hittar hitta rekommendera förslag the and what where when
 """.split())
@@ -212,6 +219,9 @@ def find_categories(text: str) -> set[str]:
             if " " in stem:
                 if stem in text.lower():
                     found.add(cat)
+            elif stem.endswith("$"):
+                if stem[:-1] in words:
+                    found.add(cat)
             elif any(w.startswith(stem) for w in words):
                 found.add(cat)
     return found
@@ -235,6 +245,11 @@ def keywords(text: str) -> list[str]:
     return [w for w in words if len(w) > 2 and w not in STOPWORDS and w not in WEEKDAYS and w not in MONTHS]
 
 
+def word_hit(k: str, text: str) -> bool:
+    """Sökordet i början av ett ord ("eva" träffar "Eva", inte "leva")."""
+    return re.search(rf"(?<![0-9a-zåäöéü]){re.escape(k)}", text) is not None
+
+
 def _stem(w: str) -> str:
     return w[:6] if len(w) > 6 else w
 
@@ -242,8 +257,11 @@ def _stem(w: str) -> str:
 # ---------------------------------------------------------------- urval av evenemang
 
 def select_events(question: str, events: list[dict], today: date, limit: int = CHAT_MAX_EVENTS,
-                  context: str = "") -> dict:
+                  context: str = "", strict: bool = False) -> dict:
     """Väljer ut de evenemang som är mest relevanta för frågan.
+
+    Med `strict` (direktsökning) krävs efterfrågad evenemangstyp. Annars får AI:n hela urvalet
+    om ingen av typerna finns.
 
     `context` är tidigare frågor i samtalet. Därifrån ärvs datum, kommun och typ
     när följdfrågan inte själv anger dem ("och på söndag då?").
@@ -282,7 +300,7 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
             others = cats - {"Gratis"}
             return not others or bool(titles & others)
         with_cat = [(e, o) for e, o in candidates if ok(e)]
-        if with_cat:
+        if with_cat or strict:
             candidates = with_cat
 
     def kid_bonus(e):
@@ -300,7 +318,7 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
             e.get("summary"), e.get("description"), e.get("organizer"),
             (e.get("place") or {}).get("title"), " ".join(c["title"] for c in e["categories"]),
         ])).lower()
-        return sum(3 * (k in title) + (k in rest) for k in kws) + kid_bonus(e)
+        return sum(3 * word_hit(k, title) + word_hit(k, rest) for k in kws) + kid_bonus(e)
 
     scored = [(score(e), e, occ) for e, occ in candidates]
     if kws and any(s for s, _, _ in scored) and not (cats or munis or date_range or who["kids"]):
@@ -314,9 +332,104 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
         "municipalities": sorted(munis),
         "categories": sorted(cats),
         "audience": who,
+        "keywords": kws,
+        "ranked": scored,              # alla träffar, bäst först (för sökläget)
         "total_matches": len(scored),
         "events": [(e, occ) for _, e, occ in chosen],
     }
+
+
+# ---------------------------------------------------------------- sökning eller AI
+
+LOOKUP_RE = re.compile(
+    r"^(när|var|vilka|vilken|vilket|vad händer|vad finns|vad är det som|finns det|visa|lista|sök|hitta)\b"
+    r"|\b(händer|spelar|spelas|går|pågår|evenemang\w*|konsert\w*|match\w*|föreställning\w*|program\w*|utställning\w*)\b",
+    re.I)
+COMPLEX_RE = re.compile(
+    r"\b(pass(a|ar|ande)|lämplig\w*|rekommend\w*|tips\w*|förslag\w*|föreslå\w*|bäst\w*|borde|skulle|jämför\w*"
+    r"|varför|hur|planera\w*|intressant\w*|roligast\w*|mysig\w*|romantisk\w*|dejt\w*|sammanfatta\w*|berätta"
+    r"|beskriv\w*|värt|prioriter\w*|min|mitt|mina|vi|oss|vår|våra|jag|mig|son|sonen|dotter|dottern)\b", re.I)
+MAX_SEARCH_QUESTION = 120   # längre frågor är sällan rena sökningar
+
+
+def classify(question: str) -> str:
+    """"search" för frågor som bara letar efter evenemang, annars "ai"."""
+    q = (question or "").strip()
+    if len(q) > MAX_SEARCH_QUESTION or COMPLEX_RE.search(q) or audience(q)["ages"]:
+        return "ai"
+    return "search" if LOOKUP_RE.search(q) else "ai"
+
+
+SEARCH_SHOWN = 10
+WEEKDAYS_SHORT = ["mån", "tis", "ons", "tor", "fre", "lör", "sön"]
+MONTHS_SHORT = ["jan", "feb", "mars", "april", "maj", "juni", "juli", "aug", "sep", "okt", "nov", "dec"]
+
+
+def _when(o: dict) -> str:
+    d = date.fromisoformat(o["date_start"])
+    s = f"{WEEKDAYS_SHORT[d.weekday()]} {d.day} {MONTHS_SHORT[d.month - 1]}"
+    if o.get("time_start"):
+        s += f" kl. {o['time_start']}"
+    return s
+
+
+def _md_link(e: dict) -> str:
+    title = re.sub(r"[\[\]]", "", e["title"])
+    return f"[{title}]({e['url']})" if e.get("url") else title
+
+
+def _where(e: dict) -> str:
+    return ", ".join(x for x in [(e.get("place") or {}).get("title"), e.get("municipality")] if x)
+
+
+def search_answer(question: str, events: list[dict], today: date, context: str = "") -> tuple[str, list[dict]]:
+    """Svar direkt från appen: evenemangen som matchar frågan, sorterade på datum."""
+    sel = select_events(question, events, today, limit=10_000, context=context, strict=True)
+    ranked = sel["ranked"]
+    # Ord som redan gav en evenemangstyp ("barnaktiviteter" → Barn) ska inte också krävas som sökord
+    typed = {_stem(w) for w in keywords(question) if find_categories(w)}
+    kws = [k for k in sel["keywords"] if k not in typed]
+    if kws and any(sc > 0 for sc, _, _ in ranked):
+        def title_hits(x):
+            return sum(word_hit(k, x[1]["title"].lower()) for k in kws)
+        most = max(title_hits(x) for x in ranked)
+        if most and not sel["categories"]:
+            # Namnfrågor ("Färjestad", "Eva Dahlgren"): de som har flest sökord i titeln räcker
+            ranked = [x for x in ranked if title_hits(x) == most]
+        else:
+            ranked = [x for x in ranked if x[0] > 0]
+    hits = sorted(ranked, key=lambda x: (x[2][0]["date_start"], x[2][0]["time_start"] or "99", x[1]["title"]))
+    sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]} for _, e, occ in hits[:40]]
+
+    filt = []
+    if sel["date_range"]:
+        lo, hi = sel["date_range"]
+        filt.append(_when({"date_start": lo.isoformat()}) + (f"–{_when({'date_start': hi.isoformat()})}" if hi != lo else ""))
+    if sel["municipalities"]:
+        filt.append("i " + " och ".join(sel["municipalities"]))
+    if sel["categories"]:
+        filt.append("typ " + ", ".join(sel["categories"]).lower())
+    scope = f" ({'; '.join(filt)})" if filt else ""
+
+    if not hits:
+        return (f"Jag hittade inga evenemang som matchar frågan{scope}. Prova en annan tidsperiod eller kommun, "
+                "eller sök i listan under Evenemang."), []
+
+    lines = []
+    first_e, first_occ = hits[0][1], hits[0][2]
+    if re.match(r"^\s*när\b", question, re.I):
+        lines.append(f"**Nästa tillfälle:** {_md_link(first_e)}, {_when(first_occ[0])}"
+                     + (f", {_where(first_e)}" if _where(first_e) else "") + ".")
+        lines.append("")
+    total = len(hits)
+    lines.append(f"**{total} evenemang**{scope}" + (f", de {SEARCH_SHOWN} första:" if total > SEARCH_SHOWN else ":"))
+    for _, e, occ in hits[:SEARCH_SHOWN]:
+        more = f" (+{len(occ) - 1} {'tillfälle' if len(occ) == 2 else 'tillfällen'})" if len(occ) > 1 else ""
+        lines.append(f"- {_md_link(e)}: {_when(occ[0])}{more}" + (f", {_where(e)}" if _where(e) else ""))
+    if total > SEARCH_SHOWN:
+        lines.append("")
+        lines.append(f"…och {total - SEARCH_SHOWN} till. Använd filtren under Evenemang för att se alla.")
+    return "\n".join(lines), sources
 
 
 def _fmt_occ(o: dict) -> str:
@@ -440,12 +553,9 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
                       data_version: str | None = None) -> AsyncIterator[str]:
     """Strömmar svaret som NDJSON: sources, delta …, done eller error.
 
-    Fristående frågor (utan samtalshistorik) besvaras från sparade svar när frågan, dagen, datan och
+    Sökfrågor besvaras direkt av appen (search_answer) utan AI. Övriga frågor går till Ollama.
+    Fristående AI-frågor (utan samtalshistorik) besvaras från sparade svar när frågan, dagen, datan och
     modellen är desamma. Annars ställs frågan till Ollama och svaret sparas."""
-    if not OLLAMA_URL:
-        yield _ndjson({"type": "error", "error": "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i docker-compose.yaml."})
-        return
-
     history = [
         {"role": m["role"], "content": str(m.get("content", ""))[:4000]}
         for m in messages if m.get("role") in ("user", "assistant") and m.get("content")
@@ -464,6 +574,19 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
         yield _ndjson({"type": "delta", "text": REFUSAL})
         yield _ndjson({"type": "done", "refused": True})
         return
+    user_turns = [m["content"] for m in history if m["role"] == "user"]
+    context = " ".join(user_turns[-3:-1])
+    if classify(question) == "search":
+        answer, sources = search_answer(question, events, today, context=context)
+        yield _ndjson({"type": "sources", "events": sources})
+        yield _ndjson({"type": "delta", "text": answer})
+        yield _ndjson({"type": "done", "mode": "search"})
+        return
+    if not OLLAMA_URL:
+        yield _ndjson({"type": "error", "error": "Frågan kräver AI, men AI-chatten är inte konfigurerad. "
+                                                 "Sätt OLLAMA_URL i .env. Enkla sökfrågor som \"Vad händer i helgen?\" "
+                                                 "fungerar ändå."})
+        return
     standalone = len(history) == 1
     ctx = {"day": today.isoformat(), "data": data_version, "model": OLLAMA_MODEL}
     if standalone and cache:
@@ -475,8 +598,7 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
             return
 
     # Följdfrågor ("och på söndag då?") saknar ofta sammanhang, så tidigare frågor tas med i sökningen
-    user_turns = [m["content"] for m in history if m["role"] == "user"]
-    selection = select_events(user_turns[-1], events, today, context=" ".join(user_turns[-3:-1]))
+    selection = select_events(question, events, today, context=context)
     sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]}
                for e, occ in selection["events"]]
 

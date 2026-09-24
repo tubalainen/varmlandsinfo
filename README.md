@@ -44,6 +44,7 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
   fungerar också. Modellen körs lokalt, och sidan informerar om att svaren därför kan ta längre tid än hos
   molntjänster som ChatGPT och Gemini. Svar sparas: samma fråga samma dag, mot samma evenemangsdata, besvaras
   direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna.
+  Enkla sökfrågor ("När spelar Färjestad nästa gång?") besvaras direkt av appen utan AI.
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
 - **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
 - **Version:** versionen syns i menyn och länkar till releasen på GitHub.
@@ -178,6 +179,12 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
   tillfrågas.
 - Evenemangstexterna från källorna skickas som avgränsad data och kan inte ge modellen nya instruktioner.
 - Frågor får vara högst 1000 tecken, och högst 2 frågor körs samtidigt mot Ollama.
+
+**Direktsökning eller AI:** alla frågor behöver inte AI. Frågor som bara letar efter evenemang, som
+"När spelar Färjestad nästa gång?", "Vad händer idag?" eller "Vilka konserter finns i Karlstad i oktober?",
+besvaras direkt av appen: den söker bland evenemangen och listar träffarna i datumordning, med nästa tillfälle
+först för när-frågor. Det går på ett ögonblick och fungerar även utan Ollama. AI:n används när frågan kräver en
+bedömning, till exempel rekommendationer, jämförelser, personliga önskemål ("min son", "vi") eller långa frågor.
 
 **Rekommendationer:** komplexa frågor fungerar, till exempel "Vilka aktiviteter skulle passa för min 8 år gamla
 son i Karlstad nu till helgen?". Ålder och ord som son, dotter och familj tolkas som barn, så barn- och
