@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-24
+
 ### Ändrat
 - Kommun och Källa är flervalslistor, så det går att välja till exempel Karlstad och Hammarö samtidigt. Reglaget
   "Visa varje tillfälle" heter nu "Ett kort per datum" och har en förklarande hjälptext. Filtren får bättre plats
@@ -162,7 +164,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.6.0...v0.7.0
