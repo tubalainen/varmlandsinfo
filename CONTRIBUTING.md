@@ -47,6 +47,9 @@ Flödet `.github/workflows/release.yml` körs vid varje push till `main`. Det g�
   genererade release notes (med de ingående PR:erna),
 - bygger och publicerar det imagen `ghcr.io/tubalainen/varmlandsinfo` med taggarna `X.Y.Z`, `X.Y` och `latest`.
 
+Efter releasen städas repot: inga öppna PR:er ligger kvar, de ingående issues är stängda och mergade
+grenar är borttagna.
+
 En release kan också skapas genom att pusha en tagg (`git tag vX.Y.Z && git push origin vX.Y.Z`) eller
 genom att köra flödet **Release** manuellt under *Actions*.
 

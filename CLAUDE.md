@@ -27,6 +27,14 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
    - Obs: taggar kan inte pushas från Claudes molnmiljö, och manuell körning av flöden nekas. Release
      via merge till `main` är därför vägen. Höj aldrig versionen i vanliga PR:er.
 6. **Ingen `edge`.** Images publiceras bara vid release.
+7. **Städa efter varje release.** När releasen är klar och flödet **Release** är grönt:
+   - inga öppna PR:er ska ligga kvar. Mergade PR:er är stängda, och överblivna eller ersatta PR:er
+     stängs med en kort kommentar om varför
+   - alla issues som ingår i releasen är stängda (`completed`), och övriga inaktuella issues stängs med
+     motivering (`not_planned`)
+   - mergade grenar tas bort. Arbetsgrenen återskapas från `main` vid nästa ändring
+   - inga väntande påminnelser eller PR-bevakningar ligger kvar för releasens PR:er
+   - rapportera kort vad som städats
 
 ## Utveckling
 
