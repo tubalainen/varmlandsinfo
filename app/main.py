@@ -26,10 +26,30 @@ log = logging.getLogger("varmlandsinfo")
 schedule: dict = {"next_refresh": None}
 
 
+def _daily_at(now: datetime) -> datetime:
+    h, m = (int(x) for x in DAILY_REFRESH_TIME.split(":"))
+    return datetime.combine(now.date(), time(h, m), tzinfo=events.TZ)
+
+
+def needs_refresh(updated: str | None, now: datetime) -> bool:
+    """Sparad data räcker om den hämtats efter den senaste schemalagda uppdateringen."""
+    if not updated:
+        return True
+    try:
+        fetched = datetime.fromisoformat(updated)
+    except ValueError:
+        return True
+    last_daily = _daily_at(now)
+    if last_daily > now:
+        last_daily -= timedelta(days=1)
+    if fetched < last_daily:
+        return True
+    return REFRESH_MINUTES > 0 and now - fetched >= timedelta(minutes=REFRESH_MINUTES)
+
+
 def next_run(now: datetime) -> datetime:
     """Nästa schemalagda uppdatering: dagligen vid DAILY_REFRESH_TIME, eventuellt tätare."""
-    h, m = (int(x) for x in DAILY_REFRESH_TIME.split(":"))
-    daily = datetime.combine(now.date(), time(h, m), tzinfo=events.TZ)
+    daily = _daily_at(now)
     if daily <= now:
         daily += timedelta(days=1)
     if REFRESH_MINUTES > 0:
@@ -38,7 +58,11 @@ def next_run(now: datetime) -> datetime:
 
 
 async def scheduler() -> None:
-    await events.refresh()
+    loaded = await asyncio.to_thread(events.load_cache)
+    if not loaded or needs_refresh(events.state["updated"], datetime.now(events.TZ)):
+        await events.refresh()
+    else:
+        log.info("Sparad data är aktuell, ingen hämtning vid start")
     while True:
         target = next_run(datetime.now(events.TZ))
         schedule["next_refresh"] = target.isoformat(timespec="minutes")
@@ -68,6 +92,7 @@ def status() -> dict:
         "refreshing": s["refreshing"],
         "next_refresh": schedule["next_refresh"],
         "error": s["error"],
+        "storage": {"file": str(events.CACHE_FILE), "error": s["storage_error"]},
         "chat": chat.chat_config(),
     }
 

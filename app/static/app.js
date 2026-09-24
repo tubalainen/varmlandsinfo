@@ -52,6 +52,7 @@ function showStatus(data) {
     text = `${data.events.length} aktuella evenemang · uppdaterad ${fmtTime(data.updated)}`;
     if (data.next_refresh) text += ` · nästa automatiska uppdatering ${fmtTime(data.next_refresh)}`;
     if (data.error) text += ` · senaste uppdateringen misslyckades: ${data.error}`;
+    if (data.storage?.error) text += ` · ${data.storage.error}`;
   }
   $("#status").textContent = text;
   $("#version").textContent = data.version ? `v${data.version}` : "";

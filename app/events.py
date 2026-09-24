@@ -2,10 +2,12 @@
 
 import asyncio
 import html
+import json
 import logging
 import os
 import re
 from datetime import date, datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -18,10 +20,14 @@ SITE_BASE = "https://visitvarmland.com"
 PAGE_SIZE = 50  # API:ets maxgräns per sida
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
 USER_AGENT = f"varmlandsinfo/{__version__} (+https://github.com/tubalainen/varmlandsinfo)"
+DATA_DIR = Path(os.getenv("DATA_DIR", "/data"))
+CACHE_FILE = DATA_DIR / "visitvarmland.json"
+CACHE_FORMAT = 1
 
 log = logging.getLogger("varmlandsinfo")
 
-state: dict = {"events": [], "updated": None, "error": None, "municipalities": {}, "refreshing": False}
+state: dict = {"events": [], "updated": None, "error": None, "municipalities": {}, "refreshing": False,
+               "storage_error": None}
 _refresh_task: asyncio.Task | None = None
 
 
@@ -163,20 +169,70 @@ async def fetch_visitvarmland() -> tuple[list[dict], dict[int, str]]:
     return raw, municipalities
 
 
+def apply(raw: list[dict], municipalities: dict[int, str], updated: str) -> int:
+    """Normaliserar rådata och gör den till aktuell data. Returnerar antal aktuella evenemang."""
+    events = [e for e in (normalize(ev, municipalities) for ev in raw) if e]
+    events.sort(key=lambda e: (e["next"]["date_start"], e["next"]["time_start"] or "", e["title"]))
+    state.update(events=events, municipalities=municipalities, updated=updated)
+    return len(events)
+
+
+def save_cache(raw: list[dict], municipalities: dict[int, str], updated: str) -> None:
+    """Sparar rådata atomärt (skriv till temporär fil, byt sedan namn)."""
+    payload = {
+        "format": CACHE_FORMAT,
+        "source": API_BASE,
+        "updated": updated,
+        "app_version": __version__,
+        "municipalities": municipalities,
+        "events": raw,
+    }
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        tmp = CACHE_FILE.with_suffix(".json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, CACHE_FILE)
+        state["storage_error"] = None
+        log.info("Sparade %d evenemang i %s", len(raw), CACHE_FILE)
+    except OSError as exc:
+        state["storage_error"] = f"Kan inte spara till {CACHE_FILE}: {exc}"
+        log.warning("%s (data finns bara i minnet)", state["storage_error"])
+
+
+def load_cache() -> bool:
+    """Läser in sparad data vid start. Returnerar True om det fanns giltig data."""
+    try:
+        with open(CACHE_FILE, encoding="utf-8") as f:
+            payload = json.load(f)
+        if payload.get("format") != CACHE_FORMAT or not isinstance(payload.get("events"), list):
+            log.warning("Okänt format i %s, ignorerar filen", CACHE_FILE)
+            return False
+        municipalities = {int(k): v for k, v in (payload.get("municipalities") or {}).items()}
+        n = apply(payload["events"], municipalities, payload.get("updated"))
+        log.info("Läste in %d evenemang (%d aktuella) från %s, hämtade %s",
+                 len(payload["events"]), n, CACHE_FILE, payload.get("updated"))
+        return True
+    except FileNotFoundError:
+        log.info("Ingen sparad data i %s ännu", CACHE_FILE)
+    except (OSError, ValueError) as exc:
+        log.warning("Kunde inte läsa %s: %s", CACHE_FILE, exc)
+    return False
+
+
 async def _refresh() -> None:
     state["refreshing"] = True
     try:
         raw, municipalities = await fetch_visitvarmland()
-        events = [e for e in (normalize(ev, municipalities) for ev in raw) if e]
-        events.sort(key=lambda e: (e["next"]["date_start"], e["next"]["time_start"] or "", e["title"]))
-        state.update(
-            events=events,
-            municipalities=municipalities,
-            updated=datetime.now(TZ).isoformat(timespec="seconds"),
-            error=None,
-        )
-        log.info("Hämtade %d evenemang (%d aktuella)", len(raw), len(events))
+        updated = datetime.now(TZ).isoformat(timespec="seconds")
+        n = apply(raw, municipalities, updated)
+        state["error"] = None
+        log.info("Hämtade %d evenemang (%d aktuella)", len(raw), n)
+        await asyncio.to_thread(save_cache, raw, municipalities, updated)
     except Exception as exc:
+        # Senast hämtade (eller sparade) data ligger kvar
         log.exception("Uppdatering misslyckades")
         state["error"] = str(exc)
     finally:

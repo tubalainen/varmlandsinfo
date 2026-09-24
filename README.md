@@ -21,6 +21,8 @@ Första datakällan är Visit Värmlands öppna API:
   fungerar också.
 - **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
   automatisk uppdatering varje dag (standard 05:00).
+- **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
+  utan att API:et anropas i onödan.
 
 ## Kom igång
 
@@ -39,6 +41,7 @@ docker compose up -d
 Vill du bygga imagen själv i stället: `docker compose up -d --build`.
 
 Första hämtningen tar ungefär 10–30 sekunder, eftersom API:et ger max 50 evenemang per sida.
+Därefter sparas datan och laddas direkt vid omstart.
 
 ### Köra en viss version
 
@@ -61,7 +64,29 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
 | `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
 | `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av). |
+| `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
+| `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
+
+## Lagring av data
+
+Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./data` bredvid
+`docker-compose.yaml`. Katalogen monteras som volym till `/data` i containern och skapas automatiskt.
+
+| Fil                        | Innehåll |
+|----------------------------|----------|
+| `data/visitvarmland.json`  | Rådata från API:et (alla evenemang och kommuner) samt tidpunkt för hämtningen. |
+
+- **Vid start** läses filen in och evenemangen visas direkt. API:et anropas bara om datan är äldre än
+  den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
+- **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
+  en krasch inte lämnar en trasig fil.
+- **Om en hämtning misslyckas** behålls senast sparade data.
+- Eftersom rådata sparas kan en ny version av appen tolka om den utan att hämta allt på nytt.
+- Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
+  och sätt dem i `.env`.
+- Vill du lägga datan någon annanstans sätter du `VARMLANDSINFO_DATA`, till exempel `/srv/varmlandsinfo`.
+- Radera `data/visitvarmland.json` för att tvinga fram en helt ny hämtning vid nästa start.
 
 ## AI-chatt med Ollama
 
@@ -91,7 +116,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
-| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering. |
+| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering, lagringsstatus. |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
 | POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
@@ -122,6 +147,8 @@ app/
 tests/             Tester (pytest)
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile
+docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID
 docker-compose.yaml
 .env.example
+data/                 Sparad data (skapas vid körning, ingår inte i git)
 ```

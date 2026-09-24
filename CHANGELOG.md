@@ -6,6 +6,15 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Hämtad data sparas utanför containern i `./data` (volym `/data`). Vid omstart laddas den direkt
+  och API:et anropas bara när datan är inaktuell (#7)
+- `PUID`/`PGID` styr vem som äger filerna i datakatalogen (#7)
+
+### Ändrat
+- Containern startar som root bara för att ge `/data` rätt ägare och kör sedan appen som
+  `PUID:PGID` (tidigare en fast användare med uid 10001) (#7)
+
 ## [0.0.1] - 2026-09-24
 
 Första releasen.
