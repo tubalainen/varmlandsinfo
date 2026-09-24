@@ -72,6 +72,7 @@ async function load() {
     state.events = data.events;
     state.today = data.today;
     state.chat = data.chat;
+    state.sources = data.sources;
     showStatus(data);
     if (!data.events.length) setTimeout(load, 5000);
     $("#from").min = state.today;
@@ -109,6 +110,18 @@ function buildFilters() {
   sel.replaceChildren(el("option", { value: "" }, "Alla kommuner"), ...munis.map((m) => el("option", { value: m }, m)));
   sel.value = cur;
 
+  const srcSel = $("#source");
+  const curSrc = srcSel.value;
+  const srcNames = [...new Set(state.events.flatMap((e) => e.sources.map((x) => x.name)))].sort((a, b) => a.localeCompare(b, "sv"));
+  srcSel.replaceChildren(el("option", { value: "" }, "Alla källor"), ...srcNames.map((m) => el("option", { value: m }, m)));
+  srcSel.value = curSrc;
+  $("#sources").replaceChildren(...Object.values(state.sources || {}).flatMap((x, i) => [
+    i ? ", " : "",
+    el("a", { href: x.homepage, target: "_blank", rel: "noopener",
+      title: x.error || x.config_error || `Senast hämtad ${fmtTime(x.updated)}` }, x.title),
+    x.enabled ? (x.error ? " (fel)" : ` (${x.count})`) : " (avstängd)",
+  ]));
+
   const counts = new Map();
   for (const e of state.events) for (const c of e.categories) {
     const x = counts.get(c.title) || { ...c, n: 0 };
@@ -129,6 +142,8 @@ function buildFilters() {
 
 function matches(e, q, muni) {
   if (muni && e.municipality !== muni) return false;
+  const src = $("#source").value;
+  if (src && !e.sources.some((s) => s.name === src)) return false;
   if (state.cats.size && !e.categories.some((c) => state.cats.has(c.title))) return false;
   if (q) {
     const hay = [e.title, e.summary, e.description, e.organizer, e.municipality, e.place?.title, e.place?.address,
@@ -202,7 +217,8 @@ function card(e, o, occ, expand) {
       el("div", { class: "meta" },
         el("span", {}, "🕒 ", timeText(o)),
         where ? el("span", {}, "📍 ", mapUrl ? el("a", { href: mapUrl, target: "_blank", rel: "noopener" }, where) : where) : null,
-        e.organizer ? el("span", {}, "👤 ", e.organizer) : null),
+        e.organizer ? el("span", {}, "👤 ", e.organizer) : null,
+        el("span", { class: "src" }, "Källa: ", e.sources.map((x) => x.name).join(", "))),
       el("div", { class: "badges" }, cats.map((c) => el("span", { class: "badge", style: `--c:${c.color}`, title: c.description }, `${c.icon} ${c.title}`))),
       el("p", { class: "typedesc" }, cats.map((c) => c.description).join(" ")),
       e.summary ? el("p", { class: "summary" }, e.summary) : null,
@@ -216,15 +232,17 @@ function card(e, o, occ, expand) {
         el("div", { class: "thumbs" }, e.images.map((i) => el("img", { src: i.small, alt: i.alt, loading: "lazy", onclick: () => openImage(i) })))) : null,
       el("div", { class: "links" },
         e.url ? el("a", { href: e.url, target: "_blank", rel: "noopener" }, "Mer information ↗") : null,
+        e.sources.filter((x) => x.url && x.url !== e.url).map((x) =>
+          el("a", { href: x.url, target: "_blank", rel: "noopener" }, `${x.name} ↗`)),
         e.booking_link ? el("a", { href: e.booking_link, target: "_blank", rel: "noopener" }, "Biljetter ↗") : null,
         e.website_link ? el("a", { href: e.website_link, target: "_blank", rel: "noopener" }, "Webbplats ↗") : null)));
 }
 
 let t;
 $("#q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 150); });
-for (const id of ["#municipality", "#from", "#to", "#expand"]) $(id).addEventListener("change", render);
+for (const id of ["#municipality", "#source", "#from", "#to", "#expand"]) $(id).addEventListener("change", render);
 $("#reset").addEventListener("click", () => {
-  $("#q").value = ""; $("#municipality").value = ""; $("#from").value = ""; $("#to").value = "";
+  $("#q").value = ""; $("#municipality").value = ""; $("#source").value = ""; $("#from").value = ""; $("#to").value = "";
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
 $("#refresh").addEventListener("click", refreshEvents);

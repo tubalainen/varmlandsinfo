@@ -43,12 +43,19 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
 - Inställningar finns i `.env` (mall: `.env.example`). Nya inställningar ska in i `.env.example`,
   `docker-compose.yaml` och README.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
-- Var snäll mot Visit Värmlands API (60 anrop/minut, cirka 15 anrop per full hämtning).
-  Hämta inte oftare än nödvändigt, varken i appen eller under utveckling.
+- Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
+  CCC och Scalateatern är vanliga webbplatser). Hämta inte oftare än nödvändigt, varken i appen
+  eller under utveckling.
+- Nycklar (t.ex. `TICKETMASTER_API_KEY`) får aldrig loggas eller synas i felmeddelanden. httpx-loggningen
+  är därför avstängd.
 
 ## Struktur
 
-- `app/events.py`: hämtning, normalisering och lagring (`/data/visitvarmland.json`)
+- `app/sources/`: en modul per källa med `fetch()` (rådata) och `normalize()` (appens format).
+  Ordningen i `sources/__init__.py` är prioritet vid sammanslagning
+- `app/events.py`: hämtning, lagring (`/data/<källa>.json`) och status per källa
+- `app/merge.py`: sammanslagning av samma evenemang från flera källor
+- `app/common.py`: HTTP med rate limit (felmeddelanden utan frågesträng, alltså utan API-nycklar)
 - `app/chat.py`: urval av evenemang och Ollama-anrop
 - `app/main.py`: FastAPI-rutter och schemaläggning
 - `app/static/`: gränssnittet (`app.js` lista, `calendar.js` kalender, `chat.js` chatt)

@@ -155,3 +155,5 @@ body.cal-mode .list-only { display: none; }
   .cal-more { font-size: .65rem; padding: 0; }
   .cal-head h2 { min-width: 0; font-size: 1.05rem; }
 }
+
+.meta .src { font-size: .8rem; }

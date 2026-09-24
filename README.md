@@ -5,8 +5,19 @@
 En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland** i datumordning,
 med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 
-Första datakällan är Visit Värmlands öppna API:
-<https://turid.visitvarmland.com/api/v8/events>
+Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
+med länkar till alla källor.
+
+| Källa | Hur | Vad |
+|-------|-----|-----|
+| [Visit Värmland](https://visitvarmland.com/evenemang) | Öppet API (Turid v8) | Evenemang i hela Värmland. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar, som visar ett urval ur samma API. |
+| [Ticketmaster](https://www.ticketmaster.se) | Discovery API v2 (kräver API-nyckel) | Konserter, shower och sport på arenor i Värmland. |
+| [Karlstad CCC](https://www.karlstadccc.se/17/38/program-biljetter/) | Kalendersidan (HTML) | Konserter och shower i Solasalen. |
+| [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
+| [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
+
+CCC och Scalateatern saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
+hittas, behålls senast sparade data och felet visas i sidfoten och i `/api/health`.
 
 ## Funktioner
 
@@ -18,7 +29,8 @@ Första datakällan är Visit Värmlands öppna API:
 - **Kalendervy:** växla mellan *Lista* och *Kalender*. Kalendern visar en månad med en vecka per rad
   (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
   dagens evenemang med bilder och länkar.
-- **Filter:** fritextsök, kategori, kommun och datumintervall, samt "Visa varje tillfälle"
+- **Källor:** varje evenemang visar sina källor och har länkar till dem. Det finns ett filter per källa.
+- **Filter:** fritextsök, kategori, kommun, källa och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
 - **AI-chatt:** knappen *Fråga AI* öppnar en chatt kopplad till din egen Ollama. Ställ frågor som
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
@@ -69,6 +81,9 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 |----------------------|--------------------|-------------|
 | `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
 | `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.0.1`). |
+| `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
+| `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
+| `SHL_TEAM_CODE`      | `FBK`              | Lag vars hemmamatcher hämtas från SHL. |
 | `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI-chatten är avstängd. |
 | `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
@@ -79,21 +94,28 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
 
-## Hur API:et anropas
+## Hur källorna anropas
 
-Visit Värmlands API saknar stöd för att bara hämta ändringar och ger högst 50 evenemang per sida.
-En hämtning är därför cirka 15 anrop (en per sida). Kommunlistan hämtas bara en gång i veckan.
-API:et tillåter 60 anrop per minut, och appen är byggd för att hålla sig långt under det:
+Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En normal dag blir det ungefär:
 
-- **Normalt:** en hämtning per dygn (`DAILY_REFRESH_TIME`), alltså cirka 15 anrop per dag.
-- **Vid start** används sparad data, och API:et anropas bara om datan är inaktuell.
+| Källa | Anrop | Kommentar |
+|-------|-------|-----------|
+| Visit Värmland | cirka 15 | Max 50 evenemang per sida. Kommunlistan hämtas en gång i veckan. Gräns: 60 anrop/minut. |
+| Ticketmaster | 1–5 | 200 evenemang per sida. Gräns: 5 anrop/sekund, 5000 per dygn. |
+| Karlstad CCC | 1 | En kalendersida. |
+| Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
+| SHL | 2 | Säsongsfilter och spelschema. |
+
+Skydden gäller alla källor:
+
+- **Vid start** används sparad data, och bara källor vars data är inaktuell hämtas.
 - **Knappen** *Uppdatera evenemang* hämtar inte om datan är yngre än 5 minuter.
-- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter. Lägre värden höjs till 30.
-- **Om API:et svarar `429 Too Many Requests`** väntar appen enligt `Retry-After` och ger upp efter
-  några försök. Är kvoten nästan slut pausar hämtningen i en minut.
-- **Om en hämtning misslyckas** görs ett nytt försök efter 30 minuter. Under tiden visas senast
-  sparade data.
-- Antalet anrop sedan start syns som `api_calls` i `/api/health`.
+- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
+- **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
+  slut pausar hämtningen.
+- **Om en källa fallerar** behålls dess senast sparade data. Bara den källan försöks igen efter 30 minuter.
+- **Anrop:** antalet anrop sedan start syns som `api_calls` i `/api/health`, och status per källa under `sources`.
+- **API-nycklar** loggas aldrig och syns aldrig i felmeddelanden.
 
 ## Lagring av data
 
@@ -102,10 +124,14 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
 
 | Fil                        | Innehåll |
 |----------------------------|----------|
-| `data/visitvarmland.json`  | Rådata från API:et (alla evenemang och kommuner) samt tidpunkt för hämtningen. |
+| `data/visitvarmland.json`  | Rådata från Visit Värmland (evenemang och kommuner). |
+| `data/ticketmaster.json`   | Rådata från Ticketmaster (evenemang i Värmland). |
+| `data/ccc.json`            | Karlstad CCC:s kalendersida. |
+| `data/scala.json`          | Scalateaterns föreställningslistor. |
+| `data/shl.json`            | Lagets hemmamatcher från SHL. |
 
-- **Vid start** läses filen in och evenemangen visas direkt. API:et anropas bara om datan är äldre än
-  den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
+- **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
+  äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
 - **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
   en krasch inte lämnar en trasig fil.
 - **Om en hämtning misslyckas** behålls senast sparade data.
@@ -113,7 +139,7 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
 - Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
   och sätt dem i `.env`.
 - Vill du lägga datan någon annanstans sätter du `VARMLANDSINFO_DATA`, till exempel `/srv/varmlandsinfo`.
-- Radera `data/visitvarmland.json` för att tvinga fram en helt ny hämtning vid nästa start.
+- Radera en fil för att tvinga fram en ny hämtning av den källan vid nästa start.
 
 ## AI-chatt med Ollama
 
@@ -143,7 +169,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
-| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering, lagringsstatus. |
+| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
 | POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
@@ -169,7 +195,10 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 ```
 app/
   main.py          FastAPI-server, API och schemaläggning
-  events.py        Hämtning och normalisering av evenemang från Visit Värmland
+  events.py        Hämtning, lagring och sammanslagning av alla källor
+  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl)
+  merge.py         Sammanslagning av samma evenemang från flera källor
+  common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
   chat.py          AI-chatt: urval av evenemang och anrop till Ollama
   categories.py    Klassificering och beskrivning av evenemangstyper
   version.py       Versionsnummer

@@ -33,6 +33,7 @@
     </div>
     <input id="q" type="search" placeholder="Sök titel, plats, arrangör …" autocomplete="off">
     <select id="municipality"><option value="">Alla kommuner</option></select>
+    <select id="source"><option value="">Alla källor</option></select>
     <label class="list-only">Från <input id="from" type="date"></label>
     <label class="list-only">Till <input id="to" type="date"></label>
     <label class="check list-only"><input id="expand" type="checkbox"> Visa varje tillfälle</label>
@@ -74,7 +75,7 @@
   </form>
 </aside>
 
-<footer class="wrap muted">Källa: <a href="https://visitvarmland.com/evenemang" target="_blank" rel="noopener">Visit Värmland</a> (turid.visitvarmland.com) · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a> <span id="version"></span></footer>
+<footer class="wrap muted">Källor: <span id="sources"></span> · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a> <span id="version"></span></footer>
 <script src="/static/app.js"></script>
 <script src="/static/calendar.js"></script>
 <script src="/static/chat.js"></script>

@@ -255,6 +255,9 @@ def format_event(e: dict, occ: list[dict]) -> str:
         lines.append(f"- Beskrivning: {desc}")
     if e.get("url"):
         lines.append(f"- Länk: {e['url']}")
+    others = [s for s in e.get("sources") or [] if s.get("url") and s.get("url") != e.get("url")]
+    for s in others:
+        lines.append(f"- Även hos {s['name']}: {s['url']}")
     if e.get("booking_link"):
         lines.append(f"- Biljetter: {e['booking_link']}")
     return "\n".join(lines)

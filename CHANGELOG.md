@@ -6,6 +6,19 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Stöd för flera evenemangskällor. Samma evenemang från flera källor slås ihop till ett, med länkar
+  till alla källor. Status per källa och ett källfilter i gränssnittet (#16)
+- Ticketmaster som källa (kräver `TICKETMASTER_API_KEY`) (#17)
+- Färjestads hemmamatcher från SHL:s spelschema, med exakta tider (#18)
+- Karlstad CCC som källa (#20)
+- Scalateatern som källa (#21)
+
+### Ändrat
+- Karlstads och Hammarö kommuns evenemangskalendrar täcks av Visit Värmland, som de hämtar sina
+  evenemang från (#19)
+- Rådata sparas per källa i `data/`. Befintlig `visitvarmland.json` läses utan ny hämtning (#16)
+
 ## [0.0.2] - 2026-09-24
 
 ### Ändrat

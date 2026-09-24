@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 import chat
 import events
+from common import TZ, stats
 from version import __version__
 
 DAILY_REFRESH_TIME = os.getenv("DAILY_REFRESH_TIME", "05:00")
@@ -22,6 +23,8 @@ RETRY_AFTER_FAILURE = timedelta(minutes=30)
 STATIC_DIR = Path(__file__).parent / "static"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+# httpx loggar hela URL:en inklusive frågesträngen, där API-nycklar kan finnas
+logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("varmlandsinfo")
 
 
@@ -45,7 +48,7 @@ schedule: dict = {"next_refresh": None}
 
 def _daily_at(now: datetime) -> datetime:
     h, m = (int(x) for x in DAILY_REFRESH_TIME.split(":"))
-    return datetime.combine(now.date(), time(h, m), tzinfo=events.TZ)
+    return datetime.combine(now.date(), time(h, m), tzinfo=TZ)
 
 
 def needs_refresh(updated: str | None, now: datetime) -> bool:
@@ -75,21 +78,27 @@ def next_run(now: datetime) -> datetime:
 
 
 async def scheduler() -> None:
-    loaded = await asyncio.to_thread(events.load_cache)
-    if not loaded or needs_refresh(events.state["updated"], datetime.now(events.TZ)):
-        await events.refresh()
+    await asyncio.to_thread(events.load_cache)
+    now = datetime.now(TZ)
+    stale = events.stale_sources(lambda updated: needs_refresh(updated, now))
+    if stale:
+        log.info("Hämtar vid start: %s", ", ".join(stale))
+        await events.refresh(stale)
     else:
         log.info("Sparad data är aktuell, ingen hämtning vid start")
     while True:
-        now = datetime.now(events.TZ)
+        now = datetime.now(TZ)
         target = next_run(now)
-        if events.state["error"]:
-            # Misslyckad hämtning: försök igen om en stund i stället för att vänta ett dygn
-            target = min(target, now + RETRY_AFTER_FAILURE)
+        failed = [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"]]
+        retry = bool(failed) and now + RETRY_AFTER_FAILURE < target
+        if retry:
+            # Misslyckad hämtning: försök igen om en stund med bara de källor som fallerade
+            target = now + RETRY_AFTER_FAILURE
         schedule["next_refresh"] = target.isoformat(timespec="minutes")
-        log.info("Nästa schemalagda uppdatering: %s", schedule["next_refresh"])
-        await asyncio.sleep(max(1, (target - datetime.now(events.TZ)).total_seconds()))
-        await events.refresh()
+        log.info("Nästa schemalagda uppdatering: %s%s", schedule["next_refresh"],
+                 f" (nytt försök: {', '.join(failed)})" if retry else "")
+        await asyncio.sleep(max(1, (target - datetime.now(TZ)).total_seconds()))
+        await events.refresh(failed if retry else None)
 
 
 @asynccontextmanager
@@ -113,8 +122,9 @@ def status() -> dict:
         "refreshing": s["refreshing"],
         "next_refresh": schedule["next_refresh"],
         "error": s["error"],
-        "api_calls": s["api_calls"],
-        "storage": {"file": str(events.CACHE_FILE), "error": s["storage_error"]},
+        "api_calls": stats["api_calls"],
+        "sources": s["sources"],
+        "storage": {"dir": str(events.DATA_DIR), "error": s["storage_error"]},
         "chat": chat.chat_config(),
     }
 
