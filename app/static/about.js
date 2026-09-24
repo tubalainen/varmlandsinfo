@@ -10,7 +10,7 @@
     ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Kategorin Gratis visar evenemang med fri entré. Återkommande evenemang kan visas en gång eller för varje tillfälle."],
     ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska, till exempel \"Vad händer i Karlstad i helgen?\". AI:n väljer ut relevanta evenemang, svarar med länkar och visar vilket underlag svaret bygger på. Följdfrågor fungerar."],
     ["layers", "Flera källor", "Evenemang hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång, med länkar till alla källor."],
-    ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt en gång per dygn och kan uppdateras med knappen i menyn. Källorna anropas sparsamt."],
+    ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt en gång per dygn. Källorna anropas sparsamt, och senast uppdaterad visas vid versionen i menyn."],
     ["database", "Sparad data", "Allt som hämtas sparas på servern. Vid omstart visas evenemangen direkt, utan nya anrop till källorna."],
     ["shield", "Lokalt och privat", "Appen körs hemma i Docker. AI-chatten använder en egen Ollama-server, så frågorna lämnar aldrig ditt nätverk."],
   ];
@@ -58,6 +58,7 @@
 
       section("message", "AI-chatten",
         el("p", {}, "AI-chatten använder en språkmodell i din egen Ollama-server. För varje fråga tolkar appen tidsuttryck (idag, i helgen, nästa vecka, 3 oktober …), kommuner, evenemangstyper och sökord. Sedan skickar den de mest relevanta evenemangen till modellen, som instrueras att bara svara utifrån dem."),
+        el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon molntjänst. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 
       section("code", "Version och källkod",

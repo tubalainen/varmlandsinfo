@@ -88,7 +88,9 @@
     history.push({ role: "user", content: question });
     addMsg("user", question);
     const msg = addMsg("assistant");
-    const body = el("div", { class: "typing" });
+    const body = el("div", {},
+      el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")),
+        "Den lokala AI-modellen arbetar. Det kan ta en stund …"));
     msg.append(body);
     let answer = "", sources = [];
 
@@ -112,7 +114,12 @@
           if (!line.trim()) continue;
           const ev = JSON.parse(line);
           if (ev.type === "sources") sources = ev.events;
-          else if (ev.type === "delta") { answer += ev.text; renderMarkdown(body, answer); log.scrollTop = log.scrollHeight; }
+          else if (ev.type === "delta") {
+            answer += ev.text;
+            body.classList.add("typing");   // skrivmarkör medan svaret strömmar in
+            renderMarkdown(body, answer);
+            log.scrollTop = log.scrollHeight;
+          }
           else if (ev.type === "error") throw new Error(ev.error);
         }
       }

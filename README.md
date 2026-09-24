@@ -40,12 +40,13 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
 - **AI-chatt:** sidan *Fråga AI* har förslagskort och snabbval och är kopplad till din egen Ollama. Ställ frågor som
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
   länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
-  fungerar också.
+  fungerar också. Modellen körs lokalt, och sidan informerar om att svaren därför kan ta längre tid än hos
+  molntjänster som ChatGPT och Gemini.
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
 - **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
 - **Version:** versionen syns i menyn och länkar till releasen på GitHub.
-- **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
-  automatisk uppdatering varje dag (standard 05:00).
+- **Uppdatering:** evenemangen hämtas automatiskt en gång per dygn (standard 05:00). Vill du uppdatera
+  direkt anropar du `POST /api/refresh`, till exempel `curl -X POST http://localhost:7799/api/refresh`.
 - **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
   utan att API:et anropas i onödan.
 
@@ -117,7 +118,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 Skydden gäller alla källor:
 
 - **Vid start** används sparad data, och bara källor vars data är inaktuell hämtas.
-- **Knappen** *Uppdatera evenemang* hämtar inte om datan är yngre än 5 minuter.
+- **`POST /api/refresh`** hämtar inte om datan är yngre än 5 minuter.
 - **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
 - **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
   slut pausar hämtningen.

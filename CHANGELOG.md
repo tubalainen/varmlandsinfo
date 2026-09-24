@@ -6,6 +6,15 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Fråga AI informerar om att AI:n körs lokalt och att svaren kan ta längre tid än hos molntjänster som
+  ChatGPT och Gemini. Ett vänteläge visas tills svaret börjar komma (#32)
+- CI kontrollerar syntaxen i gränssnittets JavaScript (#31)
+
+### Borttaget
+- Knappen *Uppdatera evenemang* i menyn. Den dagliga uppdateringen finns kvar, och en manuell uppdatering
+  görs med `POST /api/refresh` (#31)
+
 ## [0.4.0] - 2026-09-24
 
 ### Ändrat

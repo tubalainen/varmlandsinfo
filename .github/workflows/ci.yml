@@ -18,3 +18,5 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m compileall -q app
       - run: python -m pytest -q tests
+      - name: Syntaxkontroll av gränssnittets JavaScript
+        run: for f in app/static/*.js tools/*.mjs; do node --check "$f"; done

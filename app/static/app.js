@@ -109,7 +109,7 @@ const fmtUpdated = (iso) => {
 };
 
 let statusTimer;
-/** Tillfälligt meddelande under uppdateringsknappen. Försvinner av sig självt om clearAfter anges. */
+/** Meddelande i menyn (t.ex. fel vid hämtning). Försvinner av sig självt om clearAfter anges. */
 function flash(text, clearAfter = 0) {
   clearTimeout(statusTimer);
   $("#status").textContent = text;
@@ -121,7 +121,7 @@ function showStatus(data) {
   if (data.refreshing && !data.events.length) flash("Hämtar evenemang … (laddar om strax)");
   else if (!data.events.length && data.error) flash(`Kunde inte hämta: ${data.error}`);
   else if (data.storage?.error) flash(data.storage.error);
-  else if (!$("#refresh").disabled) flash("");
+  else flash("");
   const upd = $("#updated");
   upd.textContent = data.updated ? `uppdaterad ${fmtUpdated(data.updated)}` : "";
   upd.title = data.updated ? `Evenemangen hämtades senast ${fmtTime(data.updated)}` : "";
@@ -161,27 +161,6 @@ async function load() {
   } catch (e) {
     flash("Fel vid hämtning: " + e);
     setTimeout(load, 10000);
-  }
-}
-
-async function refreshEvents() {
-  const btn = $("#refresh");
-  const label = btn.querySelector(".label");
-  btn.disabled = true;
-  label.textContent = "Uppdaterar …";
-  flash("Hämtar evenemang från alla källor …");
-  try {
-    const r = await fetch("/api/refresh", { method: "POST" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const res = await r.json();
-    btn.disabled = false;
-    await load();
-    flash(res.message || "Evenemangen är uppdaterade.", 8000);
-  } catch (e) {
-    flash("Uppdateringen misslyckades: " + e.message);
-  } finally {
-    btn.disabled = false;
-    label.textContent = "Uppdatera evenemang";
   }
 }
 
@@ -361,7 +340,6 @@ $("#reset").addEventListener("click", () => {
   $("#custom-dates").hidden = true;
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
-$("#refresh").addEventListener("click", refreshEvents);
 $("#nav-open").addEventListener("click", () => setNav(true));
 $("#nav-close").addEventListener("click", () => setNav(false));
 $("#scrim").addEventListener("click", () => setNav(false));

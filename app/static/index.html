@@ -34,10 +34,7 @@
       <a href="#/om" data-route="om"><span data-icon="info"></span><span class="label">Om applikationen</span></a>
     </nav>
 
-    <div class="side-block">
-      <button id="refresh" type="button" class="btn btn-side"><span data-icon="refresh"></span><span class="label">Uppdatera evenemang</span></button>
-      <p id="status" class="side-status" aria-live="polite"></p>
-    </div>
+    <p id="status" class="side-status" aria-live="polite"></p>
 
     <div class="side-title">Källor</div>
     <ul id="sources" class="source-list"></ul>
@@ -119,6 +116,15 @@
           <h2>Vad vill du veta om evenemangen i Värmland?</h2>
           <p>Ställ frågor på vanlig svenska. AI:n söker bland alla evenemang, sammanställer svaret och länkar
             till evenemangen den bygger på.</p>
+          <div class="notice" role="note">
+            <span data-icon="shield"></span>
+            <div>
+              <strong>AI:n körs lokalt</strong>
+              <p>Dina frågor besvaras av en AI-modell i ditt eget nätverk och skickas inte till någon molntjänst.
+                Därför kan det ta lite längre tid att få svar än med molntjänster som ChatGPT och Gemini. Vänta gärna
+                en stund efter att du har ställt frågan.</p>
+            </div>
+          </div>
           <div id="suggestions" class="suggestions"></div>
         </div>
       </div>
@@ -129,7 +135,8 @@
           <textarea id="chat-input" rows="1" placeholder="Ställ en fråga om evenemangen … (Enter för att skicka, Shift+Enter för ny rad)" required aria-label="Fråga"></textarea>
           <button type="submit" class="send" aria-label="Skicka"><span data-icon="send"></span></button>
         </form>
-        <p class="fineprint">Svaren genereras lokalt av Ollama utifrån de evenemang som appen har hämtat.</p>
+        <p class="fineprint">Svaren genereras lokalt av Ollama utifrån de evenemang som appen har hämtat och kan ta
+          längre tid än hos molntjänster som ChatGPT och Gemini.</p>
       </div>
     </section>
 
