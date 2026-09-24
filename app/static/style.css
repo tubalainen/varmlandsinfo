@@ -99,6 +99,23 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--line) 60%, va
 .src-count.off { background: #2a3547; color: #cbd5e1; font-weight: 600; }
 .src-count.err { background: #5b1d1d; color: #fecaca; }
 
+.side-toggle { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px;
+               border: 0; background: transparent; color: var(--side-muted); font: inherit; font-size: .88rem; cursor: pointer; }
+.side-toggle:hover { background: var(--side-hover); color: var(--side-text); }
+
+/* Ihopfälld meny på datorn: en smal list med logga och ikoner */
+@media (min-width: 901px) {
+  .sidebar { transition: width .18s ease, padding .18s ease; }
+  body.side-collapsed .sidebar { width: 72px; padding: 18px 10px; }
+  body.side-collapsed .brand { justify-content: center; padding: 4px 0 14px; }
+  body.side-collapsed .brand-text, body.side-collapsed .nav .label, body.side-collapsed .pill,
+  body.side-collapsed .side-title, body.side-collapsed .source-list, body.side-collapsed .side-status,
+  body.side-collapsed .side-toggle .label { display: none; }
+  body.side-collapsed .nav a, body.side-collapsed .side-toggle { justify-content: center; padding: 11px 0; }
+  body.side-collapsed .side-toggle .ico { transform: scaleX(-1); }
+}
+@media (max-width: 900px) { .side-toggle { display: none; } }
+
 .main { flex: 1; min-width: 0; }
 .view { max-width: 1120px; margin: 0 auto; padding: 26px 28px 40px; }
 .mobilebar { display: none; }

@@ -5,6 +5,7 @@
   const REPO = "https://github.com/tubalainen/varmlandsinfo";
 
   const FEATURES = [
+    ["panel", "Anpassningsbar meny", "På datorn kan menyn fällas ihop till en smal list med ikoner för mer plats. Valet sparas till nästa besök."],
     ["list", "Evenemangslista", "Alla kommande och pågående evenemang, dag för dag. Varje evenemang visar tid, plats med länk till Google Maps, arrangör, typ, beskrivning, bilder och länkar till mer information och biljetter."],
     ["calendar", "Kalender", "En månad i taget med en vecka per rad och veckonummer. Evenemangen är färgkodade per typ. Klicka på en dag för att se alla dagens evenemang."],
     ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Kategorin Gratis visar evenemang med fri entré. Återkommande evenemang kan visas en gång eller för varje tillfälle."],
@@ -59,6 +60,7 @@
       section("message", "AI-chatten",
         el("p", {}, "AI-chatten använder en språkmodell i din egen Ollama-server. För varje fråga tolkar appen tidsuttryck (idag, i helgen, nästa vecka, 3 oktober …), kommuner, evenemangstyper och sökord. Sedan skickar den de mest relevanta evenemangen till modellen, som instrueras att bara svara utifrån dem."),
         el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon molntjänst. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
+        el("p", {}, "AI:n svarar bara på frågor om evenemang och aktiviteter i appen och ger personliga rekommendationer, till exempel utifrån barns ålder. Andra frågor får ett fast svar, och försök att ändra AI:ns uppdrag stoppas."),
         el("p", {}, "Svaren sparas. Ställs samma fråga samma dag och evenemangen inte har ändrats, visas det sparade svaret direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna frågorna."),
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 

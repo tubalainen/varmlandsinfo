@@ -6,6 +6,17 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Sidomenyn kan fällas ihop till en smal list med ikoner på datorn. Valet sparas i webbläsaren (#35)
+- Fråga AI ger personliga rekommendationer: ålder och familjeord ("min 8 år gamla son") tolkas som barn,
+  barn- och familjeevenemang prioriteras och AI:n motiverar 3–5 förslag (#36)
+
+### Säkerhet
+- Fråga AI svarar bara på frågor om appens evenemang och aktiviteter. Andra frågor får ett fast svar från
+  servern (modellens markör fångas innan något visas), försök att ändra AI:ns uppdrag stoppas utan att
+  modellen tillfrågas, evenemangsdata skickas avgränsad och rensad (skydd mot prompt injection), frågor
+  begränsas till 1000 tecken och högst 2 frågor körs samtidigt mot Ollama (#36)
+
 ## [0.6.0] - 2026-09-24
 
 ### Tillagt

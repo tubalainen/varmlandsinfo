@@ -33,7 +33,8 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
 - **Filter:** fritextsök, kategori, kommun, källa och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
 - **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
-  Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På mobil fälls menyn ut.
+  Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På datorn kan menyn fällas ihop
+  till en smal list med ikoner. På mobil fälls menyn ut.
 - **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
   bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
@@ -169,6 +170,18 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
    Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö.
 4. Starta om: `docker compose up -d`. Sidan *Fråga AI* visar vilken modell som används och
    varnar om Ollama inte går att nå eller om modellen saknas.
+
+**Säkerhet och avgränsning:** AI:n svarar bara på frågor om evenemang och aktiviteter i appen.
+- Frågor om annat, som dikter, kod eller allmänna kunskapsfrågor, får ett fast svar som bestäms av servern.
+  Modellen markerar sådana frågor, och servern ersätter markören innan något visas.
+- Uppenbara försök att ändra AI:ns uppdrag ("ignorera dina instruktioner …") stoppas direkt, utan att modellen
+  tillfrågas.
+- Evenemangstexterna från källorna skickas som avgränsad data och kan inte ge modellen nya instruktioner.
+- Frågor får vara högst 1000 tecken, och högst 2 frågor körs samtidigt mot Ollama.
+
+**Rekommendationer:** komplexa frågor fungerar, till exempel "Vilka aktiviteter skulle passa för min 8 år gamla
+son i Karlstad nu till helgen?". Ålder och ord som son, dotter och familj tolkas som barn, så barn- och
+familjeevenemang prioriteras. AI:n väljer ut 3–5 förslag och motiverar varför de passar.
 
 **Så fungerar det:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den
 tidsuttryck (idag, i helgen, nästa vecka, 3 oktober, i oktober …), kommuner, evenemangstyper och

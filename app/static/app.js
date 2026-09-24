@@ -338,6 +338,18 @@ $("#reset").addEventListener("click", () => {
   $("#custom-dates").hidden = true;
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
+// Fäll ihop eller fäll ut menyn på datorn. Valet sparas i webbläsaren.
+function setCollapsed(collapsed) {
+  document.body.classList.toggle("side-collapsed", collapsed);
+  const btn = $("#side-toggle");
+  btn.setAttribute("aria-expanded", String(!collapsed));
+  btn.title = collapsed ? "Fäll ut menyn" : "Fäll ihop menyn";
+  btn.querySelector(".label").textContent = btn.title;
+  store("sidebar", collapsed ? "collapsed" : "expanded");
+}
+for (const a of document.querySelectorAll(".nav a")) a.title = a.querySelector(".label").textContent;   // verktygstips
+setCollapsed(stored("sidebar", "expanded") === "collapsed");
+$("#side-toggle").addEventListener("click", () => setCollapsed(!document.body.classList.contains("side-collapsed")));
 $("#nav-open").addEventListener("click", () => setNav(true));
 $("#nav-close").addEventListener("click", () => setNav(false));
 $("#scrim").addEventListener("click", () => setNav(false));

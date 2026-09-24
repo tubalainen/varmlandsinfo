@@ -38,6 +38,9 @@
 
     <div class="side-title">Källor</div>
     <ul id="sources" class="source-list"></ul>
+
+    <button id="side-toggle" class="side-toggle" type="button" aria-controls="sidebar" aria-expanded="true"
+            title="Fäll ihop menyn"><span data-icon="panel"></span><span class="label">Fäll ihop menyn</span></button>
   </aside>
   <div id="scrim" class="scrim" hidden></div>
 
@@ -125,7 +128,7 @@
       <div class="composer">
         <div id="quick" class="quick" aria-label="Snabbval"></div>
         <form id="chat-form" class="chat-form">
-          <textarea id="chat-input" rows="1" placeholder="Ställ en fråga om evenemangen … (Enter för att skicka, Shift+Enter för ny rad)" required aria-label="Fråga"></textarea>
+          <textarea id="chat-input" rows="1" maxlength="1000" placeholder="Ställ en fråga om evenemangen … (Enter för att skicka, Shift+Enter för ny rad)" required aria-label="Fråga"></textarea>
           <button type="submit" class="send" aria-label="Skicka"><span data-icon="send"></span></button>
         </form>
         <p class="fineprint">Svaren genereras lokalt av Ollama utifrån de evenemang som appen har hämtat och kan ta
