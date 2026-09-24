@@ -4,7 +4,6 @@
 (() => {
   const log = $("#chat-log"), form = $("#chat-form"), input = $("#chat-input"), welcome = $("#chat-welcome");
   const sendBtn = form.querySelector(".send");
-  const history = [];
   let busy = false, statusLoaded = false;
 
   // ---- enkel och säker markdown-rendering (bygger DOM-noder, aldrig innerHTML)
@@ -54,6 +53,16 @@
     target.replaceChildren(frag);
   }
 
+  // ---- samtalet (sessionen) finns på servern, fliken sparar bara sitt sessions-id
+  const SESSION_KEY = "chat-session";
+  let sessionId = null;
+  try { sessionId = sessionStorage.getItem(SESSION_KEY); } catch { /* utan lagring blir varje sidladdning ett nytt samtal */ }
+  function setSession(id) {
+    sessionId = id;
+    try { id ? sessionStorage.setItem(SESSION_KEY, id) : sessionStorage.removeItem(SESSION_KEY); } catch { /* se ovan */ }
+  }
+  const sessionHeaders = () => (sessionId ? { "X-Chat-Session": sessionId } : {});
+
   // ---- chattlogik
   function addMsg(role, text = "") {
     welcome.hidden = true;
@@ -65,27 +74,52 @@
     return div;
   }
 
+  // Noteringar under ett svar: sökresultat, sparat svar och underlaget
+  function decorate(msg, meta, sources) {
+    if (meta.mode === "search") {
+      msg.append(el("p", { class: "cached-note" }, icon("search"),
+        "Sökresultat direkt från appen. Frågan gällde att hitta evenemang, så ingen AI behövdes."));
+    } else if (meta.cached) {
+      const when = meta.saved ? new Date(meta.saved).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "";
+      msg.append(el("p", { class: "cached-note" }, icon("database"),
+        `Sparat svar${when ? " från " + when : ""}. Evenemangen har inte ändrats sedan dess, så AI:n behövde inte svara igen.`));
+    }
+    if (sources.length && meta.mode !== "search" && !msg.classList.contains("error")) {
+      msg.append(el("details", { class: "sources" },
+        el("summary", {}, `Underlag: ${sources.length} evenemang`),
+        el("ul", {}, sources.map((src) => el("li", {}, `${src.date} – `, src.url ? link(src.title, src.url) : src.title)))));
+    }
+  }
+
+  function note(msg, iconName, text) {
+    msg.append(el("p", { class: "cached-note" }, icon(iconName), text));
+  }
+
   async function ask(question) {
     question = question.trim();
     if (busy || !question) return;
     busy = true;
     sendBtn.disabled = true;
-    history.push({ role: "user", content: question });
+    const hadConversation = !!log.querySelector(".msg");
     addMsg("user", question);
     const msg = addMsg("assistant");
+    const status = el("span", {}, "Söker bland evenemangen. Kräver frågan AI kan det ta en stund …");
     const body = el("div", {},
-      el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")),
-        "Söker bland evenemangen. Kräver frågan AI kan det ta en stund …"));
+      el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")), status));
     msg.append(body);
-    let answer = "", sources = [], cached = null, search = false;
+    let answer = "", sources = [], meta = {}, expired = false;
 
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        headers: { "Content-Type": "application/json", ...sessionHeaders() },
+        body: JSON.stringify({ question }),
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        let error = `HTTP ${r.status}`;
+        try { error = (await r.json()).error || error; } catch { /* inget JSON-svar */ }
+        throw new Error(error);
+      }
       const reader = r.body.getReader();
       const dec = new TextDecoder();
       let buf = "";
@@ -98,9 +132,14 @@
           const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
           if (!line.trim()) continue;
           const ev = JSON.parse(line);
-          if (ev.type === "sources") sources = ev.events;
-          else if (ev.type === "done" && ev.cached) cached = ev;
-          else if (ev.type === "done" && ev.mode === "search") search = true;
+          if (ev.type === "session") { expired = ev.expired && hadConversation; setSession(ev.id); }
+          else if (ev.type === "queue") {
+            status.textContent = ev.position
+              ? `Den lokala AI-modellen svarar på andra frågor just nu. Du är nummer ${ev.position} i kön …`
+              : "Din tur! Den lokala AI-modellen arbetar. Det kan ta en stund …";
+          }
+          else if (ev.type === "sources") sources = ev.events;
+          else if (ev.type === "done") meta = ev;
           else if (ev.type === "delta") {
             answer += ev.text;
             body.classList.add("typing");   // skrivmarkör medan svaret strömmar in
@@ -110,34 +149,37 @@
           else if (ev.type === "error") throw new Error(ev.error);
         }
       }
-      history.push({ role: "assistant", content: answer });
     } catch (e) {
       msg.classList.add("error");
       answer += (answer ? "\n\n" : "") + "⚠️ " + e.message;
       renderMarkdown(body, answer);
-      history.pop(); // frågan besvarades inte, skicka den inte som historik
     } finally {
       body.classList.remove("typing");
-      if (cached) {
-        const when = cached.saved ? new Date(cached.saved).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "";
-        msg.append(el("p", { class: "cached-note" }, icon("database"),
-          `Sparat svar${when ? " från " + when : ""}. Evenemangen har inte ändrats sedan dess, så AI:n behövde inte svara igen.`));
-      }
-      if (search) {
-        msg.append(el("p", { class: "cached-note" }, icon("search"),
-          "Sökresultat direkt från appen. Frågan gällde att hitta evenemang, så ingen AI behövdes."));
-      }
-      if (sources.length && !search && !msg.classList.contains("error")) {
-        msg.append(el("details", { class: "sources" },
-          el("summary", {}, `Underlag: ${sources.length} evenemang`),
-          el("ul", {}, sources.map((src) => el("li", {}, `${src.date} – `, src.url ? link(src.title, src.url) : src.title)))));
-      }
+      if (expired) note(msg, "info", "Det tidigare samtalet hade gått ut, så frågan besvarades som ett nytt samtal.");
+      decorate(msg, meta, sources);
       busy = false;
       sendBtn.disabled = false;
       log.scrollTop = log.scrollHeight;
       input.focus();
     }
   }
+
+  // Visar samtalet igen efter omladdning av sidan
+  async function restore() {
+    if (!sessionId) return;
+    try {
+      const s = await (await fetch("/api/chat/session", { headers: sessionHeaders() })).json();
+      if (log.querySelector(".msg")) return;   // en ny fråga hann ställas medan samtalet hämtades
+      for (const m of s.messages) {
+        if (m.role === "user") { addMsg("user", m.content); continue; }
+        const msg = addMsg("assistant"), body = el("div");
+        renderMarkdown(body, m.content);
+        msg.append(body);
+        decorate(msg, m, m.sources || []);
+      }
+    } catch { /* samtalet kunde inte hämtas, börja om */ }
+  }
+  restore();
 
   function autosize() {
     input.style.height = "auto";
@@ -182,7 +224,9 @@
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
   });
   $("#chat-clear").addEventListener("click", () => {
-    history.length = 0;
+    if (busy) return;
+    if (sessionId) fetch("/api/chat/session", { method: "DELETE", headers: sessionHeaders() }).catch(() => {});
+    setSession(null);
     log.querySelectorAll(".msg").forEach((n) => n.remove());
     welcome.hidden = false;
     $("#chat-clear").hidden = true;

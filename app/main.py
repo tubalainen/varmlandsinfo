@@ -3,18 +3,20 @@
 import asyncio
 import logging
 import os
+import json
 import re
-from contextlib import asynccontextmanager
+from contextlib import aclosing, asynccontextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi import FastAPI, Header, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import chat
 import events
+import sessions
 from common import TZ, stats
 from version import RELEASE_URL, REPO_URL, __version__
 
@@ -156,14 +158,11 @@ async def refresh():
     return {**status(), "message": message}
 
 
-class ChatMessage(BaseModel):
-    role: str
-    content: str = Field(max_length=8000)
-
-
 class ChatRequest(BaseModel):
-    messages: list[ChatMessage] = Field(max_length=50)
+    question: str = Field(min_length=1, max_length=4000)
 
+
+SessionHeader = Header(default=None, alias="X-Chat-Session", max_length=100)
 
 @app.get("/api/chat/presets")
 async def chat_presets():
@@ -176,10 +175,56 @@ async def chat_status():
 
 
 @app.post("/api/chat")
-async def chat_endpoint(req: ChatRequest):
-    stream = chat.chat_stream([m.model_dump() for m in req.messages], events.current_events(), events.today(),
-                              data_version=events.state["updated"])
-    return StreamingResponse(stream, media_type="application/x-ndjson")
+async def chat_endpoint(req: ChatRequest, session_id: str | None = SessionHeader):
+    """Ny fråga i ett samtal. Samtalet (sessionen) och dess historik finns på servern, klienten skickar
+    bara frågan och sitt sessions-id. Okänt eller utgånget id ger ett nytt samtal."""
+    session, created = sessions.store.get_or_create(session_id)
+    problem = sessions.store.begin(session)
+    if problem == "busy":
+        return JSONResponse({"error": "Vänta tills svaret på förra frågan är klart."}, status_code=409)
+    if problem == "rate":
+        return JSONResponse({"error": "Du har ställt många frågor på kort tid. Vänta en minut och försök igen."},
+                            status_code=429)
+    return StreamingResponse(_session_stream(session, created and bool(session_id), req.question),
+                             media_type="application/x-ndjson")
+
+
+async def _session_stream(session: sessions.Session, expired: bool, question: str):
+    """Svaret strömmas vidare och sparas i samtalet när det är komplett."""
+    answer, sources, meta, ok = "", [], {}, False
+    try:
+        yield json.dumps({"type": "session", "id": session.id, "expired": expired}) + "\n"
+        messages = [*session.model_history(), {"role": "user", "content": question}]
+        async with aclosing(chat.chat_stream(messages, events.current_events(), events.today(),
+                                             data_version=events.state["updated"])) as stream:
+            async for line in stream:
+                ev = json.loads(line)
+                if ev["type"] == "delta":
+                    answer += ev["text"]
+                elif ev["type"] == "sources":
+                    sources = ev["events"]
+                elif ev["type"] == "done":
+                    ok = not ev.get("refused")
+                    meta = {k: ev[k] for k in ("mode", "cached", "saved") if k in ev}
+                yield line
+    finally:
+        # Vägrade, avbrutna och misslyckade svar sparas inte i samtalet
+        turns = [{"role": "user", "content": question},
+                 {"role": "assistant", "content": answer, "sources": sources, **meta}] if ok and answer else None
+        sessions.store.end(session, turns)
+
+
+@app.get("/api/chat/session")
+async def chat_session(session_id: str | None = SessionHeader):
+    """Samtalet för att visa det igen efter omladdning av sidan."""
+    session = sessions.store.get(session_id)
+    return {"messages": session.view() if session else [], "busy": bool(session and session.is_busy())}
+
+
+@app.delete("/api/chat/session")
+async def chat_session_reset(session_id: str | None = SessionHeader):
+    """Nytt samtal: historiken på servern tas bort."""
+    return {"reset": sessions.store.reset(session_id)}
 
 
 @app.middleware("http")

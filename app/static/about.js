@@ -62,6 +62,7 @@
         el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon molntjänst. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
         el("p", {}, "AI:n svarar bara på frågor om evenemang och aktiviteter i appen och ger personliga rekommendationer, till exempel utifrån barns ålder. Andra frågor får ett fast svar, och försök att ändra AI:ns uppdrag stoppas."),
         el("p", {}, "Alla frågor behöver inte AI. Frågor som bara söker evenemang (när, var, vilka, vad händer …) besvaras direkt med en sökning bland evenemangen, sorterad efter datum. Det går snabbt och fungerar även utan Ollama. AI:n används när frågan kräver en bedömning: rekommendationer, jämförelser eller personliga önskemål som ålder och intressen."),
+        el("p", {}, "Flera kan använda Fråga AI samtidigt. Varje flik har ett eget samtal som sparas på servern och finns kvar om sidan laddas om. Nytt samtal börjar om. Den lokala AI-modellen svarar på två frågor åt gången, och övriga ställs i kö. Du ser då din plats i kön."),
         el("p", {}, "Svaren sparas. Ställs samma fråga samma dag och evenemangen inte har ändrats, visas det sparade svaret direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna frågorna."),
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 

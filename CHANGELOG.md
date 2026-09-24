@@ -6,6 +6,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Sessionstyrning i Fråga AI för flera samtidiga användare:
+  - varje flik har ett eget samtal på servern, och klienten skickar bara sin nya fråga
+  - samtalet finns kvar vid omladdning
+  - en fråga i taget och högst 10 per minut per samtal
+  - rättvis kö till Ollama som visar platsen i kön (#38)
+
 ## [0.8.0] - 2026-09-24
 
 ### Ändrat

@@ -178,7 +178,18 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
 - Uppenbara försök att ändra AI:ns uppdrag ("ignorera dina instruktioner …") stoppas direkt, utan att modellen
   tillfrågas.
 - Evenemangstexterna från källorna skickas som avgränsad data och kan inte ge modellen nya instruktioner.
-- Frågor får vara högst 1000 tecken, och högst 2 frågor körs samtidigt mot Ollama.
+- Frågor får vara högst 1000 tecken.
+
+**Flera samtidiga användare:** varje webbläsarflik har ett eget samtal (session). Servern äger historiken.
+- Fliken får ett slumpat sessions-id av servern och sparar det i `sessionStorage`. Klienten skickar bara sin nya
+  fråga, så historiken kan inte förfalskas.
+- Samtalet finns kvar när sidan laddas om. En ny flik ger ett nytt samtal, och *Nytt samtal* rensar samtalet på
+  servern.
+- Samtal som inte används på 2 timmar tas bort. Samtalen finns bara i minnet och försvinner vid omstart.
+- Varje samtal ställer en fråga i taget och högst 10 frågor per minut.
+- Högst 2 frågor körs samtidigt mot Ollama. Övriga väntar i en rättvis kö (först till kvarn, högst 10 i kö), och
+  den som väntar ser sin plats i kön. Enkla sökfrågor och sparade svar går förbi kön.
+- Sparade AI-svar delas mellan alla användare.
 
 **Direktsökning eller AI:** alla frågor behöver inte AI. Frågor som bara letar efter evenemang, som
 "När spelar Färjestad nästa gång?", "Vad händer idag?" eller "Vilka konserter finns i Karlstad i oktober?",
@@ -204,7 +215,9 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
 | GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
-| POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
+| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, 429 vid för många frågor. |
+| GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
+| DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
 
 ## Versioner och releaser
 
@@ -241,7 +254,9 @@ app/
   sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl)
   merge.py         Sammanslagning av samma evenemang från flera källor
   common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
-  chat.py          AI-chatt: urval av evenemang och anrop till Ollama
+  chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama
+  chat_cache.py    Sparade AI-svar
+  sessions.py      Samtal (sessioner) i Fråga AI
   categories.py    Klassificering och beskrivning av evenemangstyper
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)

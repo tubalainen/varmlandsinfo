@@ -1,5 +1,6 @@
 """AI-chatt: väljer ut relevanta evenemang för en fråga och låter Ollama svara."""
 
+import asyncio
 import json
 import logging
 import os
@@ -29,6 +30,8 @@ CHAT_MAX_EVENTS = int(os.getenv("CHAT_MAX_EVENTS", "40"))
 MAX_HISTORY = 10
 MAX_QUESTION = 1000                     # tecken per fråga
 MAX_CONCURRENT = 2                      # samtidiga förfrågningar till Ollama
+MAX_WAITING = 10                        # frågor som får vänta i kön till Ollama
+MAX_WAIT = 600                          # sekunder i kön innan frågan ges upp
 
 # Modellen svarar med markören när frågan ligger utanför uppdraget. Servern ersätter den med ett fast svar.
 OFF_TOPIC = "[UTANFÖR]"
@@ -40,15 +43,48 @@ INJECTION_RE = re.compile(
     r"|system ?prompt|dina instruktioner|dolda instruktioner|du är nu\b|låtsas att du|agera som\b|rollspel"
     r"|ignore (all|any|the|previous|your)|disregard (all|previous|your)|jailbreak|developer mode",
     re.I)
-_slots = None
 
 
-def _ollama_slots():
-    global _slots
-    if _slots is None:
-        import asyncio
-        _slots = asyncio.Semaphore(MAX_CONCURRENT)
-    return _slots
+class QueueFull(Exception):
+    pass
+
+
+class OllamaQueue:
+    """Rättvis kö till Ollama: först till kvarn, högst `slots` frågor samtidigt och högst `max_waiting` i kö."""
+
+    def __init__(self, slots: int = MAX_CONCURRENT, max_waiting: int = MAX_WAITING):
+        self.slots, self.max_waiting = slots, max_waiting
+        self.active = 0
+        self.waiting: list[asyncio.Future] = []
+
+    def enter(self) -> asyncio.Future:
+        """Ställer sig i kön. Framtiden blir klar när det är ens tur (direkt om en plats är ledig)."""
+        ticket = asyncio.get_running_loop().create_future()
+        if self.active < self.slots and not self.waiting:
+            self.active += 1
+            ticket.set_result(True)
+        elif len(self.waiting) >= self.max_waiting:
+            raise QueueFull
+        else:
+            self.waiting.append(ticket)
+        return ticket
+
+    def position(self, ticket: asyncio.Future) -> int:
+        """Platsen i kön (1 = näst på tur), 0 när det är ens tur."""
+        return self.waiting.index(ticket) + 1 if ticket in self.waiting else 0
+
+    def leave(self, ticket: asyncio.Future) -> None:
+        """Frågan är klar eller avbruten (t.ex. stängd flik): lämna kön eller släpp platsen."""
+        if ticket in self.waiting:
+            self.waiting.remove(ticket)
+        elif ticket.done():
+            self.active -= 1
+            while self.waiting and self.active < self.slots:
+                self.active += 1
+                self.waiting.pop(0).set_result(True)
+
+
+queue = OllamaQueue()
 
 # Fördefinierade frågor i Fråga AI. Svaren på dem sparas alltid (se chat_cache.py).
 SUGGESTIONS = [
@@ -610,40 +646,58 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
     }
     answer, complete, decided, refused = "", False, False, False
     try:
+        ticket = queue.enter()
+    except QueueFull:
+        yield _ndjson({"type": "error", "error": "Många frågar AI:n just nu och kön är full. Försök igen om en stund. "
+                                                 "Enkla sökfrågor fungerar som vanligt."})
+        return
+    try:
+        # Väntar i kön och berättar var i kön frågan står
+        position, waited = 0, 0
+        while not ticket.done():
+            if (p := queue.position(ticket)) != position:
+                position = p
+                yield _ndjson({"type": "queue", "position": p})
+            if waited >= MAX_WAIT:
+                yield _ndjson({"type": "error", "error": "AI:n hann inte svara på frågan. Försök igen om en stund."})
+                return
+            await asyncio.wait([ticket], timeout=1)
+            waited += 1
+        if position:
+            yield _ndjson({"type": "queue", "position": 0})
         timeout = httpx.Timeout(10, read=300)
-        async with _ollama_slots():   # högst MAX_CONCURRENT samtidiga förfrågningar till Ollama
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                async with client.stream("POST", f"{OLLAMA_URL}/api/chat", json=payload) as r:
-                    if r.status_code != 200:
-                        body = (await r.aread()).decode(errors="replace")[:300]
-                        yield _ndjson({"type": "error", "error": f"Ollama svarade {r.status_code}: {body}"})
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            async with client.stream("POST", f"{OLLAMA_URL}/api/chat", json=payload) as r:
+                if r.status_code != 200:
+                    body = (await r.aread()).decode(errors="replace")[:300]
+                    yield _ndjson({"type": "error", "error": f"Ollama svarade {r.status_code}: {body}"})
+                    return
+                async for line in r.aiter_lines():
+                    if not line.strip():
+                        continue
+                    data = json.loads(line)
+                    if data.get("error"):
+                        yield _ndjson({"type": "error", "error": data["error"]})
                         return
-                    async for line in r.aiter_lines():
-                        if not line.strip():
+                    answer += (data.get("message") or {}).get("content") or ""
+                    done = bool(data.get("done"))
+                    if not decided:
+                        # Vänta in början av svaret: är det markören visas aldrig modellens text
+                        head = answer.lstrip()
+                        if len(head) < len(OFF_TOPIC) and not done and OFF_TOPIC.startswith(head):
                             continue
-                        data = json.loads(line)
-                        if data.get("error"):
-                            yield _ndjson({"type": "error", "error": data["error"]})
-                            return
-                        answer += (data.get("message") or {}).get("content") or ""
-                        done = bool(data.get("done"))
-                        if not decided:
-                            # Vänta in början av svaret: är det markören visas aldrig modellens text
-                            head = answer.lstrip()
-                            if len(head) < len(OFF_TOPIC) and not done and OFF_TOPIC.startswith(head):
-                                continue
-                            decided = True
-                            refused = head.startswith(OFF_TOPIC)
-                            if refused:
-                                break
-                            yield _ndjson({"type": "sources", "events": sources})
-                            if answer:
-                                yield _ndjson({"type": "delta", "text": answer.replace(OFF_TOPIC, "")})
-                        elif text := (data.get("message") or {}).get("content"):
-                            yield _ndjson({"type": "delta", "text": text.replace(OFF_TOPIC, "")})
-                        if done:
-                            complete = True
+                        decided = True
+                        refused = head.startswith(OFF_TOPIC)
+                        if refused:
                             break
+                        yield _ndjson({"type": "sources", "events": sources})
+                        if answer:
+                            yield _ndjson({"type": "delta", "text": answer.replace(OFF_TOPIC, "")})
+                    elif text := (data.get("message") or {}).get("content"):
+                        yield _ndjson({"type": "delta", "text": text.replace(OFF_TOPIC, "")})
+                    if done:
+                        complete = True
+                        break
         if refused or (complete and not decided):
             yield _ndjson({"type": "sources", "events": []})
             yield _ndjson({"type": "delta", "text": REFUSAL if refused else "Jag fick inget svar från AI-modellen."})
@@ -654,6 +708,8 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
         log.warning("Ollama-anrop misslyckades: %s", exc)
         yield _ndjson({"type": "error", "error": f"Kunde inte prata med Ollama ({OLLAMA_URL}): {exc}"})
         return
+    finally:
+        queue.leave(ticket)
     # Bara kompletta svar på fristående frågor inom uppdraget sparas
     answer = answer.replace(OFF_TOPIC, "")
     if standalone and cache and complete and answer.strip():
