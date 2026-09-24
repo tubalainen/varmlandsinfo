@@ -40,16 +40,31 @@ function openImage(img) {
   d.showModal();
 }
 
+function fmtTime(iso) {
+  return iso ? new Date(iso).toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" }) : "–";
+}
+
+function showStatus(data) {
+  let text;
+  if (data.refreshing && !data.events.length) text = "Hämtar evenemang … (laddar om strax)";
+  else if (!data.events.length && data.error) text = `Kunde inte hämta: ${data.error}`;
+  else {
+    text = `${data.events.length} aktuella evenemang · uppdaterad ${fmtTime(data.updated)}`;
+    if (data.next_refresh) text += ` · nästa automatiska uppdatering ${fmtTime(data.next_refresh)}`;
+    if (data.error) text += ` · senaste uppdateringen misslyckades: ${data.error}`;
+  }
+  $("#status").textContent = text;
+  $("#version").textContent = data.version ? `v${data.version}` : "";
+}
+
 async function load() {
   try {
     const r = await fetch("/api/events");
     const data = await r.json();
     state.events = data.events;
     state.today = data.today;
-    const upd = data.updated ? new Date(data.updated).toLocaleString("sv-SE") : "–";
-    $("#status").textContent = data.events.length
-      ? `${data.events.length} aktuella evenemang · uppdaterad ${upd}`
-      : data.error ? `Kunde inte hämta: ${data.error}` : "Hämtar evenemang … (laddar om strax)";
+    state.chat = data.chat;
+    showStatus(data);
     if (!data.events.length) setTimeout(load, 5000);
     $("#from").min = state.today;
     buildFilters();
@@ -57,6 +72,23 @@ async function load() {
   } catch (e) {
     $("#status").textContent = "Fel vid hämtning: " + e;
     setTimeout(load, 10000);
+  }
+}
+
+async function refreshEvents() {
+  const btn = $("#refresh");
+  btn.disabled = true;
+  btn.textContent = "⟳ Uppdaterar …";
+  $("#status").textContent = "Hämtar alla evenemang från Visit Värmland …";
+  try {
+    const r = await fetch("/api/refresh", { method: "POST" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    await load();
+  } catch (e) {
+    $("#status").textContent = "Uppdateringen misslyckades: " + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "⟳ Uppdatera evenemang";
   }
 }
 
@@ -176,5 +208,6 @@ $("#reset").addEventListener("click", () => {
   $("#q").value = ""; $("#municipality").value = ""; $("#from").value = ""; $("#to").value = "";
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
+$("#refresh").addEventListener("click", refreshEvents);
 $("#lightbox").addEventListener("click", (ev) => { if (ev.target.id === "lightbox") ev.target.close(); });
 load();

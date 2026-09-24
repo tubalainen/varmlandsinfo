@@ -1,12 +1,21 @@
 services:
   varmlandsinfo:
-    image: ghcr.io/tubalainen/varmlandsinfo:latest
+    image: ghcr.io/tubalainen/varmlandsinfo:${VARMLANDSINFO_TAG:-latest}
     build: .
     container_name: varmlandsinfo
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${VARMLANDSINFO_PORT:-7799}:8080"
+    # Gör det möjligt att nå en Ollama som körs direkt på värdmaskinen
+    # via http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Värden nedan kan sättas i en .env-fil bredvid denna fil (se .env.example)
     environment:
-      TZ: Europe/Stockholm
-      # Hur ofta evenemangen hämtas på nytt från Visit Värmland (minuter)
-      REFRESH_MINUTES: "60"
+      TZ: ${TZ:-Europe/Stockholm}
+      DAILY_REFRESH_TIME: ${DAILY_REFRESH_TIME:-05:00}
+      REFRESH_MINUTES: ${REFRESH_MINUTES:-0}
+      OLLAMA_URL: ${OLLAMA_URL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-16384}
+      CHAT_MAX_EVENTS: ${CHAT_MAX_EVENTS:-40}

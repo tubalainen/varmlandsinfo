@@ -2,11 +2,16 @@ name: Publicera Docker-image
 
 on:
   push:
-    branches: ["**"]
-    tags: ["v*"]
-  pull_request:
     branches: [main]
+  pull_request:
   workflow_dispatch:
+  # Anropas från release.yml med versionsnummer
+  workflow_call:
+    inputs:
+      version:
+        description: "Version utan v-prefix, t.ex. 0.0.1"
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -21,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version && format('v{0}', inputs.version) || '' }}
 
       - uses: docker/setup-qemu-action@v3
 
@@ -39,13 +46,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Releaser: 0.0.1, 0.0 och latest. main: edge. PR: pr-N (byggs bara).
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=raw,value=latest,enable=${{ inputs.version != '' }}
+            type=edge,branch=main,enable=${{ inputs.version == '' }}
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
+            type=sha,enable=${{ inputs.version == '' }}
+          flavor: latest=false
 
       - name: Bygg och publicera
         uses: docker/build-push-action@v6

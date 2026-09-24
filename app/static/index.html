@@ -9,7 +9,13 @@
 <body>
 <header class="top">
   <div class="wrap">
-    <h1>Evenemang i Värmland</h1>
+    <div class="toprow">
+      <h1>Evenemang i Värmland</h1>
+      <div class="actions">
+        <button id="refresh" type="button" class="btn-light">⟳ Uppdatera evenemang</button>
+        <button id="chat-open" type="button" class="btn-light">💬 Fråga AI</button>
+      </div>
+    </div>
     <p id="status" class="muted">Hämtar evenemang …</p>
   </div>
 </header>
@@ -31,7 +37,30 @@
 
 <dialog id="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button>Stäng</button></form></dialog>
 
-<footer class="wrap muted">Källa: <a href="https://visitvarmland.com/evenemang" target="_blank" rel="noopener">Visit Värmland</a> (turid.visitvarmland.com)</footer>
+<aside id="chat" class="chat" hidden aria-label="AI-chatt">
+  <header class="chat-head">
+    <strong>Fråga AI om evenemangen</strong>
+    <span id="chat-model" class="muted"></span>
+    <button id="chat-clear" type="button" title="Rensa samtalet">Rensa</button>
+    <button id="chat-close" type="button" aria-label="Stäng">✕</button>
+  </header>
+  <div id="chat-log" class="chat-log">
+    <div class="msg assistant intro">Hej! Fråga mig om evenemang i Värmland, till exempel:
+      <ul>
+        <li><a href="#" class="ex">Vad händer i Karlstad i helgen?</a></li>
+        <li><a href="#" class="ex">Finns det några barnaktiviteter nästa vecka?</a></li>
+        <li><a href="#" class="ex">Vilka konserter finns i oktober?</a></li>
+      </ul>
+    </div>
+  </div>
+  <form id="chat-form" class="chat-form">
+    <textarea id="chat-input" rows="2" placeholder="Skriv en fråga …" required></textarea>
+    <button type="submit">Skicka</button>
+  </form>
+</aside>
+
+<footer class="wrap muted">Källa: <a href="https://visitvarmland.com/evenemang" target="_blank" rel="noopener">Visit Värmland</a> (turid.visitvarmland.com) · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a> <span id="version"></span></footer>
 <script src="/static/app.js"></script>
+<script src="/static/chat.js"></script>
 </body>
 </html>

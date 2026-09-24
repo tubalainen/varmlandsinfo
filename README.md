@@ -1,64 +1,111 @@
 # Värmlandsinfo
 
-En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland**, i datumordning.
+En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland** i datumordning,
+med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 
 Första datakällan är Visit Värmlands öppna API:
 <https://turid.visitvarmland.com/api/v8/events>
 
 ## Funktioner
 
-- Alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …).
-- Evenemangstyp (kategori) med ikon, färg och en kort beskrivning av typen.
-- Sammanfattning, längre beskrivning, plats (med kartlänk) och arrangör.
-- Länk till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
-- Bilder från evenemanget (klicka för att förstora).
-- Filter: fritextsök, kategori, kommun och datumintervall, samt "Visa varje tillfälle"
+- **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …).
+- **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen.
+- **Detaljer:** sammanfattning, längre beskrivning, plats (med kartlänk) och arrangör.
+- **Länkar:** till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
+- **Bilder:** från evenemanget (klicka för att förstora).
+- **Filter:** fritextsök, kategori, kommun och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
-- Datan hämtas automatiskt på nytt varje timme (styrs av `REFRESH_MINUTES`).
+- **AI-chatt:** knappen *Fråga AI* öppnar en chatt kopplad till din egen Ollama. Ställ frågor som
+  "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
+  länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
+  fungerar också.
+- **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
+  automatisk uppdatering varje dag (standard 05:00).
 
 ## Kom igång
 
 Kräver Docker med Compose-pluginet.
 
 ```bash
-# Använd den färdiga imagen från GitHub Container Registry
-docker compose pull
+git clone https://github.com/tubalainen/varmlandsinfo.git
+cd varmlandsinfo
+cp .env.example .env      # justera inställningarna, t.ex. OLLAMA_URL
+docker compose pull       # hämtar imagen från ghcr.io
 docker compose up -d
-
-# …eller bygg lokalt
-docker compose up -d --build
 ```
 
-Öppna sedan <http://localhost:8080>.
+Öppna sedan <http://localhost:7799>.
+
+Vill du bygga imagen själv i stället: `docker compose up -d --build`.
 
 Första hämtningen tar ungefär 10–30 sekunder, eftersom API:et ger max 50 evenemang per sida.
 
-### Inställningar (`docker-compose.yaml`)
+### Köra en viss version
 
-| Variabel          | Standard           | Beskrivning                                    |
-|-------------------|--------------------|------------------------------------------------|
-| `REFRESH_MINUTES` | `60`               | Hur ofta evenemangen hämtas på nytt (minuter). |
-| `TZ`              | `Europe/Stockholm` | Tidszon som avgör vad som räknas som "idag".   |
+Sätt `VARMLANDSINFO_TAG` i `.env`, till exempel `VARMLANDSINFO_TAG=0.0.1`, och kör
+`docker compose pull && docker compose up -d`. `latest` pekar på senaste release och `edge` på senaste
+bygget från `main`.
 
-Byt porten genom att ändra `"8080:8080"`, till exempel till `"8123:8080"`.
+## Inställningar
+
+Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå från `.env.example`.
+`.env` checkas aldrig in i git, så privata adresser stannar lokalt.
+
+| Variabel             | Standard           | Beskrivning |
+|----------------------|--------------------|-------------|
+| `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
+| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest`, `edge` eller en version). |
+| `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI-chatten är avstängd. |
+| `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
+| `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
+| `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
+| `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
+| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av). |
+| `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
+
+## AI-chatt med Ollama
+
+1. Installera [Ollama](https://ollama.com) och hämta en modell, till exempel:
+   ```bash
+   ollama pull llama3.1:8b
+   ```
+   Modeller som är bra på svenska ger bättre svar, till exempel `qwen2.5:7b`, `gemma3:12b` eller `llama3.1:8b`.
+2. Ange adressen i `.env`:
+   - Ollama på samma maskin som Docker: `OLLAMA_URL=http://host.docker.internal:11434`
+   - Ollama på en annan dator i nätverket: `OLLAMA_URL=http://<ip-adress>:11434`
+
+   Basadressen räcker, men en fullständig endpoint som `http://<ip-adress>:11434/v1/chat/completions`
+   fungerar också.
+3. Om Ollama körs på en annan dator måste den lyssna på nätverket och inte bara på `localhost`.
+   Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö.
+4. Starta om: `docker compose up -d`. Knappen *Fråga AI* visar vilken modell som används och
+   varnar om Ollama inte går att nå eller om modellen saknas.
+
+**Så fungerar det:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den
+tidsuttryck (idag, i helgen, nästa vecka, 3 oktober, i oktober …), kommuner, evenemangstyper och
+sökord. Utifrån det väljer den ut de mest relevanta evenemangen (högst `CHAT_MAX_EVENTS`) och
+skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget.
 
 ## API
 
-- `GET /api/events`: alla aktuella evenemang i JSON, sorterade på nästa tillfälle.
-- `GET /api/health`: status, antal evenemang och tidpunkt för senaste uppdatering.
+| Metod | Sökväg             | Beskrivning |
+|-------|--------------------|-------------|
+| GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
+| GET   | `/api/health`      | Version, antal evenemang, senaste och nästa uppdatering. |
+| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
+| GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
+| POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
 
-## Publicering till ghcr.io
+## Versioner och releaser
 
-GitHub Actions-flödet `.github/workflows/docker-publish.yml` bygger imagen för
-`linux/amd64` och `linux/arm64` och publicerar den till
-`ghcr.io/tubalainen/varmlandsinfo`:
+Projektet använder semantisk versionering. Versionen står i `app/version.py` och visas i sidfoten.
+Ändringar listas i [CHANGELOG.md](CHANGELOG.md).
 
-- `latest` vid push till standardgrenen
-- en tagg per gren och `sha-<commit>` vid varje push
-- `1.2.3` och `1.2` när du pushar en tagg som `v1.2.3`
-- vid pull requests byggs imagen bara, utan att publiceras
+En tagg `vX.Y.Z` skapar automatiskt en GitHub-release och publicerar imagen
+`ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
+Hela arbetsflödet med issues, pull requests och releaser beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Paketet blir privat första gången det publiceras. Gör det publikt under
+Paketet på ghcr.io blir privat första gången det publiceras. Gör det publikt under
 *GitHub → Packages → varmlandsinfo → Package settings → Change visibility*,
 eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 
@@ -66,9 +113,15 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 
 ```
 app/
-  main.py          FastAPI-server, hämtning och normalisering av evenemang
+  main.py          FastAPI-server, API och schemaläggning
+  events.py        Hämtning och normalisering av evenemang från Visit Värmland
+  chat.py          AI-chatt: urval av evenemang och anrop till Ollama
   categories.py    Klassificering och beskrivning av evenemangstyper
+  version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
+tests/             Tester (pytest)
+.github/workflows/ CI, Docker-publicering och releaser
 Dockerfile
 docker-compose.yaml
+.env.example
 ```
