@@ -24,7 +24,7 @@ Projektet använder [semantisk versionering](https://semver.org/lang/sv/) `MAJOR
 
 Så länge versionen är `0.x` kan även MINOR-steg innehålla brytande ändringar.
 
-Versionen finns på ett ställe: `app/version.py`. Den visas i gränssnittets sidfot och i `/api/health`.
+Versionen finns på ett ställe: `app/version.py`. Den visas i menyn och i `/api/health`.
 
 ## Göra en release
 
@@ -62,6 +62,19 @@ dagsdialog och chatt i båda lägena och mäter kontrasten för all text (WCAG A
 npm i -g playwright            # en gång
 node tools/contrast-check.mjs http://localhost:8080
 ```
+
+## Skärmdumparna i README
+
+Bilderna i `docs/screenshots/` skapas av ett skript. Kör det mot en app med riktig evenemangsdata, efter
+ändringar som syns i gränssnittet:
+
+```bash
+node tools/readme-screenshots.mjs http://localhost:8080
+```
+
+Granska bilderna innan de checkas in. Inga privata adresser (t.ex. Ollama-adressen) får synas. Bakom en proxy
+som bryter upp HTTPS laddas evenemangsbilderna med `SCREENSHOT_PROXY=http://värd:port`. Appen måste då nås via
+en adress som inte är `localhost`, eftersom Playwright annars skickar även den genom proxyn.
 
 ## Köra tester lokalt
 

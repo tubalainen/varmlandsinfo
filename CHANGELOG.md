@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- README visar skärmdumpar av lista, kalender, Fråga AI och mobilvy, och är uppdaterad med de senaste
+  ändringarna. Skriptet `tools/readme-screenshots.mjs` skapar skärmdumparna (#41)
+
 ## [0.11.0] - 2026-09-24
 
 ### Tillagt

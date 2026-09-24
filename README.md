@@ -8,6 +8,14 @@ med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
 med länkar till alla källor.
 
+![Evenemangslistan med filter, kategorier och källornas status](docs/screenshots/lista.jpg)
+
+| Kalendern (mörkt läge) | Fråga AI |
+|------------------------|----------|
+| ![Kalendern med en vecka per rad och evenemangen färgkodade per typ](docs/screenshots/kalender.jpg) | ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](docs/screenshots/fraga-ai.jpg) |
+
+<p align="center"><img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="260"></p>
+
 | Källa | Hur | Vad |
 |-------|-----|-----|
 | [Visit Värmland](https://visitvarmland.com/evenemang) | Öppet API (Turid v8) | Evenemang i hela Värmland. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar, som visar ett urval ur samma API. |
@@ -25,9 +33,9 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
 - **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …).
 - **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen.
 - **Detaljer:** sammanfattning, längre beskrivning, plats (med länk till Google Maps) och arrangör.
-- **Länkar:** till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
+- **Länkar:** till evenemanget hos källan, samt biljett- och webbplatslänk när sådana finns.
 - **Bilder:** från evenemanget (klicka för att förstora).
-- **Kalendervy:** växla mellan *Lista* och *Kalender*. Kalendern visar en månad med en vecka per rad
+- **Kalender:** en egen sida i menyn. Kalendern visar en månad med en vecka per rad
   (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
   dagens evenemang med bilder och länkar.
 - **Källor:** varje evenemang visar sina källor och har länkar till dem. Det finns ett filter per källa.
@@ -40,13 +48,15 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
 - **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
   bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
-- **AI-chatt:** sidan *Fråga AI* har förslagskort och snabbval och är kopplad till din egen Ollama. Ställ frågor som
-  "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
-  länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
-  fungerar också. Modellen körs lokalt, och sidan informerar om att svaren därför kan ta längre tid än hos
-  molntjänster som ChatGPT och Gemini. Svar sparas: samma fråga samma dag, mot samma evenemangsdata, besvaras
-  direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna.
-  Enkla sökfrågor ("När spelar Färjestad nästa gång?") besvaras direkt av appen utan AI.
+- **Fråga AI:** ställ frågor på vanlig svenska, med förslagskort och snabbval.
+  - Enkla sökfrågor ("När spelar Färjestad nästa gång?") besvaras direkt av appen, utan AI.
+  - Frågor som kräver en bedömning ("Vad passar min 8-åriga son i helgen?") besvaras av din egen Ollama. Svaren
+    strömmas, länkar till evenemangen och visar vilket underlag de bygger på.
+  - Följdfrågor som "och på söndag då?" fungerar.
+  - AI-svar sparas och återanvänds så länge evenemangen inte har ändrats.
+  - Varje flik har ett eget samtal, och flera kan använda chatten samtidigt.
+
+  Se [AI-chatt med Ollama](#ai-chatt-med-ollama).
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
 - **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
 - **Version:** versionen syns i menyn och länkar till releasen på GitHub.
@@ -83,7 +93,7 @@ Därefter sparas datan och laddas direkt vid omstart.
 
 ### Köra en viss version
 
-Sätt `VARMLANDSINFO_TAG` i `.env`, till exempel `VARMLANDSINFO_TAG=0.0.1`, och kör
+Sätt `VARMLANDSINFO_TAG` i `.env`, till exempel `VARMLANDSINFO_TAG=0.11.0`, och kör
 `docker compose pull && docker compose up -d`. `latest` pekar alltid på senaste release.
 
 ## Inställningar
@@ -94,7 +104,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | Variabel             | Standard           | Beskrivning |
 |----------------------|--------------------|-------------|
 | `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
-| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.0.1`). |
+| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.11.0`). |
 | `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
 | `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
 | `SHL_TEAM_CODE`      | `FBK`              | Lag vars hemmamatcher hämtas från SHL. |
@@ -134,7 +144,7 @@ Skydden gäller alla källor:
 
 ## Lagring av data
 
-Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./data` bredvid
+Allt som hämtas från källorna sparas på värden i katalogen `./data` bredvid
 `docker-compose.yaml`. Katalogen monteras som volym till `/data` i containern och skapas automatiskt.
 
 | Fil                        | Innehåll |
@@ -231,8 +241,8 @@ Projektet använder semantisk versionering. Versionen står i `app/version.py`. 
 ```
 $ docker logs varmlandsinfo
 ... INFO ============================================================
-... INFO   Värmlandsinfo v0.1.0
-... INFO   Release: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.1.0
+... INFO   Värmlandsinfo v0.11.0
+... INFO   Release: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.11.0
 ... INFO   Källkod: https://github.com/tubalainen/varmlandsinfo
 ```
 
@@ -266,7 +276,8 @@ app/
   static/          Webbgränssnittet (HTML/CSS/JS)
   static/icons/    Appens ikon (SVG och PNG i flera storlekar)
 tests/             Tester (pytest)
-tools/             Kontrastkontroll av gränssnittet i ljust och mörkt läge
+tools/             Kontrastkontroll i ljust och mörkt läge, och skärmdumparna till README
+docs/screenshots/  Skärmdumparna i README
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile
 docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID
