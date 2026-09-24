@@ -13,9 +13,16 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Kalendervy med en vecka per rad och veckonummer. Klick på en dag visar dagens evenemang, och
   samma filter som i listan gäller (#8)
 
+- Skydd för Visit Värmlands API: knappen hämtar högst var 5:e minut, `REFRESH_MINUTES` är minst 30,
+  takten anpassas efter API:ets kvot, kommunlistan hämtas en gång per vecka och ett misslyckat
+  försök görs om efter 30 minuter (#9)
+
 ### Ändrat
 - Containern startar som root bara för att ge `/data` rätt ägare och kör sedan appen som
   `PUID:PGID` (tidigare en fast användare med uid 10001) (#7)
+
+### Rättat
+- `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
 ## [0.0.1] - 2026-09-24
 

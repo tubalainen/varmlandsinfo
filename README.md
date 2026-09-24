@@ -66,10 +66,26 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
 | `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
 | `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
-| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av). |
+| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
 | `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
 | `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
+
+## Hur API:et anropas
+
+Visit Värmlands API saknar stöd för att bara hämta ändringar och ger högst 50 evenemang per sida.
+En hämtning är därför cirka 15 anrop (en per sida). Kommunlistan hämtas bara en gång i veckan.
+API:et tillåter 60 anrop per minut, och appen är byggd för att hålla sig långt under det:
+
+- **Normalt:** en hämtning per dygn (`DAILY_REFRESH_TIME`), alltså cirka 15 anrop per dag.
+- **Vid start** används sparad data, och API:et anropas bara om datan är inaktuell.
+- **Knappen** *Uppdatera evenemang* hämtar inte om datan är yngre än 5 minuter.
+- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter. Lägre värden höjs till 30.
+- **Om API:et svarar `429 Too Many Requests`** väntar appen enligt `Retry-After` och ger upp efter
+  några försök. Är kvoten nästan slut pausar hämtningen i en minut.
+- **Om en hämtning misslyckas** görs ett nytt försök efter 30 minuter. Under tiden visas senast
+  sparade data.
+- Antalet anrop sedan start syns som `api_calls` i `/api/health`.
 
 ## Lagring av data
 

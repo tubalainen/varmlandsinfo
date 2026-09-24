@@ -91,7 +91,9 @@ async function refreshEvents() {
   try {
     const r = await fetch("/api/refresh", { method: "POST" });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const res = await r.json();
     await load();
+    if (res.message) $("#status").textContent += ` · ${res.message}`;
   } catch (e) {
     $("#status").textContent = "Uppdateringen misslyckades: " + e.message;
   } finally {
