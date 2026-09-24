@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Sidhuvudet var svårläst (vit text på ljusgrön bakgrund). Det har nu en fast mörkgrön bakgrund och
+  vita knappar med mörk text, med kontrast över 9:1 (#22)
+
 ## [0.1.0] - 2026-09-24
 
 ### Tillagt
