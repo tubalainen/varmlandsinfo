@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-24
+
 ### Tillagt
 - Versionen visas i sidhuvudet och sidfoten som länk till releasen på GitHub, och skrivs ut tydligt
   med länkar i loggen när containern startar (#24)
@@ -73,7 +75,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.0.2...v0.1.0
 [0.0.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.0.1
