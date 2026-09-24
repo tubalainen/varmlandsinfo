@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Efter uppgradering kunde webbläsaren, eller en proxy/cache framför appen, fortsätta visa gammal
+  stilmall och gammalt skript. Stil, skript och ikoner refereras nu med versionen i adressen
+  (`?v=X.Y.Z`), `index.html` skickas med `Cache-Control: no-cache` och API-svaren cachas inte (#25)
+
 ## [0.2.0] - 2026-09-24
 
 ### Tillagt

@@ -103,3 +103,22 @@ def test_next_run_daily():
     tz = events.TZ
     assert main.next_run(datetime(2026, 9, 24, 4, 0, tzinfo=tz)) == datetime(2026, 9, 24, 5, 0, tzinfo=tz)
     assert main.next_run(datetime(2026, 9, 24, 6, 0, tzinfo=tz)) == datetime(2026, 9, 25, 5, 0, tzinfo=tz)
+
+
+def test_index_references_versioned_assets():
+    from version import __version__
+    html = main.INDEX_HTML
+    assert f'/static/style.css?v={__version__}"' in html
+    assert f'/static/app.js?v={__version__}"' in html
+    assert f'/manifest.webmanifest?v={__version__}"' in html
+    assert 'href="/static/style.css"' not in html
+
+
+def test_cache_headers():
+    from fastapi.testclient import TestClient
+    from version import __version__
+    client = TestClient(main.app)   # utan "with": startar inte schemaläggaren
+    assert client.get("/").headers["cache-control"] == "no-cache"
+    assert "immutable" in client.get(f"/static/style.css?v={__version__}").headers["cache-control"]
+    assert client.get("/static/style.css").headers["cache-control"] == "no-cache"
+    assert client.get("/api/health").headers["cache-control"] == "no-store"

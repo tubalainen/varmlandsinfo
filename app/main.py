@@ -3,12 +3,13 @@
 import asyncio
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -173,9 +174,33 @@ async def chat_endpoint(req: ChatRequest):
     return StreamingResponse(stream, media_type="application/x-ndjson")
 
 
+@app.middleware("http")
+async def cache_headers(request: Request, call_next):
+    """Filer med version i adressen cachas länge. Allt annat kontrolleras mot servern varje gång."""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    elif path.startswith("/static/") and request.query_params.get("v") == __version__:
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    else:
+        response.headers.setdefault("Cache-Control", "no-cache")
+    return response
+
+
+def _render_index() -> str:
+    """index.html med versionen i adresserna till stil, skript och ikoner, så att en uppgradering
+    alltid ger nya filer i webbläsaren."""
+    page = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    return re.sub(r'((?:href|src)="/(?:static/[^"?]+|manifest\.webmanifest))"', rf'\1?v={__version__}"', page)
+
+
+INDEX_HTML = _render_index()
+
+
 @app.get("/")
 async def index():
-    return FileResponse(STATIC_DIR / "index.html")
+    return HTMLResponse(INDEX_HTML, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/favicon.ico", include_in_schema=False)
