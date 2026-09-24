@@ -13,6 +13,9 @@ Första datakällan är Visit Värmlands öppna API:
 - **Detaljer:** sammanfattning, längre beskrivning, plats (med kartlänk) och arrangör.
 - **Länkar:** till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
 - **Bilder:** från evenemanget (klicka för att förstora).
+- **Kalendervy:** växla mellan *Lista* och *Kalender*. Kalendern visar en månad med en vecka per rad
+  (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
+  dagens evenemang med bilder och länkar.
 - **Filter:** fritextsök, kategori, kommun och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
 - **AI-chatt:** knappen *Fråga AI* öppnar en chatt kopplad till din egen Ollama. Ställ frågor som

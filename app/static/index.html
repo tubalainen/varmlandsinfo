@@ -22,18 +22,28 @@
 
 <main class="wrap">
   <section class="filters" aria-label="Filter">
+    <div class="viewtoggle" role="group" aria-label="Visning">
+      <button type="button" data-view="list">☰ Lista</button>
+      <button type="button" data-view="calendar">📅 Kalender</button>
+    </div>
     <input id="q" type="search" placeholder="Sök titel, plats, arrangör …" autocomplete="off">
     <select id="municipality"><option value="">Alla kommuner</option></select>
-    <label>Från <input id="from" type="date"></label>
-    <label>Till <input id="to" type="date"></label>
-    <label class="check"><input id="expand" type="checkbox"> Visa varje tillfälle</label>
+    <label class="list-only">Från <input id="from" type="date"></label>
+    <label class="list-only">Till <input id="to" type="date"></label>
+    <label class="check list-only"><input id="expand" type="checkbox"> Visa varje tillfälle</label>
     <button id="reset" type="button">Rensa</button>
   </section>
 
   <section id="cats" class="cats" aria-label="Evenemangstyper"></section>
   <p id="count" class="muted"></p>
   <section id="list"></section>
+  <section id="calendar" class="calendar" hidden aria-label="Kalender"></section>
 </main>
+
+<dialog id="daydialog" class="daydialog">
+  <header><h2></h2><form method="dialog"><button aria-label="Stäng">✕</button></form></header>
+  <div class="daylist"></div>
+</dialog>
 
 <dialog id="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button>Stäng</button></form></dialog>
 
@@ -61,6 +71,7 @@
 
 <footer class="wrap muted">Källa: <a href="https://visitvarmland.com/evenemang" target="_blank" rel="noopener">Visit Värmland</a> (turid.visitvarmland.com) · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a> <span id="version"></span></footer>
 <script src="/static/app.js"></script>
+<script src="/static/calendar.js"></script>
 <script src="/static/chat.js"></script>
 </body>
 </html>

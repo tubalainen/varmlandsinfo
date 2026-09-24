@@ -10,6 +10,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Hämtad data sparas utanför containern i `./data` (volym `/data`). Vid omstart laddas den direkt
   och API:et anropas bara när datan är inaktuell (#7)
 - `PUID`/`PGID` styr vem som äger filerna i datakatalogen (#7)
+- Kalendervy med en vecka per rad och veckonummer. Klick på en dag visar dagens evenemang, och
+  samma filter som i listan gäller (#8)
 
 ### Ändrat
 - Containern startar som root bara för att ge `/data` rätt ägare och kör sedan appen som
