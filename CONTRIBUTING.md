@@ -28,24 +28,25 @@ Versionen finns på ett ställe: `app/version.py`. Den visas i gränssnittets si
 
 ## Göra en release
 
-1. Skapa en PR som
+En release kan omfatta en eller flera mergade PR:er.
+
+1. Skapa en release-PR som
    - sätter den nya versionen i `app/version.py`
    - flyttar raderna under `[Unreleased]` i `CHANGELOG.md` till ett nytt avsnitt `## [X.Y.Z] - ÅÅÅÅ-MM-DD`
      och uppdaterar jämförelselänkarna längst ner
-2. Merga PR:en till `main`.
-3. Tagga merge-commiten och pusha taggen:
-   ```bash
-   git checkout main && git pull
-   git tag vX.Y.Z
-   git push origin vX.Y.Z
-   ```
-   Alternativt: kör flödet **Release** manuellt under *Actions* och ange versionen. Då skapas taggen på `main`.
+2. Merga PR:en till `main`. Klart!
 
-Flödet `.github/workflows/release.yml`
+Flödet `.github/workflows/release.yml` körs vid varje push till `main`. När versionen i `app/version.py`
+saknar release
 
-- stoppar om taggen inte stämmer med `app/version.py` eller om CHANGELOG saknar avsnittet,
-- skapar en GitHub-release med avsnittet ur CHANGELOG plus automatiskt genererade release notes,
-- bygger och publicerar imagen `ghcr.io/tubalainen/varmlandsinfo` med taggarna `X.Y.Z`, `X.Y` och `latest`.
+- stoppar det om CHANGELOG saknar avsnittet för versionen,
+- skapar det taggen `vX.Y.Z` och en GitHub-release med avsnittet ur CHANGELOG plus automatiskt
+  genererade release notes (med de ingående PR:erna),
+- bygger och publicerar det imagen `ghcr.io/tubalainen/varmlandsinfo` med taggarna `X.Y.Z`, `X.Y` och `latest`.
+
+Pushar till `main` där versionen redan är släppt hoppas över. En release kan också skapas genom att
+pusha en tagg (`git tag vX.Y.Z && git push origin vX.Y.Z`) eller genom att köra flödet **Release**
+manuellt under *Actions*.
 
 Varje push till `main` publicerar dessutom en `edge`-image med det senaste från `main`.
 

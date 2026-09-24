@@ -1,15 +1,23 @@
 name: Release
 
-# En release skapas antingen genom att pusha en tagg (git tag v0.0.1 && git push origin v0.0.1)
-# eller genom att köra flödet manuellt med ett versionsnummer (då skapas taggen på main).
+# En release skapas på något av dessa sätt:
+#  1. En push till main där versionen i app/version.py ännu inte har någon release,
+#     t.ex. när en release-PR som höjer versionen mergas (vanligast)
+#  2. En tagg pushas: git tag v0.0.1 && git push origin v0.0.1
+#  3. Flödet körs manuellt med ett versionsnummer (taggen skapas då på main)
 on:
   push:
+    branches: [main]
     tags: ["v*.*.*"]
   workflow_dispatch:
     inputs:
       version:
         description: "Version utan v-prefix, t.ex. 0.0.1"
         required: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -18,27 +26,36 @@ jobs:
       contents: write
     outputs:
       version: ${{ steps.v.outputs.version }}
+      created: ${{ steps.v.outputs.skip != 'true' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'push' && github.ref || 'main' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.sha }}
 
       - name: Bestäm version
         id: v
         env:
           INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-          else
-            VERSION="${INPUT_VERSION#v}"
-          fi
+          FILE_VERSION=$(python3 -c "import re;print(re.search(r'\"(.+)\"', open('app/version.py').read())[1])")
+          case "${GITHUB_EVENT_NAME}:${GITHUB_REF_TYPE}" in
+            push:tag)  VERSION="${GITHUB_REF_NAME#v}" ;;
+            push:*)    VERSION="$FILE_VERSION" ;;
+            *)         VERSION="${INPUT_VERSION#v}" ;;
+          esac
           if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "::error::Ogiltigt versionsnummer: $VERSION"; exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Push till main vars version redan är släppt: ingen ny release
+          if [ "${GITHUB_EVENT_NAME}:${GITHUB_REF_TYPE}" = "push:branch" ] && gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION finns redan, hoppar över."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Kontrollera versionsfil och CHANGELOG
+        if: steps.v.outputs.skip != 'true'
         env:
           VERSION: ${{ steps.v.outputs.version }}
         run: |
@@ -50,6 +67,7 @@ jobs:
           awk -v v="$VERSION" '
             $0 ~ "^## \\[" v "\\]" {found=1; next}
             found && /^## \[/ {exit}
+            found && /^\[[^]]+\]: / {next}
             found {print}
           ' CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then
@@ -58,6 +76,7 @@ jobs:
           cat notes.md
 
       - name: Skapa GitHub-release
+        if: steps.v.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
@@ -70,6 +89,7 @@ jobs:
 
   docker:
     needs: release
+    if: needs.release.outputs.created == 'true'
     permissions:
       contents: read
       packages: write

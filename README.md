@@ -154,7 +154,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 Projektet använder semantisk versionering. Versionen står i `app/version.py` och visas i sidfoten.
 Ändringar listas i [CHANGELOG.md](CHANGELOG.md).
 
-En tagg `vX.Y.Z` skapar automatiskt en GitHub-release och publicerar imagen
+När en ny version når `main` skapas automatiskt en GitHub-release och imagen
 `ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
 Hela arbetsflödet med issues, pull requests och releaser beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
 
