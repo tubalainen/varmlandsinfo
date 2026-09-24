@@ -52,6 +52,17 @@ Efter releasen städas repot: inga öppna PR:er eller överblivna grenar och de 
 En release kan också skapas genom att pusha en tagg (`git tag vX.Y.Z && git push origin vX.Y.Z`) eller
 genom att köra flödet **Release** manuellt under *Actions*.
 
+## Kontrollera gränssnittet i ljust och mörkt läge
+
+Efter ändringar i gränssnittet: starta appen och kör kontrastkontrollen. Den öppnar lista, kalender,
+dagsdialog och chatt i båda lägena och mäter kontrasten för all text (WCAG AA). Skärmdumparna hamnar i
+`tools/screenshots/`.
+
+```bash
+npm i -g playwright            # en gång
+node tools/contrast-check.mjs http://localhost:8080
+```
+
 ## Köra tester lokalt
 
 ```bash

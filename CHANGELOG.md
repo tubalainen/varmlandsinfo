@@ -6,7 +6,16 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Versionen visas i sidhuvudet och sidfoten som länk till releasen på GitHub, och skrivs ut tydligt
+  med länkar i loggen när containern startar (#24)
+- Kontrastkontroll (`tools/contrast-check.mjs`) som mäter all text i ljust och mörkt läge (#23)
+
 ### Rättat
+- Webbsidan är lättläst i både ljust och mörkt läge: all text klarar WCAG AA. Kategorietiketter och
+  valda filter visar vanlig text på en ton av kategorifärgen. Kalendern tonar inte längre ned text med
+  genomskinlighet. Accentfärgade element och felmeddelanden har rätt textfärg i mörkt läge, och
+  webbläsarens egna kontroller följer temat (#23)
 - Sidhuvudet var svårläst (vit text på ljusgrön bakgrund). Det har nu en fast mörkgrön bakgrund och
   vita knappar med mörk text, med kontrast över 9:1 (#22)
 

@@ -36,6 +36,8 @@ hittas, behålls senast sparade data och felet visas i sidfoten och i `/api/heal
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
   länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
   fungerar också.
+- **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
+- **Version:** versionen syns i sidhuvudet och länkar till releasen på GitHub.
 - **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
   automatisk uppdatering varje dag (standard 05:00).
 - **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
@@ -176,7 +178,17 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 
 ## Versioner och releaser
 
-Projektet använder semantisk versionering. Versionen står i `app/version.py` och visas i sidfoten.
+Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i sidhuvudet
+(som länk till releasen på GitHub), i `/api/health` och överst i loggen när containern startar:
+
+```
+$ docker logs varmlandsinfo
+... INFO ============================================================
+... INFO   Värmlandsinfo v0.1.0
+... INFO   Release: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.1.0
+... INFO   Källkod: https://github.com/tubalainen/varmlandsinfo
+```
+
 Ändringar listas i [CHANGELOG.md](CHANGELOG.md), och releaserna finns under
 [Releases](https://github.com/tubalainen/varmlandsinfo/releases).
 
@@ -205,6 +217,7 @@ app/
   static/          Webbgränssnittet (HTML/CSS/JS)
   static/icons/    Appens ikon (SVG och PNG i flera storlekar)
 tests/             Tester (pytest)
+tools/             Kontrastkontroll av gränssnittet i ljust och mörkt läge
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile
 docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID

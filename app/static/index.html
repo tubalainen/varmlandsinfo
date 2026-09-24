@@ -15,7 +15,9 @@
 <header class="top">
   <div class="wrap">
     <div class="toprow">
-      <h1><img class="logo" src="/static/icons/icon.svg" alt="" width="40" height="40">Evenemang i Värmland</h1>
+      <h1><img class="logo" src="/static/icons/icon.svg" alt="" width="40" height="40">Evenemang i Värmland
+        <a id="app-version" class="version" href="https://github.com/tubalainen/varmlandsinfo/releases"
+           target="_blank" rel="noopener" title="Visa releasen på GitHub"></a></h1>
       <div class="actions">
         <button id="refresh" type="button" class="btn-light">⟳ Uppdatera evenemang</button>
         <button id="chat-open" type="button" class="btn-light">💬 Fråga AI</button>
@@ -75,7 +77,8 @@
   </form>
 </aside>
 
-<footer class="wrap muted">Källor: <span id="sources"></span> · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a> <span id="version"></span></footer>
+<footer class="wrap muted">Källor: <span id="sources"></span> · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a>
+  <a id="version" href="https://github.com/tubalainen/varmlandsinfo/releases" target="_blank" rel="noopener"></a></footer>
 <script src="/static/app.js"></script>
 <script src="/static/calendar.js"></script>
 <script src="/static/chat.js"></script>

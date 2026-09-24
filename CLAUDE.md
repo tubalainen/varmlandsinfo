@@ -42,6 +42,10 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
 - Docker: `docker compose up -d --build`. Porten på värden är 7799.
 - Inställningar finns i `.env` (mall: `.env.example`). Nya inställningar ska in i `.env.example`,
   `docker-compose.yaml` och README.
+- **Gränssnittet ska fungera i både ljust och mörkt läge.** Använd färgvariablerna i `style.css`
+  (`--text`, `--muted`, `--accent`, `--on-accent`, `--danger` …) och aldrig fast vit text på färgad
+  bakgrund. Kör `node tools/contrast-check.mjs` mot en körande app efter ändringar i gränssnittet. Den
+  ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
   CCC och Scalateatern är vanliga webbplatser). Hämta inte oftare än nödvändigt, varken i appen

@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 import chat
 import events
 from common import TZ, stats
-from version import __version__
+from version import RELEASE_URL, REPO_URL, __version__
 
 DAILY_REFRESH_TIME = os.getenv("DAILY_REFRESH_TIME", "05:00")
 MIN_REFRESH_MINUTES = 30
@@ -103,8 +103,15 @@ async def scheduler() -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    log.info("Värmlandsinfo %s startar (AI-chatt: %s)", __version__,
-             chat.OLLAMA_MODEL if chat.OLLAMA_URL else "avstängd")
+    for line in (
+        "=" * 60,
+        f"  Värmlandsinfo v{__version__}",
+        f"  Release: {RELEASE_URL}",
+        f"  Källkod: {REPO_URL}",
+        f"  AI-chatt: {chat.OLLAMA_MODEL if chat.OLLAMA_URL else 'avstängd'}",
+        "=" * 60,
+    ):
+        log.info(line)
     task = asyncio.create_task(scheduler())
     yield
     task.cancel()
@@ -117,6 +124,7 @@ def status() -> dict:
     s = events.state
     return {
         "version": __version__,
+        "release_url": RELEASE_URL,
         "events": len(s["events"]),
         "updated": s["updated"],
         "refreshing": s["refreshing"],

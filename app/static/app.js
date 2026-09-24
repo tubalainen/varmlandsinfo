@@ -62,7 +62,10 @@ function showStatus(data) {
     if (data.storage?.error) text += ` · ${data.storage.error}`;
   }
   $("#status").textContent = text;
-  $("#version").textContent = data.version ? `v${data.version}` : "";
+  for (const a of [$("#version"), $("#app-version")]) {
+    a.textContent = data.version ? `v${data.version}` : "";
+    if (data.release_url) a.href = data.release_url;
+  }
 }
 
 async function load() {
