@@ -78,3 +78,12 @@ def test_base_url_accepts_endpoint_urls():
     assert chat.base_url("http://ollama:11434/v1/chat/completions") == "http://ollama:11434"
     assert chat.base_url("http://ollama:11434/api/chat") == "http://ollama:11434"
     assert chat.base_url("http://ollama:11434/") == "http://ollama:11434"
+
+
+def test_free_filter_is_required():
+    free = ev("Gratiskonsert", "2026-09-26")
+    free["categories"].append({"title": "Gratis"})
+    paid = ev("Dyr konsert", "2026-09-26")
+    sel = select_events("Finns det gratis konserter i helgen?", [free, paid], THU)
+    assert [e["title"] for e, _ in sel["events"]] == ["Gratiskonsert"]
+    assert find_categories("något med fri entré") == {"Gratis"}

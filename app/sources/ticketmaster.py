@@ -168,7 +168,8 @@ def normalize_event(ev: dict) -> dict | None:
         "title": ev.get("name") or "(utan titel)",
         "summary": summary,
         "description": info,
-        "categories": _categories(ev),
+        "categories": _categories(ev) + ([category("Gratis")] if prices and all(
+            (p.get("min") or 0) == 0 and (p.get("max") or 0) == 0 for p in prices) else []),
         "municipality": municipality,
         "place": {"title": venue.get("name"), "address": address,
                   "lat": loc.get("latitude"), "lon": loc.get("longitude")} if venue.get("name") else None,

@@ -115,3 +115,10 @@ def test_ccc_merges_with_visit_varmland_duplicate():
     assert len(merged) == 1
     assert [s["name"] for s in merged[0]["sources"]] == ["Visit Värmland", "Karlstad CCC"]
     assert merged[0]["booking_link"] == "https://www.ticketmaster.se/event/1"
+
+
+def test_scala_free_entry_badge(monkeypatch):
+    monkeypatch.setattr(scala, "today", lambda: date(2026, 11, 20))
+    page = scala_item(26, "nov", "20:00", "Källaren", "Musik", "Jam", "jam", '<span class="badge x">Fri entré</span>')
+    e = scala.Scala().normalize({"pages": [page]})[0]
+    assert [c["title"] for c in e["categories"]] == ["Musik", "Gratis"]

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import httpx
 
-from common import TZ, category, finalize, get_json, https_url, log, now_iso, strip_html
+from common import TZ, category, finalize, get_json, https_url, log, now_iso, price_is_free, strip_html
 
 API_BASE = os.getenv("VISITVARMLAND_API", "https://turid.visitvarmland.com/api/v8")
 SITE_BASE = "https://visitvarmland.com"
@@ -77,6 +77,8 @@ def normalize_event(ev: dict, municipalities: dict[int, str]) -> dict | None:
 
     categories = [category(c.get("title")) for c in ev.get("categories") or [] if c.get("title")] \
         or [category("Övriga evenemang")]
+    if price_is_free(ev.get("prices")):
+        categories.append(category("Gratis"))
 
     municipality = None
     for org in ev.get("organizers") or []:

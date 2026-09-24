@@ -34,6 +34,8 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
   för evenemang som återkommer flera gånger.
 - **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
   Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På mobil fälls menyn ut.
+- **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
+  bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
 - **AI-chatt:** sidan *Fråga AI* har förslagskort och snabbval och är kopplad till din egen Ollama. Ställ frågor som
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,

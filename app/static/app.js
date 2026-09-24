@@ -103,16 +103,28 @@ function setNav(open) {
 
 // ---------------------------------------------------------------- data
 
-function showStatus(data) {
-  let text;
-  if (data.refreshing && !data.events.length) text = "Hämtar evenemang … (laddar om strax)";
-  else if (!data.events.length && data.error) text = `Kunde inte hämta: ${data.error}`;
-  else {
-    text = `${data.events.length} evenemang · uppdaterad ${fmtTime(data.updated)}`;
-    if (data.next_refresh) text += ` · nästa ${fmtTime(data.next_refresh)}`;
-    if (data.storage?.error) text += ` · ${data.storage.error}`;
-  }
+const fmtUpdated = (iso) => {
+  const d = new Date(iso);
+  return `${d.getDate()}/${d.getMonth() + 1} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
+let statusTimer;
+/** Tillfälligt meddelande under uppdateringsknappen. Försvinner av sig självt om clearAfter anges. */
+function flash(text, clearAfter = 0) {
+  clearTimeout(statusTimer);
   $("#status").textContent = text;
+  if (clearAfter) statusTimer = setTimeout(() => { $("#status").textContent = ""; }, clearAfter);
+}
+
+function showStatus(data) {
+  // Bara sådant som kräver uppmärksamhet visas, i övrigt är raden tom
+  if (data.refreshing && !data.events.length) flash("Hämtar evenemang … (laddar om strax)");
+  else if (!data.events.length && data.error) flash(`Kunde inte hämta: ${data.error}`);
+  else if (data.storage?.error) flash(data.storage.error);
+  else if (!$("#refresh").disabled) flash("");
+  const upd = $("#updated");
+  upd.textContent = data.updated ? `uppdaterad ${fmtUpdated(data.updated)}` : "";
+  upd.title = data.updated ? `Evenemangen hämtades senast ${fmtTime(data.updated)}` : "";
   $("#nav-count").textContent = data.events.length ? String(data.events.length) : "";
   const v = $("#app-version");
   v.textContent = data.version ? `v${data.version}` : "";
@@ -147,7 +159,7 @@ async function load() {
     if (state.route === "om") window.renderAbout?.();
     else render();
   } catch (e) {
-    $("#status").textContent = "Fel vid hämtning: " + e;
+    flash("Fel vid hämtning: " + e);
     setTimeout(load, 10000);
   }
 }
@@ -157,15 +169,16 @@ async function refreshEvents() {
   const label = btn.querySelector(".label");
   btn.disabled = true;
   label.textContent = "Uppdaterar …";
-  $("#status").textContent = "Hämtar evenemang från alla källor …";
+  flash("Hämtar evenemang från alla källor …");
   try {
     const r = await fetch("/api/refresh", { method: "POST" });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const res = await r.json();
+    btn.disabled = false;
     await load();
-    if (res.message) $("#status").textContent += ` · ${res.message}`;
+    flash(res.message || "Evenemangen är uppdaterade.", 8000);
   } catch (e) {
-    $("#status").textContent = "Uppdateringen misslyckades: " + e.message;
+    flash("Uppdateringen misslyckades: " + e.message);
   } finally {
     btn.disabled = false;
     label.textContent = "Uppdatera evenemang";
@@ -192,7 +205,9 @@ function buildFilters() {
     const x = counts.get(c.title) || { ...c, n: 0 };
     x.n++; counts.set(c.title, x);
   }
-  $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => b.n - a.n).map((c) =>
+  // Gratis först, sedan efter antal
+  const order = (c) => (c.title === "Gratis" ? -1e9 : -c.n);
+  $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => order(a) - order(b)).map((c) =>
     el("button", {
       class: "chip", type: "button", title: c.description, style: `--c:${c.color}`,
       "aria-pressed": state.cats.has(c.title) ? "true" : "false",

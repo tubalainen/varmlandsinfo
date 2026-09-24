@@ -106,3 +106,25 @@ def test_merge_keeps_different_municipalities_apart():
     b = dict(ticketmaster.normalize_event(tm_event(name="Färjestad BK - Rögle BK")))
     b["municipality"] = "Arvika"
     assert len(merge([[a], [b]])) == 2
+
+
+def test_price_is_free():
+    from common import price_is_free
+    assert price_is_free([{"price_type": "Fri entré", "price": None}])
+    assert price_is_free([{"price_type": None, "price": "0", "description": "Evenemanget är gratis"}])
+    assert not price_is_free([])
+    assert not price_is_free([{"price_type": "Vuxen", "price": "50"}, {"price_type": "0-19 år", "description": "Fri entré"}])
+    assert not price_is_free([{"price_type": "Entré", "price": None, "description": "Barn gratis, vuxna 100 kr"}])
+    assert not price_is_free([{"price_type": "Vuxen", "price": None}])
+
+
+def test_free_category_from_sources():
+    vv = normalize_event({
+        "id": 9, "title": "Vernissage", "categories": [{"title": "Utställning"}], "organizers": [],
+        "prices": [{"price_type": "Fri entré", "price": None}],
+        "occasions": [{"date_start": FUTURE, "date_end": FUTURE}],
+    }, {})
+    assert [c["title"] for c in vv["categories"]] == ["Utställning", "Gratis"]
+    tm = ticketmaster.normalize_event(tm_event(priceRanges=[{"min": 0, "max": 0, "currency": "SEK"}]))
+    assert "Gratis" in [c["title"] for c in tm["categories"]]
+    assert "Gratis" not in [c["title"] for c in ticketmaster.normalize_event(tm_event())["categories"]]

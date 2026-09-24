@@ -10,12 +10,16 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Sidan *Om applikationen* beskriver funktionerna och visar källornas status, AI-modell och version (#26)
 - Datumval med färdiga intervall: Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här
   månaden, Nästa månad eller egna datum (#27)
+- Kategorin *Gratis* för evenemang med fri entré, baserad på källornas prisuppgifter. Den finns som
+  filterchip och etikett, och Fråga AI förstår "gratis" och "fri entré" (#29)
 
 ### Ändrat
 - Nytt, modernare utseende: sidomeny med navigering, uppdateringsknapp och källor. Egen adress per vy,
   SVG-ikoner, nya knappar och en ordnad filterpanel. Utfällbar meny och kategorier som sveps i sidled
   på mobil (#27)
 - *Fråga AI* är en egen sida med förslagskort, snabbval, modellstatus och ett nytt inmatningsfält (#27)
+- Den permanenta statustexten är borttagen. "Uppdaterad" visas i stället bredvid versionen i menyn, och
+  meddelanden visas bara när något händer (#28)
 
 ## [0.2.1] - 2026-09-24
 

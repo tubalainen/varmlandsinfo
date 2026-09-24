@@ -141,7 +141,8 @@ def normalize_group(items: list[dict]) -> dict | None:
         "title": item["title"],
         "summary": summary,
         "description": "",
-        "categories": [category(c) for c in cats or ["Teater och underhållning"]],
+        "categories": [category(c) for c in cats or ["Teater och underhållning"]]
+        + ([category("Gratis")] if any("fri entré" in b.lower() for b in item.get("badges") or []) else []),
         "municipality": "Karlstad",
         "place": {"title": f"Scalateatern{', ' + stage if stage else ''}", "address": "", "lat": None, "lon": None},
         "organizer": None,

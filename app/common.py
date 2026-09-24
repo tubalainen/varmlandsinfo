@@ -54,6 +54,30 @@ def category(title: str) -> dict:
     return {"title": title, **describe_category(title)}
 
 
+FREE_RE = re.compile(r"\b(fri entré|fritt inträde|fri inträde|gratis|kostnadsfri\w*|free)\b", re.I)
+PAID_RE = re.compile(r"\d+\s*(kr|sek|:-)", re.I)
+
+
+def price_is_free(prices: list[dict]) -> bool:
+    """True om prisuppgifterna anger fri entré (eller pris 0) och inget pris över 0 finns.
+
+    "Vuxen 50 kr, 0–19 år fri entré" räknas alltså inte som gratis."""
+    free = False
+    for p in prices or []:
+        if not isinstance(p, dict):
+            continue
+        text = f"{p.get('price_type') or ''} {p.get('description') or ''}"
+        raw = str(p.get("price") or "").replace(",", ".")
+        amount = re.search(r"\d+(\.\d+)?", raw)
+        if amount and float(amount.group()) > 0:
+            return False
+        if PAID_RE.search(text):
+            return False
+        if amount or FREE_RE.search(text):
+            free = True
+    return free
+
+
 class SourceError(RuntimeError):
     """Fel från en källa. Meddelandet innehåller aldrig frågesträngen (där API-nycklar kan finnas)."""
 

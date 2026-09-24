@@ -18,8 +18,11 @@
       <img class="logo" src="/static/icons/icon.svg" alt="" width="36" height="36">
       <div class="brand-text">
         <strong>Värmlandsinfo</strong>
-        <a id="app-version" class="version" href="https://github.com/tubalainen/varmlandsinfo/releases"
-           target="_blank" rel="noopener" title="Visa releasen på GitHub"></a>
+        <span class="brand-meta">
+          <a id="app-version" class="version" href="https://github.com/tubalainen/varmlandsinfo/releases"
+             target="_blank" rel="noopener" title="Visa releasen på GitHub"></a>
+          <span id="updated" class="updated"></span>
+        </span>
       </div>
       <button id="nav-close" class="icon-btn side-close" type="button" aria-label="Stäng menyn"><span data-icon="x"></span></button>
     </div>
@@ -33,7 +36,7 @@
 
     <div class="side-block">
       <button id="refresh" type="button" class="btn btn-side"><span data-icon="refresh"></span><span class="label">Uppdatera evenemang</span></button>
-      <p id="status" class="side-status" aria-live="polite">Hämtar evenemang …</p>
+      <p id="status" class="side-status" aria-live="polite"></p>
     </div>
 
     <div class="side-title">Källor</div>

@@ -49,6 +49,10 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🛶", "color": "#0284c7",
         "description": "Aktiviteter och evenemang på sjöar och älvar.",
     },
+    "Gratis": {
+        "icon": "🆓", "color": "#0e9f6e",
+        "description": "Fri entré – evenemanget kostar ingenting.",
+    },
     "Evenemang": {
         "icon": "📅", "color": "#64748b",
         "description": "Allmänna evenemang och festligheter.",

@@ -43,6 +43,7 @@ CATEGORY_WORDS = {
     "Guidning": ["guid", "visning", "rundtur", "vandring"],
     "Motor": ["motor", "bil", "veteranbil", "mc", "motorcykel", "traktor"],
     "På vatten": ["båt", "vatten", "paddl", "kanot", "segl"],
+    "Gratis": ["gratis", "fri entré", "fritt inträde", "gratisevenemang", "kostnadsfri"],
 }
 
 STOPWORDS = set("""
@@ -198,7 +199,14 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
         candidates.append((e, occ))
 
     if cats:
-        with_cat = [(e, o) for e, o in candidates if any(c["title"] in cats for c in e["categories"])]
+        # Gratis är ett krav ("gratis konserter" = gratis OCH musik), övriga typer räcker det att en matchar
+        def ok(e):
+            titles = {c["title"] for c in e["categories"]}
+            if "Gratis" in cats and "Gratis" not in titles:
+                return False
+            others = cats - {"Gratis"}
+            return not others or bool(titles & others)
+        with_cat = [(e, o) for e, o in candidates if ok(e)]
         if with_cat:
             candidates = with_cat
 
