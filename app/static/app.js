@@ -303,13 +303,20 @@ function renderList() {
   $("#list").replaceChildren(frag);
 }
 
+/** Google Maps-länk: exakt position om koordinater finns, annars sökning på plats, adress och kommun. */
+function mapUrl(e) {
+  const p = e.place || {};
+  const query = p.lat && p.lon ? `${p.lat},${p.lon}`
+    // Bara lokalens namn (före kommatecknet), inte scen eller sal: "Scalateatern, Källaren" -> "Scalateatern"
+    : p.title ? [p.title.split(",")[0], p.address, e.municipality].filter(Boolean).join(", ") : null;
+  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null;
+}
+
 function card(e, o, occ, expand) {
   const img = e.images[0];
   const cats = e.categories;
   const where = [e.place?.title, e.municipality].filter(Boolean).join(", ");
-  const mapUrl = e.place?.lat && e.place?.lon
-    ? `https://www.openstreetmap.org/?mlat=${encodeURIComponent(e.place.lat)}&mlon=${encodeURIComponent(e.place.lon)}#map=15/${encodeURIComponent(e.place.lat)}/${encodeURIComponent(e.place.lon)}`
-    : null;
+  const map = mapUrl(e);
   const others = occ.filter((x) => x !== o);
 
   return el("article", { class: "card" },
@@ -319,7 +326,7 @@ function card(e, o, occ, expand) {
       el("h3", {}, e.url ? el("a", { href: e.url, target: "_blank", rel: "noopener" }, e.title) : e.title),
       el("div", { class: "meta" },
         el("span", {}, icon("clock"), timeText(o)),
-        where ? el("span", {}, icon("pin"), mapUrl ? el("a", { href: mapUrl, target: "_blank", rel: "noopener" }, where) : where) : null,
+        where ? el("span", {}, icon("pin"), map ? el("a", { href: map, target: "_blank", rel: "noopener", title: "Visa på Google Maps" }, where) : where) : null,
         e.organizer ? el("span", {}, icon("user"), e.organizer) : null,
         el("span", { class: "src" }, icon("layers"), e.sources.map((x) => x.name).join(", "))),
       el("div", { class: "badges" }, cats.map((c) => el("span", { class: "badge", style: `--c:${c.color}`, title: c.description }, `${c.icon} ${c.title}`))),

@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Platslänkarna går till Google Maps i stället för OpenStreetMap. Platser utan koordinater (t.ex.
+  Karlstad CCC, Scalateatern och Löfbergs Arena) får nu också en kartlänk via sökning på namn och ort (#30)
+
 ## [0.3.0] - 2026-09-24
 
 ### Tillagt

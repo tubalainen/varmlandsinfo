@@ -5,7 +5,7 @@
   const REPO = "https://github.com/tubalainen/varmlandsinfo";
 
   const FEATURES = [
-    ["list", "Evenemangslista", "Alla kommande och pågående evenemang, dag för dag. Varje evenemang visar tid, plats med kartlänk, arrangör, typ, beskrivning, bilder och länkar till mer information och biljetter."],
+    ["list", "Evenemangslista", "Alla kommande och pågående evenemang, dag för dag. Varje evenemang visar tid, plats med länk till Google Maps, arrangör, typ, beskrivning, bilder och länkar till mer information och biljetter."],
     ["calendar", "Kalender", "En månad i taget med en vecka per rad och veckonummer. Evenemangen är färgkodade per typ. Klicka på en dag för att se alla dagens evenemang."],
     ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Kategorin Gratis visar evenemang med fri entré. Återkommande evenemang kan visas en gång eller för varje tillfälle."],
     ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska, till exempel \"Vad händer i Karlstad i helgen?\". AI:n väljer ut relevanta evenemang, svarar med länkar och visar vilket underlag svaret bygger på. Följdfrågor fungerar."],

@@ -23,7 +23,7 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
 
 - **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …).
 - **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen.
-- **Detaljer:** sammanfattning, längre beskrivning, plats (med kartlänk) och arrangör.
+- **Detaljer:** sammanfattning, längre beskrivning, plats (med länk till Google Maps) och arrangör.
 - **Länkar:** till evenemanget på visitvarmland.com, samt biljett- och webbplatslänk när sådana finns.
 - **Bilder:** från evenemanget (klicka för att förstora).
 - **Kalendervy:** växla mellan *Lista* och *Kalender*. Kalendern visar en månad med en vecka per rad
