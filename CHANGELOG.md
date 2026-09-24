@@ -8,6 +8,7 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ### Ändrat
 - Images publiceras bara vid release. `edge`-imagen från `main` är borttagen (#13)
+- Ändringar committas direkt på `main`. Tester och Docker-bygge körs vid varje push som kontroll (#15)
 
 ## [0.0.1] - 2026-09-24
 

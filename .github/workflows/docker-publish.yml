@@ -1,8 +1,10 @@
 name: Publicera Docker-image
 
 # Images publiceras bara vid release (anrop från release.yml).
-# På pull requests byggs imagen som kontroll men publiceras inte.
+# Vid push till main och på pull requests byggs imagen som kontroll men publiceras inte.
 on:
+  push:
+    branches: [main]
   pull_request:
   # Anropas från release.yml med versionsnummer
   workflow_call:
@@ -45,7 +47,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # Release: X.Y.Z, X.Y och latest. PR: pr-N (byggs bara, publiceras inte).
+          # Release: X.Y.Z, X.Y och latest. Annars byggs imagen bara (publiceras inte).
           tags: |
             type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}

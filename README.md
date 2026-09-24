@@ -154,8 +154,8 @@ Projektet använder semantisk versionering. Versionen står i `app/version.py` o
 Ändringar listas i [CHANGELOG.md](CHANGELOG.md), och releaserna finns under
 [Releases](https://github.com/tubalainen/varmlandsinfo/releases).
 
-- Ändringar görs via pull requests som mergas till `main`. Ingen image publiceras vid merge.
-- En release görs på begäran och kan innehålla en eller flera PR:er. Då skapas en GitHub-release och
+- Ändringar committas direkt på `main`, kopplade till issues. Ingen image publiceras då.
+- En release görs på begäran och kan innehålla flera ändringar. Då skapas en GitHub-release och
   imagen `ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
 
 Hela arbetsflödet beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
