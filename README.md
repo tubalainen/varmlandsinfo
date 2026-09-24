@@ -30,8 +30,9 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
   (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
   dagens evenemang med bilder och länkar.
 - **Källor:** varje evenemang visar sina källor och har länkar till dem. Det finns ett filter per källa.
-- **Filter:** fritextsök, kategori, kommun, källa och datumintervall, samt "Visa varje tillfälle"
-  för evenemang som återkommer flera gånger.
+- **Filter:** fritextsök, kategori, kommun, källa och datumintervall. Kommun och källa är flerval, så det går
+  att välja flera samtidigt. Återkommande evenemang visas en gång, på första datumet, med övriga datum i kortet.
+  Med reglaget *Ett kort per datum* visas de i stället som ett eget kort på varje datum.
 - **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
   Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På datorn kan menyn fällas ihop
   till en smal list med ikoner. På mobil fälls menyn ut.

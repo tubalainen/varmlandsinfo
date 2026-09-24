@@ -72,18 +72,18 @@
               <option value="custom">Välj datum …</option>
             </select>
           </label>
-          <label class="select"><span>Kommun</span>
-            <select id="municipality"><option value="">Alla kommuner</option></select>
-          </label>
-          <label class="select"><span>Källa</span>
-            <select id="source"><option value="">Alla källor</option></select>
-          </label>
+          <div class="select"><span id="municipality-label">Kommun</span>
+            <div id="municipality" class="multi" data-all="Alla kommuner" aria-labelledby="municipality-label"></div>
+          </div>
+          <div class="select"><span id="source-label">Källa</span>
+            <div id="source" class="multi" data-all="Alla källor" aria-labelledby="source-label"></div>
+          </div>
           <div id="custom-dates" class="custom-dates list-only" hidden>
             <label class="select"><span>Från</span><input id="from" type="date"></label>
             <label class="select"><span>Till</span><input id="to" type="date"></label>
           </div>
           <div class="filter-actions">
-            <label class="switch list-only"><input id="expand" type="checkbox"><span class="track"></span>Visa varje tillfälle</label>
+            <label class="switch list-only" title="Återkommande evenemang visas normalt en gång, på första datumet, med övriga datum i kortet. Slå på för att visa evenemanget som ett eget kort på varje datum."><input id="expand" type="checkbox"><span class="track"></span>Ett kort per datum</label>
             <button id="reset" type="button" class="btn btn-ghost"><span data-icon="reset"></span>Rensa</button>
           </div>
         </div>

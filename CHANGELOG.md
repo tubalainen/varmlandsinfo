@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Kommun och Källa är flervalslistor, så det går att välja till exempel Karlstad och Hammarö samtidigt. Reglaget
+  "Visa varje tillfälle" heter nu "Ett kort per datum" och har en förklarande hjälptext. Filtren får bättre plats
+  på mellanstora skärmar (#39)
+
 ## [0.9.0] - 2026-09-24
 
 ### Tillagt

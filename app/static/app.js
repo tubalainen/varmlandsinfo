@@ -164,18 +164,66 @@ async function load() {
 
 // ---------------------------------------------------------------- filter
 
-function buildFilters() {
-  const munis = [...new Set(state.events.map((e) => e.municipality).filter(Boolean))].sort((a, b) => a.localeCompare(b, "sv"));
-  const sel = $("#municipality");
-  const cur = sel.value;
-  sel.replaceChildren(el("option", { value: "" }, "Alla kommuner"), ...munis.map((m) => el("option", { value: m }, m)));
-  sel.value = cur;
+/** Flervalslista: en knapp som öppnar kryssrutor. Inget valt betyder alla. */
+function multiSelect(root, onChange) {
+  const selected = new Set();
+  const value = el("span", { class: "multi-value", id: `${root.id}-value` });
+  const btn = el("button", { type: "button", class: "multi-btn", "aria-haspopup": "true", "aria-expanded": "false",
+    "aria-labelledby": `${root.getAttribute("aria-labelledby")} ${root.id}-value` }, value, icon("down"));
+  const list = el("div", { class: "multi-list" });
+  const panel = el("div", { class: "multi-panel", role: "group", "aria-labelledby": root.getAttribute("aria-labelledby") },
+    list, el("div", { class: "multi-foot" },
+      el("button", { type: "button", class: "btn btn-sm btn-ghost", onclick: () => { selected.clear(); sync(); onChange(); } }, "Rensa")));
+  panel.hidden = true;
+  root.append(btn, panel);
 
-  const srcSel = $("#source");
-  const curSrc = srcSel.value;
-  const srcNames = [...new Set(state.events.flatMap((e) => e.sources.map((x) => x.name)))].sort((a, b) => a.localeCompare(b, "sv"));
-  srcSel.replaceChildren(el("option", { value: "" }, "Alla källor"), ...srcNames.map((m) => el("option", { value: m }, m)));
-  srcSel.value = curSrc;
+  const open = (show) => { panel.hidden = !show; btn.setAttribute("aria-expanded", String(show)); };
+  btn.addEventListener("click", () => {
+    open(panel.hidden);
+    if (!panel.hidden) list.querySelector("input")?.focus();
+  });
+  document.addEventListener("click", (e) => { if (!root.contains(e.target)) open(false); });
+  root.addEventListener("focusout", (e) => { if (e.relatedTarget && !root.contains(e.relatedTarget)) open(false); });
+  root.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden) { e.stopPropagation(); open(false); btn.focus(); }
+  });
+
+  function sync() {
+    for (const cb of list.querySelectorAll("input")) cb.checked = selected.has(cb.value);
+    const vals = [...selected];
+    value.textContent = !vals.length ? root.dataset.all : vals.length <= 2 ? vals.join(", ") : `${vals[0]} + ${vals.length - 1}`;
+    btn.classList.toggle("active", vals.length > 0);
+  }
+
+  return {
+    selected,
+    /** Alternativen som [{value, n}], där n är antalet evenemang. */
+    setOptions(options) {
+      list.replaceChildren(...options.map((o) => el("label", { class: "multi-opt" },
+        el("input", { type: "checkbox", value: o.value, onchange: (ev) => {
+          ev.target.checked ? selected.add(o.value) : selected.delete(o.value);
+          sync(); onChange();
+        } }),
+        el("span", { class: "name" }, o.value), el("span", { class: "n" }, String(o.n)))));
+      sync();
+    },
+    clear() { selected.clear(); sync(); },
+  };
+}
+
+const muniFilter = multiSelect($("#municipality"), () => render());
+const sourceFilter = multiSelect($("#source"), () => render());
+
+/** Antal evenemang per värde, sorterat i bokstavsordning. */
+function tally(values) {
+  const n = new Map();
+  for (const v of values) if (v) n.set(v, (n.get(v) || 0) + 1);
+  return [...n].sort((a, b) => a[0].localeCompare(b[0], "sv")).map(([value, count]) => ({ value, n: count }));
+}
+
+function buildFilters() {
+  muniFilter.setOptions(tally(state.events.map((e) => e.municipality)));
+  sourceFilter.setOptions(tally(state.events.flatMap((e) => [...new Set(e.sources.map((x) => x.name))])));
 
   const counts = new Map();
   for (const e of state.events) for (const c of e.categories) {
@@ -196,10 +244,10 @@ function buildFilters() {
     }, `${c.icon} ${c.title}`, el("span", { class: "n" }, String(c.n)))));
 }
 
-function matches(e, q, muni) {
-  if (muni && e.municipality !== muni) return false;
-  const src = $("#source").value;
-  if (src && !e.sources.some((s) => s.name === src)) return false;
+function matches(e, q) {
+  const munis = muniFilter.selected, srcs = sourceFilter.selected;
+  if (munis.size && !munis.has(e.municipality)) return false;
+  if (srcs.size && !e.sources.some((s) => srcs.has(s.name))) return false;
   if (state.cats.size && !e.categories.some((c) => state.cats.has(c.title))) return false;
   if (q) {
     const hay = [e.title, e.summary, e.description, e.organizer, e.municipality, e.place?.title, e.place?.address,
@@ -244,14 +292,13 @@ function dateRange() {
 
 function renderList() {
   const q = $("#q").value.trim().toLowerCase();
-  const muni = $("#municipality").value;
   let [from, to] = dateRange();
   if (from < state.today) from = state.today;
   const expand = $("#expand").checked;
 
   const items = [];
   for (const e of state.events) {
-    if (!matches(e, q, muni)) continue;
+    if (!matches(e, q)) continue;
     const occ = e.occasions.filter((o) => o.date_end >= from && o.date_start <= to);
     if (!occ.length) continue;
     for (const o of expand ? occ : [occ[0]]) items.push({ e, o, occ });
@@ -328,13 +375,14 @@ function card(e, o, occ, expand) {
 
 let t;
 $("#q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 150); });
-for (const id of ["#municipality", "#source", "#from", "#to", "#expand"]) $(id).addEventListener("change", render);
+for (const id of ["#from", "#to", "#expand"]) $(id).addEventListener("change", render);
 $("#when").addEventListener("change", () => {
   $("#custom-dates").hidden = $("#when").value !== "custom";
   render();
 });
 $("#reset").addEventListener("click", () => {
-  for (const id of ["#q", "#municipality", "#source", "#when", "#from", "#to"]) $(id).value = "";
+  for (const id of ["#q", "#when", "#from", "#to"]) $(id).value = "";
+  muniFilter.clear(); sourceFilter.clear();
   $("#custom-dates").hidden = true;
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });

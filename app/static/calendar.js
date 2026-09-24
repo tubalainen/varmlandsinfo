@@ -23,11 +23,10 @@ function isoWeek(d) {
 /** Filtrerade evenemang per dag inom [start, end]: Map<"ÅÅÅÅ-MM-DD", [{e, o}]> */
 function eventsByDay(start, end) {
   const q = $("#q").value.trim().toLowerCase();
-  const muni = $("#municipality").value;
   const lo = isoDay(start), hi = isoDay(end);
   const map = new Map();
   for (const e of state.events) {
-    if (!matches(e, q, muni)) continue;
+    if (!matches(e, q)) continue;
     for (const o of e.occasions) {
       if (o.date_end < lo || o.date_start > hi) continue;
       // Tillfällen som sträcker sig över flera dagar visas på varje dag
