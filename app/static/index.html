@@ -8,79 +8,153 @@
 <link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#1d6f42">
+<meta name="theme-color" content="#101a2c">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <div class="toprow">
-      <h1><img class="logo" src="/static/icons/icon.svg" alt="" width="40" height="40">Evenemang i Värmland
+<div class="app">
+  <aside id="sidebar" class="sidebar" aria-label="Meny">
+    <div class="brand">
+      <img class="logo" src="/static/icons/icon.svg" alt="" width="36" height="36">
+      <div class="brand-text">
+        <strong>Värmlandsinfo</strong>
         <a id="app-version" class="version" href="https://github.com/tubalainen/varmlandsinfo/releases"
-           target="_blank" rel="noopener" title="Visa releasen på GitHub"></a></h1>
-      <div class="actions">
-        <button id="refresh" type="button" class="btn-light">⟳ Uppdatera evenemang</button>
-        <button id="chat-open" type="button" class="btn-light">💬 Fråga AI</button>
+           target="_blank" rel="noopener" title="Visa releasen på GitHub"></a>
       </div>
+      <button id="nav-close" class="icon-btn side-close" type="button" aria-label="Stäng menyn"><span data-icon="x"></span></button>
     </div>
-    <p id="status" class="muted">Hämtar evenemang …</p>
+
+    <nav class="nav" aria-label="Huvudmeny">
+      <a href="#/lista" data-route="lista"><span data-icon="list"></span><span class="label">Evenemang</span><span id="nav-count" class="pill"></span></a>
+      <a href="#/kalender" data-route="kalender"><span data-icon="calendar"></span><span class="label">Kalender</span></a>
+      <a href="#/fraga" data-route="fraga"><span data-icon="sparkles"></span><span class="label">Fråga AI</span></a>
+      <a href="#/om" data-route="om"><span data-icon="info"></span><span class="label">Om applikationen</span></a>
+    </nav>
+
+    <div class="side-block">
+      <button id="refresh" type="button" class="btn btn-side"><span data-icon="refresh"></span><span class="label">Uppdatera evenemang</span></button>
+      <p id="status" class="side-status" aria-live="polite">Hämtar evenemang …</p>
+    </div>
+
+    <div class="side-title">Källor</div>
+    <ul id="sources" class="source-list"></ul>
+  </aside>
+  <div id="scrim" class="scrim" hidden></div>
+
+  <div class="main">
+    <header class="mobilebar">
+      <button id="nav-open" class="icon-btn" type="button" aria-label="Öppna menyn" aria-controls="sidebar"><span data-icon="menu"></span></button>
+      <img class="logo" src="/static/icons/icon.svg" alt="" width="28" height="28">
+      <strong>Värmlandsinfo</strong>
+    </header>
+
+    <!-- Evenemang: lista och kalender -->
+    <section id="view-events" class="view" aria-labelledby="events-title">
+      <header class="page-head">
+        <div class="page-icon" id="events-icon"><span data-icon="list"></span></div>
+        <div>
+          <h1 id="events-title">Evenemang</h1>
+          <p id="count" class="sub"></p>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="Filter">
+        <label class="search">
+          <span data-icon="search"></span>
+          <input id="q" type="search" placeholder="Sök titel, plats, arrangör …" autocomplete="off" aria-label="Sök">
+        </label>
+        <div class="filters">
+          <label class="select list-only"><span>Datum</span>
+            <select id="when">
+              <option value="">Alla kommande</option>
+              <option value="today">Idag</option>
+              <option value="tomorrow">Imorgon</option>
+              <option value="weekend">I helgen</option>
+              <option value="week">Den här veckan</option>
+              <option value="nextweek">Nästa vecka</option>
+              <option value="month">Den här månaden</option>
+              <option value="nextmonth">Nästa månad</option>
+              <option value="custom">Välj datum …</option>
+            </select>
+          </label>
+          <label class="select"><span>Kommun</span>
+            <select id="municipality"><option value="">Alla kommuner</option></select>
+          </label>
+          <label class="select"><span>Källa</span>
+            <select id="source"><option value="">Alla källor</option></select>
+          </label>
+          <div id="custom-dates" class="custom-dates list-only" hidden>
+            <label class="select"><span>Från</span><input id="from" type="date"></label>
+            <label class="select"><span>Till</span><input id="to" type="date"></label>
+          </div>
+          <div class="filter-actions">
+            <label class="switch list-only"><input id="expand" type="checkbox"><span class="track"></span>Visa varje tillfälle</label>
+            <button id="reset" type="button" class="btn btn-ghost"><span data-icon="reset"></span>Rensa</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="cats" class="chips" aria-label="Evenemangstyper"></section>
+      <section id="list" class="list"></section>
+      <section id="calendar" class="calendar" hidden aria-label="Kalender"></section>
+    </section>
+
+    <!-- Fråga AI -->
+    <section id="view-chat" class="view chat-view" hidden aria-labelledby="chat-title">
+      <header class="page-head chat-head">
+        <div class="page-icon"><span data-icon="message"></span></div>
+        <div>
+          <h1 id="chat-title">Fråga AI</h1>
+          <p class="sub"><span id="chat-dot" class="dot"></span><span id="chat-model">Kontrollerar AI-modellen …</span></p>
+        </div>
+        <button id="chat-clear" type="button" class="btn btn-ghost" hidden><span data-icon="trash"></span>Nytt samtal</button>
+      </header>
+
+      <div id="chat-log" class="chat-log">
+        <div id="chat-welcome" class="welcome">
+          <div class="welcome-icon"><span data-icon="sparkles"></span></div>
+          <h2>Vad vill du veta om evenemangen i Värmland?</h2>
+          <p>Ställ frågor på vanlig svenska. AI:n söker bland alla evenemang, sammanställer svaret och länkar
+            till evenemangen den bygger på.</p>
+          <div id="suggestions" class="suggestions"></div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div id="quick" class="quick" aria-label="Snabbval"></div>
+        <form id="chat-form" class="chat-form">
+          <textarea id="chat-input" rows="1" placeholder="Ställ en fråga om evenemangen … (Enter för att skicka, Shift+Enter för ny rad)" required aria-label="Fråga"></textarea>
+          <button type="submit" class="send" aria-label="Skicka"><span data-icon="send"></span></button>
+        </form>
+        <p class="fineprint">Svaren genereras lokalt av Ollama utifrån de evenemang som appen har hämtat.</p>
+      </div>
+    </section>
+
+    <!-- Om applikationen -->
+    <section id="view-about" class="view" hidden aria-labelledby="about-title">
+      <header class="page-head">
+        <div class="page-icon"><span data-icon="info"></span></div>
+        <div>
+          <h1 id="about-title">Om applikationen</h1>
+          <p class="sub">Vad Värmlandsinfo gör och hur det fungerar</p>
+        </div>
+      </header>
+      <div id="about" class="about"></div>
+    </section>
   </div>
-</header>
-
-<main class="wrap">
-  <section class="filters" aria-label="Filter">
-    <div class="viewtoggle" role="group" aria-label="Visning">
-      <button type="button" data-view="list">☰ Lista</button>
-      <button type="button" data-view="calendar">📅 Kalender</button>
-    </div>
-    <input id="q" type="search" placeholder="Sök titel, plats, arrangör …" autocomplete="off">
-    <select id="municipality"><option value="">Alla kommuner</option></select>
-    <select id="source"><option value="">Alla källor</option></select>
-    <label class="list-only">Från <input id="from" type="date"></label>
-    <label class="list-only">Till <input id="to" type="date"></label>
-    <label class="check list-only"><input id="expand" type="checkbox"> Visa varje tillfälle</label>
-    <button id="reset" type="button">Rensa</button>
-  </section>
-
-  <section id="cats" class="cats" aria-label="Evenemangstyper"></section>
-  <p id="count" class="muted"></p>
-  <section id="list"></section>
-  <section id="calendar" class="calendar" hidden aria-label="Kalender"></section>
-</main>
+</div>
 
 <dialog id="daydialog" class="daydialog">
-  <header><h2></h2><form method="dialog"><button aria-label="Stäng">✕</button></form></header>
+  <header><h2></h2><form method="dialog"><button class="icon-btn" aria-label="Stäng"><span data-icon="x"></span></button></form></header>
   <div class="daylist"></div>
 </dialog>
 
-<dialog id="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button>Stäng</button></form></dialog>
+<dialog id="lightbox" class="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button class="btn">Stäng</button></form></dialog>
 
-<aside id="chat" class="chat" hidden aria-label="AI-chatt">
-  <header class="chat-head">
-    <strong>Fråga AI om evenemangen</strong>
-    <span id="chat-model" class="muted"></span>
-    <button id="chat-clear" type="button" title="Rensa samtalet">Rensa</button>
-    <button id="chat-close" type="button" aria-label="Stäng">✕</button>
-  </header>
-  <div id="chat-log" class="chat-log">
-    <div class="msg assistant intro">Hej! Fråga mig om evenemang i Värmland, till exempel:
-      <ul>
-        <li><a href="#" class="ex">Vad händer i Karlstad i helgen?</a></li>
-        <li><a href="#" class="ex">Finns det några barnaktiviteter nästa vecka?</a></li>
-        <li><a href="#" class="ex">Vilka konserter finns i oktober?</a></li>
-      </ul>
-    </div>
-  </div>
-  <form id="chat-form" class="chat-form">
-    <textarea id="chat-input" rows="2" placeholder="Skriv en fråga …" required></textarea>
-    <button type="submit">Skicka</button>
-  </form>
-</aside>
-
-<footer class="wrap muted">Källor: <span id="sources"></span> · <a href="https://github.com/tubalainen/varmlandsinfo" target="_blank" rel="noopener">Värmlandsinfo</a>
-  <a id="version" href="https://github.com/tubalainen/varmlandsinfo/releases" target="_blank" rel="noopener"></a></footer>
+<script src="/static/icons.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/calendar.js"></script>
+<script src="/static/about.js"></script>
 <script src="/static/chat.js"></script>
 </body>
 </html>

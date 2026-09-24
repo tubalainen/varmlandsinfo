@@ -8,7 +8,7 @@ function store(key, value) {
   try { localStorage.setItem(key, value); } catch { /* inte kritiskt */ }
 }
 
-const state = { events: [], today: null, cats: new Set(), view: stored("view", "list"), calMonth: null };
+const state = { events: [], today: null, cats: new Set(), view: "list", route: null, calMonth: null, meta: {} };
 
 const fmtDay = new Intl.DateTimeFormat("sv-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const fmtShort = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" });
@@ -25,6 +25,9 @@ function el(tag, attrs = {}, ...children) {
   for (const c of children.flat()) if (c != null && c !== false) n.append(c);
   return n;
 }
+
+const ext = (href, label, cls = "btn btn-sm", ico = "external") =>
+  el("a", { class: cls, href, target: "_blank", rel: "noopener" }, icon(ico), label);
 
 function dayLabel(iso) {
   const diff = Math.round((parseDate(iso) - parseDate(state.today)) / 86400000);
@@ -51,21 +54,80 @@ function fmtTime(iso) {
   return iso ? new Date(iso).toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" }) : "–";
 }
 
+// ---------------------------------------------------------------- navigering
+
+const ROUTES = {
+  lista: { view: "view-events", title: "Evenemang", icon: "list" },
+  kalender: { view: "view-events", title: "Kalender", icon: "calendar" },
+  fraga: { view: "view-chat" },
+  om: { view: "view-about" },
+};
+
+function currentRoute() {
+  const r = location.hash.replace(/^#\/?/, "");
+  return ROUTES[r] ? r : stored("route", "lista");
+}
+
+function navigate() {
+  const r = currentRoute();
+  // Startsidan utan adress får den valda vyns adress, så att bakåtknappen blir rätt
+  if (!ROUTES[location.hash.replace(/^#\/?/, "")]) history.replaceState(null, "", `#/${r}`);
+  state.route = r;
+  if (r === "lista" || r === "kalender") store("route", r);
+  for (const id of ["view-events", "view-chat", "view-about"]) $(`#${id}`).hidden = ROUTES[r].view !== id;
+  for (const a of document.querySelectorAll(".nav a")) {
+    if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  document.body.classList.remove("nav-open");
+  $("#scrim").hidden = true;
+  if (ROUTES[r].view === "view-events") {
+    state.view = r === "kalender" ? "calendar" : "list";
+    $("#events-title").textContent = ROUTES[r].title;
+    $("#events-icon").replaceChildren(icon(ROUTES[r].icon));
+    document.title = `${ROUTES[r].title} i Värmland`;
+    render();
+  } else if (r === "fraga") {
+    document.title = "Fråga AI – Värmlandsinfo";
+    window.chatView?.show();
+  } else {
+    document.title = "Om applikationen – Värmlandsinfo";
+    window.renderAbout?.();
+  }
+  window.scrollTo(0, 0);
+}
+
+function setNav(open) {
+  document.body.classList.toggle("nav-open", open);
+  $("#scrim").hidden = !open;
+}
+
+// ---------------------------------------------------------------- data
+
 function showStatus(data) {
   let text;
   if (data.refreshing && !data.events.length) text = "Hämtar evenemang … (laddar om strax)";
   else if (!data.events.length && data.error) text = `Kunde inte hämta: ${data.error}`;
   else {
-    text = `${data.events.length} aktuella evenemang · uppdaterad ${fmtTime(data.updated)}`;
-    if (data.next_refresh) text += ` · nästa automatiska uppdatering ${fmtTime(data.next_refresh)}`;
-    if (data.error) text += ` · senaste uppdateringen misslyckades: ${data.error}`;
+    text = `${data.events.length} evenemang · uppdaterad ${fmtTime(data.updated)}`;
+    if (data.next_refresh) text += ` · nästa ${fmtTime(data.next_refresh)}`;
     if (data.storage?.error) text += ` · ${data.storage.error}`;
   }
   $("#status").textContent = text;
-  for (const a of [$("#version"), $("#app-version")]) {
-    a.textContent = data.version ? `v${data.version}` : "";
-    if (data.release_url) a.href = data.release_url;
-  }
+  $("#nav-count").textContent = data.events.length ? String(data.events.length) : "";
+  const v = $("#app-version");
+  v.textContent = data.version ? `v${data.version}` : "";
+  if (data.release_url) v.href = data.release_url;
+}
+
+function renderSources() {
+  $("#sources").replaceChildren(...Object.values(state.sources || {}).map((x) => {
+    const cls = !x.enabled ? "off" : x.error ? "err" : "";
+    const title = x.error || x.config_error || `Senast hämtad ${fmtTime(x.updated)}`;
+    return el("li", {}, el("a", { href: x.homepage, target: "_blank", rel: "noopener", title },
+      el("span", { class: `src-dot ${cls}` }),
+      el("span", { class: "name" }, x.title),
+      el("span", { class: `src-count ${cls}` }, !x.enabled ? "av" : x.error ? "fel" : String(x.count))));
+  }));
 }
 
 async function load() {
@@ -76,11 +138,14 @@ async function load() {
     state.today = data.today;
     state.chat = data.chat;
     state.sources = data.sources;
+    state.meta = data;
     showStatus(data);
+    renderSources();
     if (!data.events.length) setTimeout(load, 5000);
-    $("#from").min = state.today;
+    $("#from").min = $("#to").min = state.today;
     buildFilters();
-    render();
+    if (state.route === "om") window.renderAbout?.();
+    else render();
   } catch (e) {
     $("#status").textContent = "Fel vid hämtning: " + e;
     setTimeout(load, 10000);
@@ -89,9 +154,10 @@ async function load() {
 
 async function refreshEvents() {
   const btn = $("#refresh");
+  const label = btn.querySelector(".label");
   btn.disabled = true;
-  btn.textContent = "⟳ Uppdaterar …";
-  $("#status").textContent = "Hämtar alla evenemang från Visit Värmland …";
+  label.textContent = "Uppdaterar …";
+  $("#status").textContent = "Hämtar evenemang från alla källor …";
   try {
     const r = await fetch("/api/refresh", { method: "POST" });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -102,9 +168,11 @@ async function refreshEvents() {
     $("#status").textContent = "Uppdateringen misslyckades: " + e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = "⟳ Uppdatera evenemang";
+    label.textContent = "Uppdatera evenemang";
   }
 }
+
+// ---------------------------------------------------------------- filter
 
 function buildFilters() {
   const munis = [...new Set(state.events.map((e) => e.municipality).filter(Boolean))].sort((a, b) => a.localeCompare(b, "sv"));
@@ -118,20 +186,13 @@ function buildFilters() {
   const srcNames = [...new Set(state.events.flatMap((e) => e.sources.map((x) => x.name)))].sort((a, b) => a.localeCompare(b, "sv"));
   srcSel.replaceChildren(el("option", { value: "" }, "Alla källor"), ...srcNames.map((m) => el("option", { value: m }, m)));
   srcSel.value = curSrc;
-  $("#sources").replaceChildren(...Object.values(state.sources || {}).flatMap((x, i) => [
-    i ? ", " : "",
-    el("a", { href: x.homepage, target: "_blank", rel: "noopener",
-      title: x.error || x.config_error || `Senast hämtad ${fmtTime(x.updated)}` }, x.title),
-    x.enabled ? (x.error ? " (fel)" : ` (${x.count})`) : " (avstängd)",
-  ]));
 
   const counts = new Map();
   for (const e of state.events) for (const c of e.categories) {
     const x = counts.get(c.title) || { ...c, n: 0 };
     x.n++; counts.set(c.title, x);
   }
-  const box = $("#cats");
-  box.replaceChildren(...[...counts.values()].sort((a, b) => b.n - a.n).map((c) =>
+  $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => b.n - a.n).map((c) =>
     el("button", {
       class: "chip", type: "button", title: c.description, style: `--c:${c.color}`,
       "aria-pressed": state.cats.has(c.title) ? "true" : "false",
@@ -156,20 +217,44 @@ function matches(e, q, muni) {
   return true;
 }
 
+// ---------------------------------------------------------------- lista
+
 function render() {
+  if (!state.today || $("#view-events").hidden) return;
   const cal = state.view === "calendar";
   document.body.classList.toggle("cal-mode", cal);
   $("#list").hidden = cal;
   $("#calendar").hidden = !cal;
-  for (const b of document.querySelectorAll(".viewtoggle button")) b.setAttribute("aria-pressed", b.dataset.view === state.view);
   cal ? renderCalendar() : renderList();
+}
+
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const plusDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
+/** Datumintervall för datumvalet: [från, till] som ÅÅÅÅ-MM-DD. */
+function dateRange() {
+  const today = parseDate(state.today);
+  const dow = (today.getDay() + 6) % 7;               // 0 = måndag
+  const sunday = plusDays(today, 6 - dow);
+  switch ($("#when").value) {
+    case "today": return [iso(today), iso(today)];
+    case "tomorrow": return [iso(plusDays(today, 1)), iso(plusDays(today, 1))];
+    case "weekend": return [iso(dow >= 4 ? today : plusDays(sunday, -2)), iso(sunday)];   // fre–sön
+    case "week": return [iso(today), iso(sunday)];
+    case "nextweek": return [iso(plusDays(sunday, 1)), iso(plusDays(sunday, 7))];
+    case "month": return [iso(today), iso(new Date(today.getFullYear(), today.getMonth() + 1, 0))];
+    case "nextmonth": return [iso(new Date(today.getFullYear(), today.getMonth() + 1, 1)),
+                              iso(new Date(today.getFullYear(), today.getMonth() + 2, 0))];
+    case "custom": return [$("#from").value || state.today, $("#to").value || "9999-12-31"];
+    default: return [state.today, "9999-12-31"];
+  }
 }
 
 function renderList() {
   const q = $("#q").value.trim().toLowerCase();
   const muni = $("#municipality").value;
-  const from = $("#from").value || state.today;
-  const to = $("#to").value || "9999-12-31";
+  let [from, to] = dateRange();
+  if (from < state.today) from = state.today;
   const expand = $("#expand").checked;
 
   const items = [];
@@ -199,7 +284,7 @@ function renderList() {
     }
     frag.append(card(e, o, occ, expand));
   }
-  if (!items.length) frag.append(el("p", { class: "muted" }, "Inga evenemang matchar filtret."));
+  if (!items.length) frag.append(el("p", { class: "empty" }, "Inga evenemang matchar filtret."));
   $("#list").replaceChildren(frag);
 }
 
@@ -218,10 +303,10 @@ function card(e, o, occ, expand) {
     el("div", {},
       el("h3", {}, e.url ? el("a", { href: e.url, target: "_blank", rel: "noopener" }, e.title) : e.title),
       el("div", { class: "meta" },
-        el("span", {}, "🕒 ", timeText(o)),
-        where ? el("span", {}, "📍 ", mapUrl ? el("a", { href: mapUrl, target: "_blank", rel: "noopener" }, where) : where) : null,
-        e.organizer ? el("span", {}, "👤 ", e.organizer) : null,
-        el("span", { class: "src" }, "Källa: ", e.sources.map((x) => x.name).join(", "))),
+        el("span", {}, icon("clock"), timeText(o)),
+        where ? el("span", {}, icon("pin"), mapUrl ? el("a", { href: mapUrl, target: "_blank", rel: "noopener" }, where) : where) : null,
+        e.organizer ? el("span", {}, icon("user"), e.organizer) : null,
+        el("span", { class: "src" }, icon("layers"), e.sources.map((x) => x.name).join(", "))),
       el("div", { class: "badges" }, cats.map((c) => el("span", { class: "badge", style: `--c:${c.color}`, title: c.description }, `${c.icon} ${c.title}`))),
       el("p", { class: "typedesc" }, cats.map((c) => c.description).join(" ")),
       e.summary ? el("p", { class: "summary" }, e.summary) : null,
@@ -234,23 +319,31 @@ function card(e, o, occ, expand) {
         e.place?.address ? el("p", { class: "muted" }, "Adress: " + e.place.address) : null,
         el("div", { class: "thumbs" }, e.images.map((i) => el("img", { src: i.small, alt: i.alt, loading: "lazy", onclick: () => openImage(i) })))) : null,
       el("div", { class: "links" },
-        e.url ? el("a", { href: e.url, target: "_blank", rel: "noopener" }, "Mer information ↗") : null,
-        e.sources.filter((x) => x.url && x.url !== e.url).map((x) =>
-          el("a", { href: x.url, target: "_blank", rel: "noopener" }, `${x.name} ↗`)),
-        e.booking_link ? el("a", { href: e.booking_link, target: "_blank", rel: "noopener" }, "Biljetter ↗") : null,
-        e.website_link ? el("a", { href: e.website_link, target: "_blank", rel: "noopener" }, "Webbplats ↗") : null)));
+        e.url ? ext(e.url, "Mer information", "btn btn-sm btn-primary") : null,
+        e.booking_link ? ext(e.booking_link, "Biljetter", "btn btn-sm", "ticket") : null,
+        e.sources.filter((x) => x.url && x.url !== e.url).map((x) => ext(x.url, x.name)),
+        e.website_link ? ext(e.website_link, "Webbplats") : null)));
 }
+
+// ---------------------------------------------------------------- start
 
 let t;
 $("#q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 150); });
 for (const id of ["#municipality", "#source", "#from", "#to", "#expand"]) $(id).addEventListener("change", render);
+$("#when").addEventListener("change", () => {
+  $("#custom-dates").hidden = $("#when").value !== "custom";
+  render();
+});
 $("#reset").addEventListener("click", () => {
-  $("#q").value = ""; $("#municipality").value = ""; $("#source").value = ""; $("#from").value = ""; $("#to").value = "";
+  for (const id of ["#q", "#municipality", "#source", "#when", "#from", "#to"]) $(id).value = "";
+  $("#custom-dates").hidden = true;
   $("#expand").checked = false; state.cats.clear(); buildFilters(); render();
 });
 $("#refresh").addEventListener("click", refreshEvents);
-for (const b of document.querySelectorAll(".viewtoggle button")) {
-  b.addEventListener("click", () => { state.view = b.dataset.view; store("view", state.view); render(); });
-}
+$("#nav-open").addEventListener("click", () => setNav(true));
+$("#nav-close").addEventListener("click", () => setNav(false));
+$("#scrim").addEventListener("click", () => setNav(false));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNav(false); });
 $("#lightbox").addEventListener("click", (ev) => { if (ev.target.id === "lightbox") ev.target.close(); });
-load();
+window.addEventListener("hashchange", navigate);
+document.addEventListener("DOMContentLoaded", () => { navigate(); load(); });

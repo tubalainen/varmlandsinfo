@@ -17,7 +17,7 @@ med länkar till alla källor.
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
 
 CCC och Scalateatern saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
-hittas, behålls senast sparade data och felet visas i sidfoten och i `/api/health`.
+hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
 
@@ -32,12 +32,16 @@ hittas, behålls senast sparade data och felet visas i sidfoten och i `/api/heal
 - **Källor:** varje evenemang visar sina källor och har länkar till dem. Det finns ett filter per källa.
 - **Filter:** fritextsök, kategori, kommun, källa och datumintervall, samt "Visa varje tillfälle"
   för evenemang som återkommer flera gånger.
-- **AI-chatt:** knappen *Fråga AI* öppnar en chatt kopplad till din egen Ollama. Ställ frågor som
+- **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
+  Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På mobil fälls menyn ut.
+- **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
+- **AI-chatt:** sidan *Fråga AI* har förslagskort och snabbval och är kopplad till din egen Ollama. Ställ frågor som
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
   länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
   fungerar också.
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
-- **Version:** versionen syns i sidhuvudet och länkar till releasen på GitHub.
+- **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
+- **Version:** versionen syns i menyn och länkar till releasen på GitHub.
 - **Uppdatering:** knappen *Uppdatera evenemang* hämtar allt på nytt direkt. Dessutom körs en
   automatisk uppdatering varje dag (standard 05:00).
 - **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
@@ -158,7 +162,7 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
    fungerar också.
 3. Om Ollama körs på en annan dator måste den lyssna på nätverket och inte bara på `localhost`.
    Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö.
-4. Starta om: `docker compose up -d`. Knappen *Fråga AI* visar vilken modell som används och
+4. Starta om: `docker compose up -d`. Sidan *Fråga AI* visar vilken modell som används och
    varnar om Ollama inte går att nå eller om modellen saknas.
 
 **Så fungerar det:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den
@@ -178,7 +182,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 
 ## Versioner och releaser
 
-Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i sidhuvudet
+Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i menyn
 (som länk till releasen på GitHub), i `/api/health` och överst i loggen när containern startar:
 
 ```

@@ -1,10 +1,26 @@
 "use strict";
 
+// Fråga AI: egen sida med förslagskort, snabbval och strömmade svar från Ollama.
 (() => {
-  const $ = (s) => document.querySelector(s);
-  const panel = $("#chat"), log = $("#chat-log"), form = $("#chat-form"), input = $("#chat-input");
+  const log = $("#chat-log"), form = $("#chat-form"), input = $("#chat-input"), welcome = $("#chat-welcome");
+  const sendBtn = form.querySelector(".send");
   const history = [];
-  let busy = false;
+  let busy = false, statusLoaded = false;
+
+  const SUGGESTIONS = [
+    { title: "I helgen", tag: "Helg", q: "Vad händer i Värmland i helgen? Ge mig de bästa tipsen." },
+    { title: "Barn & familj", tag: "Barn", q: "Finns det några barnaktiviteter i Karlstad nästa vecka?" },
+    { title: "Konserter", tag: "Musik", q: "Vilka konserter finns i Värmland den här månaden?" },
+    { title: "Färjestad BK", tag: "Sport", q: "När spelar Färjestad hemma nästa gång?" },
+    { title: "Teater & humor", tag: "Scen", q: "Vilka föreställningar går på Scalateatern och Karlstad CCC framöver?" },
+    { title: "Idag", tag: "Idag", q: "Vad kan jag göra idag i Värmland?" },
+  ];
+  const QUICK = [
+    ["Idag", "Vad händer idag?"], ["I helgen", "Vad händer i helgen?"], ["Nästa vecka", "Vad händer nästa vecka?"],
+    ["Barn", "Vilka barnaktiviteter finns i helgen?"], ["Musik", "Vilka konserter finns nästa vecka?"],
+    ["Sport", "Vilka sportevenemang finns i helgen?"], ["Karlstad", "Vad händer i Karlstad i helgen?"],
+    ["Arvika", "Vad händer i Arvika den här månaden?"],
+  ];
 
   // ---- enkel och säker markdown-rendering (bygger DOM-noder, aldrig innerHTML)
   const safeUrl = (u) => /^https?:\/\//i.test(u) ? u : null;
@@ -55,8 +71,9 @@
 
   // ---- chattlogik
   function addMsg(role, text = "") {
-    const div = document.createElement("div");
-    div.className = `msg ${role}`;
+    welcome.hidden = true;
+    $("#chat-clear").hidden = false;
+    const div = el("div", { class: `msg ${role}` });
     div.textContent = text;
     log.append(div);
     log.scrollTop = log.scrollHeight;
@@ -64,14 +81,14 @@
   }
 
   async function ask(question) {
-    if (busy || !question.trim()) return;
+    question = question.trim();
+    if (busy || !question) return;
     busy = true;
-    form.querySelector("button").disabled = true;
+    sendBtn.disabled = true;
     history.push({ role: "user", content: question });
     addMsg("user", question);
     const msg = addMsg("assistant");
-    const body = document.createElement("div");
-    body.className = "typing";
+    const body = el("div", { class: "typing" });
     msg.append(body);
     let answer = "", sources = [];
 
@@ -108,52 +125,65 @@
     } finally {
       body.classList.remove("typing");
       if (sources.length && !msg.classList.contains("error")) {
-        const d = document.createElement("details");
-        d.className = "sources";
-        const s = document.createElement("summary");
-        s.textContent = `Underlag: ${sources.length} evenemang`;
-        const ul = document.createElement("ul");
-        for (const src of sources) {
-          const li = document.createElement("li");
-          li.append(`${src.date} – `, src.url ? link(src.title, src.url) : src.title);
-          ul.append(li);
-        }
-        d.append(s, ul);
-        msg.append(d);
+        msg.append(el("details", { class: "sources" },
+          el("summary", {}, `Underlag: ${sources.length} evenemang`),
+          el("ul", {}, sources.map((src) => el("li", {}, `${src.date} – `, src.url ? link(src.title, src.url) : src.title)))));
       }
       busy = false;
-      form.querySelector("button").disabled = false;
+      sendBtn.disabled = false;
       log.scrollTop = log.scrollHeight;
       input.focus();
     }
   }
 
-  async function open() {
-    panel.hidden = false;
-    input.focus();
-    try {
-      const st = await (await fetch("/api/chat/status")).json();
-      $("#chat-model").textContent = st.model || "";
-      if (st.error && !panel.dataset.warned) {
-        panel.dataset.warned = "1";
-        addMsg("assistant error", "⚠️ " + st.error);
-      }
-    } catch { /* statusen är bara information */ }
+  function autosize() {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 160) + "px";
   }
 
-  $("#chat-open").addEventListener("click", open);
-  $("#chat-close").addEventListener("click", () => { panel.hidden = true; });
-  $("#chat-clear").addEventListener("click", () => {
-    history.length = 0;
-    log.querySelectorAll(".msg:not(.intro)").forEach((n) => n.remove());
-    delete panel.dataset.warned;
-  });
-  form.addEventListener("submit", (e) => { e.preventDefault(); const q = input.value; input.value = ""; ask(q); });
+  async function loadStatus() {
+    const dot = $("#chat-dot"), model = $("#chat-model");
+    try {
+      const st = await (await fetch("/api/chat/status")).json();
+      statusLoaded = true;
+      if (st.enabled && st.reachable && !st.error) {
+        dot.className = "dot ok";
+        model.textContent = `Modell: ${st.model}`;
+      } else {
+        dot.className = "dot err";
+        model.textContent = st.enabled ? `Modell: ${st.model} · ${st.error}` : "Inte konfigurerad: sätt OLLAMA_URL i .env";
+      }
+    } catch {
+      dot.className = "dot err";
+      model.textContent = "Kunde inte kontrollera AI-modellen";
+    }
+  }
+
+  // ---- uppbyggnad
+  $("#suggestions").replaceChildren(...SUGGESTIONS.map((s) =>
+    el("button", { type: "button", class: "suggestion", onclick: () => ask(s.q) },
+      el("span", { class: "top" }, el("strong", {}, s.title), el("span", { class: "tag" }, s.tag)),
+      el("span", { class: "text" }, s.q))));
+  $("#quick").replaceChildren(el("span", { class: "label" }, "Snabbval:"), ...QUICK.map(([label, q]) =>
+    el("button", { type: "button", onclick: () => ask(q) }, icon("tag"), label)));
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); const q = input.value; input.value = ""; autosize(); ask(q); });
+  input.addEventListener("input", autosize);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
   });
-  log.addEventListener("click", (e) => {
-    if (e.target.classList.contains("ex")) { e.preventDefault(); ask(e.target.textContent); }
+  $("#chat-clear").addEventListener("click", () => {
+    history.length = 0;
+    log.querySelectorAll(".msg").forEach((n) => n.remove());
+    welcome.hidden = false;
+    $("#chat-clear").hidden = true;
+    input.focus();
   });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !panel.hidden) panel.hidden = true; });
+
+  window.chatView = {
+    show() {
+      if (!statusLoaded) loadStatus();
+      setTimeout(() => input.focus(), 50);
+    },
+  };
 })();

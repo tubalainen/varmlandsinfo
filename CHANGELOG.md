@@ -6,6 +6,17 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Sidan *Om applikationen* beskriver funktionerna och visar källornas status, AI-modell och version (#26)
+- Datumval med färdiga intervall: Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här
+  månaden, Nästa månad eller egna datum (#27)
+
+### Ändrat
+- Nytt, modernare utseende: sidomeny med navigering, uppdateringsknapp och källor. Egen adress per vy,
+  SVG-ikoner, nya knappar och en ordnad filterpanel. Utfällbar meny och kategorier som sveps i sidled
+  på mobil (#27)
+- *Fråga AI* är en egen sida med förslagskort, snabbval, modellstatus och ett nytt inmatningsfält (#27)
+
 ## [0.2.1] - 2026-09-24
 
 ### Rättat

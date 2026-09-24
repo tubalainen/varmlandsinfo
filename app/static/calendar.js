@@ -70,9 +70,9 @@ function renderCalendar() {
   const go = (delta) => { state.calMonth = new Date(month.getFullYear(), month.getMonth() + delta, 1); renderCalendar(); };
   const title = fmtMonth.format(month);
   const head = el("div", { class: "cal-head" },
-    el("button", { type: "button", onclick: () => go(-1), disabled: month <= firstMonth ? "" : null, "aria-label": "Föregående månad" }, "‹"),
+    el("button", { type: "button", onclick: () => go(-1), disabled: month <= firstMonth ? "" : null, "aria-label": "Föregående månad" }, icon("left")),
     el("h2", {}, title.charAt(0).toUpperCase() + title.slice(1)),
-    el("button", { type: "button", onclick: () => go(1), disabled: month >= lastMonth ? "" : null, "aria-label": "Nästa månad" }, "›"),
+    el("button", { type: "button", onclick: () => go(1), disabled: month >= lastMonth ? "" : null, "aria-label": "Nästa månad" }, icon("right")),
     el("button", { type: "button", class: "cal-today", onclick: () => { state.calMonth = firstMonth; renderCalendar(); } }, "Idag"));
 
   const grid = el("div", { class: "cal-grid", role: "grid" },

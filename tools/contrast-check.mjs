@@ -118,19 +118,23 @@ for (const scheme of ["light", "dark"]) {
   };
   await page.goto(BASE);
   await page.evaluate(() => { try { localStorage.clear(); } catch {} });
-  await page.goto(BASE);
+  await page.goto(`${BASE}/#/lista`);
   await page.waitForSelector(".card");
 
   await run("lista", async (p) => { await p.click(".chip >> nth=0"); });   // med ett valt kategorifilter
-  await run("kalender", async (p) => { await p.click(".chip >> nth=0"); await p.click("[data-view=calendar]"); await p.waitForSelector(".cal-grid"); });
+  await run("kalender", async (p) => { await p.goto(`${BASE}/#/kalender`); await p.waitForSelector(".cal-grid"); });
   await run("dag", async (p) => { await p.click(".cal-day.today .cal-num"); await p.waitForSelector("#daydialog[open]"); });
+  await run("fraga", async (p) => { await p.keyboard.press("Escape"); await p.goto(`${BASE}/#/fraga`); await p.waitForSelector(".suggestion"); });
   await run("chatt", async (p) => {
-    await p.keyboard.press("Escape");
-    await p.click("[data-view=list]");
-    await p.click("#chat-open");
     await p.fill("#chat-input", "Vad händer i helgen?");
     await p.press("#chat-input", "Enter");
     await p.waitForTimeout(1500);
+  });
+  await run("om", async (p) => { await p.goto(`${BASE}/#/om`); await p.waitForSelector(".src-table"); });
+  await run("mobil", async (p) => {
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.goto(`${BASE}/#/lista`); await p.waitForSelector(".card");
+    await p.click("#nav-open"); await p.waitForTimeout(300);
   });
   await page.close();
 }

@@ -62,4 +62,6 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
 - `app/common.py`: HTTP med rate limit (felmeddelanden utan frågesträng, alltså utan API-nycklar)
 - `app/chat.py`: urval av evenemang och Ollama-anrop
 - `app/main.py`: FastAPI-rutter och schemaläggning
-- `app/static/`: gränssnittet (`app.js` lista, `calendar.js` kalender, `chat.js` chatt)
+- `app/static/`: gränssnittet. `app.js` sköter navigering (`#/lista`, `#/kalender`, `#/fraga`, `#/om`), filter
+  och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
+  SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
