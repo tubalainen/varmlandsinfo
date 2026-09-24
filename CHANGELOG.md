@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa: Great Event of Karlstad (sidan Kommande evenemang). Den ger konserter och evenemang på bland annat Löfbergs
+  Arena, Nöjesfabriken och Julins Backyard BBQ. Backyard Live Music blir ett evenemang per artist och datum (#40)
+
 ## [0.10.0] - 2026-09-24
 
 ### Ändrat

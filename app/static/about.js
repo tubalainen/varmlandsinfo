@@ -21,6 +21,7 @@
     ticketmaster: "Konserter, shower och sport på arenor i Värmland via Ticketmasters API (kräver API-nyckel).",
     ccc: "Konserter och shower i Karlstad CCC:s konserthall Solasalen.",
     scala: "Teater, musik och humor på Scalateaterns scener i Karlstad.",
+    greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",
   };
 

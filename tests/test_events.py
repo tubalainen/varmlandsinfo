@@ -86,7 +86,7 @@ def test_stale_sources_only_enabled(monkeypatch):
         monkeypatch.setitem(info, "updated", "2026-09-24T06:00:00+02:00" if key == "shl" else None)
     monkeypatch.setitem(events.state["sources"]["ticketmaster"], "enabled", False)
     stale = events.stale_sources(lambda updated: updated is None)
-    assert stale == ["visitvarmland", "ccc", "scala"]   # SHL är aktuell, Ticketmaster avstängd
+    assert stale == ["visitvarmland", "ccc", "scala", "greatevent"]   # SHL är aktuell, Ticketmaster avstängd
 
 
 def test_needs_refresh():

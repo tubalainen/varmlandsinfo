@@ -15,8 +15,9 @@ med länkar till alla källor.
 | [Karlstad CCC](https://www.karlstadccc.se/17/38/program-biljetter/) | Kalendersidan (HTML) | Konserter och shower i Solasalen. |
 | [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
+| [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 
-CCC och Scalateatern saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
+CCC, Scalateatern och Great Event saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
 hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
@@ -118,6 +119,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Karlstad CCC | 1 | En kalendersida. |
 | Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
 | SHL | 2 | Säsongsfilter och spelschema. |
+| Great Event | 1 | Sidan Kommande evenemang. |
 
 Skydden gäller alla källor:
 
@@ -142,6 +144,7 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
 | `data/ccc.json`            | Karlstad CCC:s kalendersida. |
 | `data/scala.json`          | Scalateaterns föreställningslistor. |
 | `data/shl.json`            | Lagets hemmamatcher från SHL. |
+| `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 
 - **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
@@ -252,7 +255,7 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 app/
   main.py          FastAPI-server, API och schemaläggning
   events.py        Hämtning, lagring och sammanslagning av alla källor
-  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl)
+  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent)
   merge.py         Sammanslagning av samma evenemang från flera källor
   common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
   chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama
