@@ -10,7 +10,7 @@ Finns ingen issue skapas en innan arbetet börjar. Issuen är baslinjen för fö
 - `main` är huvudgrenen och ska alltid gå att bygga och köra.
 - Allt arbete görs i en egen gren och går in i `main` via en pull request.
 - PR-beskrivningen länkar issuen med `Closes #N`, så att den stängs vid merge.
-- CI (tester) och Docker-bygget ska vara gröna innan merge.
+- CI (tester) och Docker-bygget ska vara gröna innan merge. Bygget på en PR publicerar ingenting.
 - Lägg till en rad i `CHANGELOG.md` under `[Unreleased]` med issue-nummer.
 - En release kan innehålla flera PR:er.
 
@@ -28,27 +28,30 @@ Versionen finns på ett ställe: `app/version.py`. Den visas i gränssnittets si
 
 ## Göra en release
 
-En release kan omfatta en eller flera mergade PR:er.
+Releaser görs på begäran och kan omfatta en eller flera mergade PR:er. Images publiceras bara vid release.
 
-1. Skapa en release-PR som
-   - sätter den nya versionen i `app/version.py`
-   - flyttar raderna under `[Unreleased]` i `CHANGELOG.md` till ett nytt avsnitt `## [X.Y.Z] - ÅÅÅÅ-MM-DD`
-     och uppdaterar jämförelselänkarna längst ner
-2. Merga PR:en till `main`. Klart!
+1. **Välj version.** Om ingen version anges räknas nästa version fram enligt semver utifrån innehållet
+   under `[Unreleased]`:
+   - nya funktioner eller ändrat beteende ger **MINOR** (0.0.1 → 0.1.0)
+   - bara buggfixar ger **PATCH** (0.1.0 → 0.1.1)
+   - brytande ändringar efter 1.0 ger **MAJOR**
+2. **Release-PR.** Skapa en PR som sätter versionen i `app/version.py` och flyttar raderna under
+   `[Unreleased]` i `CHANGELOG.md` till `## [X.Y.Z] - ÅÅÅÅ-MM-DD`, med uppdaterade jämförelselänkar längst ner.
+3. **Merga release-PR:en.** Klart!
 
-Flödet `.github/workflows/release.yml` körs vid varje push till `main`. När versionen i `app/version.py`
-saknar release
+Flödet `.github/workflows/release.yml` körs vid varje push till `main`. Det gör något bara när versionen i
+`app/version.py` saknar release. Då
 
 - stoppar det om CHANGELOG saknar avsnittet för versionen,
 - skapar det taggen `vX.Y.Z` och en GitHub-release med avsnittet ur CHANGELOG plus automatiskt
   genererade release notes (med de ingående PR:erna),
 - bygger och publicerar det imagen `ghcr.io/tubalainen/varmlandsinfo` med taggarna `X.Y.Z`, `X.Y` och `latest`.
 
-Pushar till `main` där versionen redan är släppt hoppas över. En release kan också skapas genom att
-pusha en tagg (`git tag vX.Y.Z && git push origin vX.Y.Z`) eller genom att köra flödet **Release**
-manuellt under *Actions*.
+Efter releasen städas repot: inga öppna PR:er ligger kvar, de ingående issues är stängda och mergade
+grenar är borttagna.
 
-Varje push till `main` publicerar dessutom en `edge`-image med det senaste från `main`.
+En release kan också skapas genom att pusha en tagg (`git tag vX.Y.Z && git push origin vX.Y.Z`) eller
+genom att köra flödet **Release** manuellt under *Actions*.
 
 ## Köra tester lokalt
 

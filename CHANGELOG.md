@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Images publiceras bara vid release. `edge`-imagen från `main` är borttagen (#13)
+
 ## [0.0.1] - 2026-09-24
 
 Första releasen.

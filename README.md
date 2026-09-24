@@ -58,8 +58,7 @@ Därefter sparas datan och laddas direkt vid omstart.
 ### Köra en viss version
 
 Sätt `VARMLANDSINFO_TAG` i `.env`, till exempel `VARMLANDSINFO_TAG=0.0.1`, och kör
-`docker compose pull && docker compose up -d`. `latest` pekar på senaste release och `edge` på senaste
-bygget från `main`.
+`docker compose pull && docker compose up -d`. `latest` pekar alltid på senaste release.
 
 ## Inställningar
 
@@ -69,7 +68,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | Variabel             | Standard           | Beskrivning |
 |----------------------|--------------------|-------------|
 | `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
-| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest`, `edge` eller en version). |
+| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.0.1`). |
 | `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI-chatten är avstängd. |
 | `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
@@ -152,11 +151,14 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 ## Versioner och releaser
 
 Projektet använder semantisk versionering. Versionen står i `app/version.py` och visas i sidfoten.
-Ändringar listas i [CHANGELOG.md](CHANGELOG.md).
+Ändringar listas i [CHANGELOG.md](CHANGELOG.md), och releaserna finns under
+[Releases](https://github.com/tubalainen/varmlandsinfo/releases).
 
-När en ny version når `main` skapas automatiskt en GitHub-release och imagen
-`ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
-Hela arbetsflödet med issues, pull requests och releaser beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
+- Ändringar görs via pull requests som mergas till `main`. Ingen image publiceras vid merge.
+- En release görs på begäran och kan innehålla en eller flera PR:er. Då skapas en GitHub-release och
+  imagen `ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
+
+Hela arbetsflödet beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Paketet på ghcr.io blir privat första gången det publiceras. Gör det publikt under
 *GitHub → Packages → varmlandsinfo → Package settings → Change visibility*,
