@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-09-24
+
 ### Ändrat
 - Images publiceras bara vid release. `edge`-imagen från `main` är borttagen (#13)
 - Ändringar committas direkt på `main`. Tester och Docker-bygge körs vid varje push som kontroll (#15)
@@ -43,5 +45,6 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.0.1
