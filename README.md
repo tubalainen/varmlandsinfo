@@ -41,7 +41,8 @@ hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om appl
   "Vad händer i Karlstad i helgen?" eller "Finns det barnaktiviteter nästa vecka?". Svaren strömmas,
   länkar till evenemangen och visar vilket underlag de bygger på. Följdfrågor som "och på söndag då?"
   fungerar också. Modellen körs lokalt, och sidan informerar om att svaren därför kan ta längre tid än hos
-  molntjänster som ChatGPT och Gemini.
+  molntjänster som ChatGPT och Gemini. Svar sparas: samma fråga samma dag, mot samma evenemangsdata, besvaras
+  direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna.
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
 - **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
 - **Version:** versionen syns i menyn och länkar till releasen på GitHub.
@@ -138,6 +139,7 @@ Allt som hämtas från Visit Värmlands API sparas på värden i katalogen `./da
 | `data/ccc.json`            | Karlstad CCC:s kalendersida. |
 | `data/scala.json`          | Scalateaterns föreställningslistor. |
 | `data/shl.json`            | Lagets hemmamatcher från SHL. |
+| `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 
 - **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
   äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
@@ -180,6 +182,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
 | GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
+| GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
 | POST  | `/api/chat`        | Chatt: `{"messages": [{"role": "user", "content": "…"}]}`. Svaret strömmas som NDJSON. |
 

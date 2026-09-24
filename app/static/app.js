@@ -82,8 +82,6 @@ function navigate() {
   $("#scrim").hidden = true;
   if (ROUTES[r].view === "view-events") {
     state.view = r === "kalender" ? "calendar" : "list";
-    $("#events-title").textContent = ROUTES[r].title;
-    $("#events-icon").replaceChildren(icon(ROUTES[r].icon));
     document.title = `${ROUTES[r].title} i Värmland`;
     render();
   } else if (r === "fraga") {

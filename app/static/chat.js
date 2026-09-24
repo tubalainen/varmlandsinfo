@@ -7,21 +7,6 @@
   const history = [];
   let busy = false, statusLoaded = false;
 
-  const SUGGESTIONS = [
-    { title: "I helgen", tag: "Helg", q: "Vad händer i Värmland i helgen? Ge mig de bästa tipsen." },
-    { title: "Barn & familj", tag: "Barn", q: "Finns det några barnaktiviteter i Karlstad nästa vecka?" },
-    { title: "Konserter", tag: "Musik", q: "Vilka konserter finns i Värmland den här månaden?" },
-    { title: "Färjestad BK", tag: "Sport", q: "När spelar Färjestad hemma nästa gång?" },
-    { title: "Teater & humor", tag: "Scen", q: "Vilka föreställningar går på Scalateatern och Karlstad CCC framöver?" },
-    { title: "Idag", tag: "Idag", q: "Vad kan jag göra idag i Värmland?" },
-  ];
-  const QUICK = [
-    ["Idag", "Vad händer idag?"], ["I helgen", "Vad händer i helgen?"], ["Nästa vecka", "Vad händer nästa vecka?"],
-    ["Barn", "Vilka barnaktiviteter finns i helgen?"], ["Musik", "Vilka konserter finns nästa vecka?"],
-    ["Sport", "Vilka sportevenemang finns i helgen?"], ["Karlstad", "Vad händer i Karlstad i helgen?"],
-    ["Arvika", "Vad händer i Arvika den här månaden?"],
-  ];
-
   // ---- enkel och säker markdown-rendering (bygger DOM-noder, aldrig innerHTML)
   const safeUrl = (u) => /^https?:\/\//i.test(u) ? u : null;
 
@@ -92,7 +77,7 @@
       el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")),
         "Den lokala AI-modellen arbetar. Det kan ta en stund …"));
     msg.append(body);
-    let answer = "", sources = [];
+    let answer = "", sources = [], cached = null;
 
     try {
       const r = await fetch("/api/chat", {
@@ -114,6 +99,7 @@
           if (!line.trim()) continue;
           const ev = JSON.parse(line);
           if (ev.type === "sources") sources = ev.events;
+          else if (ev.type === "done" && ev.cached) cached = ev;
           else if (ev.type === "delta") {
             answer += ev.text;
             body.classList.add("typing");   // skrivmarkör medan svaret strömmar in
@@ -131,6 +117,11 @@
       history.pop(); // frågan besvarades inte, skicka den inte som historik
     } finally {
       body.classList.remove("typing");
+      if (cached) {
+        const when = cached.saved ? new Date(cached.saved).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "";
+        msg.append(el("p", { class: "cached-note" }, icon("database"),
+          `Sparat svar${when ? " från " + when : ""}. Evenemangen har inte ändrats sedan dess, så AI:n behövde inte svara igen.`));
+      }
       if (sources.length && !msg.classList.contains("error")) {
         msg.append(el("details", { class: "sources" },
           el("summary", {}, `Underlag: ${sources.length} evenemang`),
@@ -166,13 +157,19 @@
     }
   }
 
-  // ---- uppbyggnad
-  $("#suggestions").replaceChildren(...SUGGESTIONS.map((s) =>
-    el("button", { type: "button", class: "suggestion", onclick: () => ask(s.q) },
-      el("span", { class: "top" }, el("strong", {}, s.title), el("span", { class: "tag" }, s.tag)),
-      el("span", { class: "text" }, s.q))));
-  $("#quick").replaceChildren(el("span", { class: "label" }, "Snabbval:"), ...QUICK.map(([label, q]) =>
-    el("button", { type: "button", onclick: () => ask(q) }, icon("tag"), label)));
+  // ---- uppbyggnad: fördefinierade frågor hämtas från servern (deras svar sparas alltid)
+  async function loadPresets() {
+    try {
+      const p = await (await fetch("/api/chat/presets")).json();
+      $("#suggestions").replaceChildren(...p.suggestions.map((s) =>
+        el("button", { type: "button", class: "suggestion", onclick: () => ask(s.q) },
+          el("span", { class: "top" }, el("strong", {}, s.title), el("span", { class: "tag" }, s.tag)),
+          el("span", { class: "text" }, s.q))));
+      $("#quick").replaceChildren(el("span", { class: "label" }, "Snabbval:"), ...p.quick.map((x) =>
+        el("button", { type: "button", onclick: () => ask(x.q) }, icon("tag"), x.label)));
+    } catch { /* förslagen är inte nödvändiga för att chatta */ }
+  }
+  loadPresets();
 
   form.addEventListener("submit", (e) => { e.preventDefault(); const q = input.value; input.value = ""; autosize(); ask(q); });
   input.addEventListener("input", autosize);

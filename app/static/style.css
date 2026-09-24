@@ -134,6 +134,7 @@ input:hover, select:hover { border-color: color-mix(in srgb, var(--line) 60%, va
 body.cal-mode .filters { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; }
 body.cal-mode .list-only { display: none; }
 
+.count-line { margin: 4px 2px 0; font-size: .85rem; color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px;
         border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: .85rem; cursor: pointer; }
@@ -263,6 +264,8 @@ dialog::backdrop { background: rgba(2, 6, 23, .6); }
 .msg.assistant p:last-child { margin-bottom: 0; }
 .msg.assistant ul { margin: 4px 0 8px; padding-left: 20px; }
 .msg.error { border-color: var(--danger); color: var(--danger); }
+.cached-note { display: flex; align-items: center; gap: 6px; margin: 8px 0 0 !important; font-size: .78rem; color: var(--muted); }
+.cached-note .ico { width: 14px; height: 14px; }
 .msg .sources { margin-top: 8px; font-size: .82rem; }
 .msg .sources summary { font-weight: 600; }
 .msg .typing::after { content: "▍"; animation: blink 1s steps(1) infinite; }

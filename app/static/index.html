@@ -49,15 +49,7 @@
     </header>
 
     <!-- Evenemang: lista och kalender -->
-    <section id="view-events" class="view" aria-labelledby="events-title">
-      <header class="page-head">
-        <div class="page-icon" id="events-icon"><span data-icon="list"></span></div>
-        <div>
-          <h1 id="events-title">Evenemang</h1>
-          <p id="count" class="sub"></p>
-        </div>
-      </header>
-
+    <section id="view-events" class="view" aria-label="Evenemang">
       <section class="toolbar" aria-label="Filter">
         <label class="search">
           <span data-icon="search"></span>
@@ -95,6 +87,7 @@
       </section>
 
       <section id="cats" class="chips" aria-label="Evenemangstyper"></section>
+      <p id="count" class="count-line" aria-live="polite"></p>
       <section id="list" class="list"></section>
       <section id="calendar" class="calendar" hidden aria-label="Kalender"></section>
     </section>

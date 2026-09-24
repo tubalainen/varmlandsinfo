@@ -6,6 +6,16 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- AI-svar sparas i `data/chat_cache.json`. Samma fråga samma dag, mot samma evenemangsdata och modell,
+  besvaras direkt utan ny förfrågan till AI:n. Fördefinierade frågor sparas alltid, egna frågor de 10
+  senaste. Följdfrågor sparas inte. De fördefinierade frågorna definieras på servern (`/api/chat/presets`),
+  och en ny finns: *Gratis* (#33)
+
+### Borttaget
+- Ikonen och rubriken "Evenemang"/"Kalender" ovanför filtren. Antalet evenemang visas diskret ovanför
+  listan (#34)
+
 ## [0.5.0] - 2026-09-24
 
 ### Tillagt

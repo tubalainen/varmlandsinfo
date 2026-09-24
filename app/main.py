@@ -113,6 +113,8 @@ async def lifespan(_: FastAPI):
         "=" * 60,
     ):
         log.info(line)
+    chat.cache = chat.AnswerCache(events.DATA_DIR / "chat_cache.json")
+    chat.cache.load()
     task = asyncio.create_task(scheduler())
     yield
     task.cancel()
@@ -163,6 +165,11 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(max_length=50)
 
 
+@app.get("/api/chat/presets")
+async def chat_presets():
+    return chat.presets()
+
+
 @app.get("/api/chat/status")
 async def chat_status():
     return await chat.ollama_status()
@@ -170,7 +177,8 @@ async def chat_status():
 
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
-    stream = chat.chat_stream([m.model_dump() for m in req.messages], events.current_events(), events.today())
+    stream = chat.chat_stream([m.model_dump() for m in req.messages], events.current_events(), events.today(),
+                              data_version=events.state["updated"])
     return StreamingResponse(stream, media_type="application/x-ndjson")
 
 

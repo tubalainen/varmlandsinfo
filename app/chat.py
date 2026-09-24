@@ -9,6 +9,9 @@ from datetime import date, timedelta
 
 import httpx
 
+from chat_cache import AnswerCache
+from chat_cache import normalize as normalize_question
+
 log = logging.getLogger("varmlandsinfo.chat")
 
 
@@ -24,6 +27,38 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "16384"))
 CHAT_MAX_EVENTS = int(os.getenv("CHAT_MAX_EVENTS", "40"))
 MAX_HISTORY = 10
+
+# Fördefinierade frågor i Fråga AI. Svaren på dem sparas alltid (se chat_cache.py).
+SUGGESTIONS = [
+    {"title": "I helgen", "tag": "Helg", "q": "Vad händer i Värmland i helgen? Ge mig de bästa tipsen."},
+    {"title": "Barn & familj", "tag": "Barn", "q": "Finns det några barnaktiviteter i Karlstad nästa vecka?"},
+    {"title": "Konserter", "tag": "Musik", "q": "Vilka konserter finns i Värmland den här månaden?"},
+    {"title": "Färjestad BK", "tag": "Sport", "q": "När spelar Färjestad hemma nästa gång?"},
+    {"title": "Teater & humor", "tag": "Scen", "q": "Vilka föreställningar går på Scalateatern och Karlstad CCC framöver?"},
+    {"title": "Gratis", "tag": "Gratis", "q": "Vilka gratisevenemang finns i Värmland i helgen?"},
+]
+QUICK = [
+    {"label": "Idag", "q": "Vad händer idag?"},
+    {"label": "I helgen", "q": "Vad händer i helgen?"},
+    {"label": "Nästa vecka", "q": "Vad händer nästa vecka?"},
+    {"label": "Gratis", "q": "Vilka gratisevenemang finns i helgen?"},
+    {"label": "Barn", "q": "Vilka barnaktiviteter finns i helgen?"},
+    {"label": "Musik", "q": "Vilka konserter finns nästa vecka?"},
+    {"label": "Sport", "q": "Vilka sportevenemang finns i helgen?"},
+    {"label": "Karlstad", "q": "Vad händer i Karlstad i helgen?"},
+    {"label": "Arvika", "q": "Vad händer i Arvika den här månaden?"},
+]
+
+cache: AnswerCache | None = None   # sätts vid start i main.py
+
+
+def presets() -> dict:
+    return {"suggestions": SUGGESTIONS, "quick": QUICK}
+
+
+def is_preset(question: str) -> bool:
+    key = normalize_question(question)
+    return any(normalize_question(p["q"]) == key for p in SUGGESTIONS + QUICK)
 
 WEEKDAYS = ["måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag"]
 MONTHS = ["januari", "februari", "mars", "april", "maj", "juni", "juli",
@@ -326,8 +361,12 @@ def _ndjson(obj: dict) -> str:
     return json.dumps(obj, ensure_ascii=False) + "\n"
 
 
-async def chat_stream(messages: list[dict], events: list[dict], today: date) -> AsyncIterator[str]:
-    """Strömmar svaret som NDJSON: sources, delta …, done eller error."""
+async def chat_stream(messages: list[dict], events: list[dict], today: date,
+                      data_version: str | None = None) -> AsyncIterator[str]:
+    """Strömmar svaret som NDJSON: sources, delta …, done eller error.
+
+    Fristående frågor (utan samtalshistorik) besvaras från sparade svar när frågan, dagen, datan och
+    modellen är desamma. Annars ställs frågan till Ollama och svaret sparas."""
     if not OLLAMA_URL:
         yield _ndjson({"type": "error", "error": "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i docker-compose.yaml."})
         return
@@ -340,13 +379,23 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date) -> 
         yield _ndjson({"type": "error", "error": "Ingen fråga att besvara."})
         return
 
+    question = history[-1]["content"]
+    standalone = len(history) == 1
+    ctx = {"day": today.isoformat(), "data": data_version, "model": OLLAMA_MODEL}
+    if standalone and cache:
+        hit = cache.get(question, ctx)
+        if hit:
+            yield _ndjson({"type": "sources", "events": hit["sources"]})
+            yield _ndjson({"type": "delta", "text": hit["answer"]})
+            yield _ndjson({"type": "done", "cached": True, "saved": hit.get("saved")})
+            return
+
     # Följdfrågor ("och på söndag då?") saknar ofta sammanhang, så tidigare frågor tas med i sökningen
     user_turns = [m["content"] for m in history if m["role"] == "user"]
     selection = select_events(user_turns[-1], events, today, context=" ".join(user_turns[-3:-1]))
-
-    yield _ndjson({"type": "sources", "events": [
-        {"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]} for e, occ in selection["events"]
-    ]})
+    sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]}
+               for e, occ in selection["events"]]
+    yield _ndjson({"type": "sources", "events": sources})
 
     payload = {
         "model": OLLAMA_MODEL,
@@ -354,6 +403,7 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date) -> 
         "messages": [{"role": "system", "content": build_system_prompt(selection, today, len(events))}, *history],
         "options": {"num_ctx": OLLAMA_NUM_CTX, "temperature": 0.2},
     }
+    answer, complete = "", False
     try:
         timeout = httpx.Timeout(10, read=300)
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -371,10 +421,16 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date) -> 
                         return
                     text = (data.get("message") or {}).get("content")
                     if text:
+                        answer += text
                         yield _ndjson({"type": "delta", "text": text})
                     if data.get("done"):
+                        complete = True
                         break
         yield _ndjson({"type": "done"})
     except Exception as exc:
         log.warning("Ollama-anrop misslyckades: %s", exc)
         yield _ndjson({"type": "error", "error": f"Kunde inte prata med Ollama ({OLLAMA_URL}): {exc}"})
+        return
+    # Bara kompletta svar på fristående frågor sparas
+    if standalone and cache and complete and answer.strip():
+        cache.put(question, ctx, answer, sources, preset=is_preset(question))
