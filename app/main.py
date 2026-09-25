@@ -23,6 +23,8 @@ from version import RELEASE_URL, REPO_URL, __version__
 DAILY_REFRESH_TIME = os.getenv("DAILY_REFRESH_TIME", "05:00")
 MIN_REFRESH_MINUTES = 30
 RETRY_AFTER_FAILURE = timedelta(minutes=30)
+MORNING_RETRIES = 2                          # nya försök vid morgonkörningen innan gammal data tas bort …
+MORNING_RETRY_DELAY = timedelta(minutes=5)   # … med så här lång paus
 STATIC_DIR = Path(__file__).parent / "static"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -54,6 +56,12 @@ def _daily_at(now: datetime) -> datetime:
     return datetime.combine(now.date(), time(h, m), tzinfo=TZ)
 
 
+def last_daily_run(now: datetime) -> datetime:
+    """Tidpunkten för den senaste morgonkörningen (i dag eller i går)."""
+    last = _daily_at(now)
+    return last - timedelta(days=1) if last > now else last
+
+
 def needs_refresh(updated: str | None, now: datetime) -> bool:
     """Sparad data räcker om den hämtats efter den senaste schemalagda uppdateringen."""
     if not updated:
@@ -62,10 +70,7 @@ def needs_refresh(updated: str | None, now: datetime) -> bool:
         fetched = datetime.fromisoformat(updated)
     except ValueError:
         return True
-    last_daily = _daily_at(now)
-    if last_daily > now:
-        last_daily -= timedelta(days=1)
-    if fetched < last_daily:
+    if fetched < last_daily_run(now):
         return True
     return REFRESH_MINUTES > 0 and now - fetched >= timedelta(minutes=REFRESH_MINUTES)
 
@@ -80,28 +85,62 @@ def next_run(now: datetime) -> datetime:
     return daily
 
 
+def failed_sources() -> list[str]:
+    return [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"]]
+
+
+def cleanup(now: datetime, conversations: bool = False) -> None:
+    """Städar bort gammal data: källdata från före den senaste morgonkörningen (och från avstängda källor),
+    inaktuella AI-svar och, efter morgonkörningen, gårdagens chattsamtal."""
+    events.purge_old(last_daily_run(now))
+    chat.prune_cache(events.today(), events.state["updated"])
+    if conversations and (n := sessions.store.clear()):
+        log.info("Rensade %d chattsamtal", n)
+
+
+async def morning_run(keys: list[str] | None = None) -> None:
+    """Morgonkörningen: hämtar allt, gör nya försök med källor som fallerar och städar sedan bort gammal data."""
+    await events.refresh(keys)
+    for attempt in range(1, MORNING_RETRIES + 1):
+        failed = failed_sources()
+        if not failed:
+            break
+        log.info("Nytt försök %d av %d om %d minuter: %s", attempt, MORNING_RETRIES,
+                 MORNING_RETRY_DELAY.total_seconds() // 60, ", ".join(failed))
+        await asyncio.sleep(MORNING_RETRY_DELAY.total_seconds())
+        await events.refresh(failed)
+    cleanup(datetime.now(TZ), conversations=True)
+
+
 async def scheduler() -> None:
     await asyncio.to_thread(events.load_cache)
     now = datetime.now(TZ)
     stale = events.stale_sources(lambda updated: needs_refresh(updated, now))
     if stale:
+        # Datan är från före den senaste morgonkörningen: gör den i efterhand
         log.info("Hämtar vid start: %s", ", ".join(stale))
-        await events.refresh(stale)
+        await morning_run(stale)
     else:
         log.info("Sparad data är aktuell, ingen hämtning vid start")
+        cleanup(now)
     while True:
         now = datetime.now(TZ)
         target = next_run(now)
-        failed = [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"]]
+        daily = target == _daily_at(target)
+        failed = failed_sources()
         retry = bool(failed) and now + RETRY_AFTER_FAILURE < target
         if retry:
             # Misslyckad hämtning: försök igen om en stund med bara de källor som fallerade
-            target = now + RETRY_AFTER_FAILURE
+            target, daily = now + RETRY_AFTER_FAILURE, False
         schedule["next_refresh"] = target.isoformat(timespec="minutes")
         log.info("Nästa schemalagda uppdatering: %s%s", schedule["next_refresh"],
                  f" (nytt försök: {', '.join(failed)})" if retry else "")
         await asyncio.sleep(max(1, (target - datetime.now(TZ)).total_seconds()))
-        await events.refresh(failed if retry else None)
+        if daily:
+            await morning_run()
+        else:
+            await events.refresh(failed if retry else None)
+            cleanup(datetime.now(TZ))
 
 
 @asynccontextmanager

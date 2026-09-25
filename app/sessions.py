@@ -91,6 +91,15 @@ class SessionStore:
             self._sessions[s.id] = s
             return s, True
 
+    def clear(self) -> int:
+        """Tar bort alla samtal som inte besvarar en fråga just nu. Returnerar antalet."""
+        with self._lock:
+            now = self.clock()
+            idle = [sid for sid, s in self._sessions.items() if not s.is_busy(now)]
+            for sid in idle:
+                del self._sessions[sid]
+            return len(idle)
+
     def reset(self, sid: str | None) -> bool:
         with self._lock:
             return self._sessions.pop(sid, None) is not None if sid else False

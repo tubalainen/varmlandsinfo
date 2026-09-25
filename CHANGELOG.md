@@ -6,6 +6,14 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Ingen gammal data sparas efter morgonkörningen. Efter den dagliga hämtningen, och vid start, tas källdata från före
+  morgonkörningen bort, liksom data från avstängda källor, inaktuella AI-svar, gårdagens chattsamtal och kvarglömda
+  temporära filer. En källa som fallerar på morgonen får först två nya försök (#42)
+
+### Rättat
+- Data från en avstängd källa (till exempel Ticketmaster utan API-nyckel) visades fortfarande om filen fanns kvar (#42)
+
 ### Dokumentation
 - README visar skärmdumpar av lista, kalender, Fråga AI och mobilvy, och är uppdaterad med de senaste
   ändringarna. Skriptet `tools/readme-screenshots.mjs` skapar skärmdumparna (#41)

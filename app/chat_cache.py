@@ -74,6 +74,18 @@ class AnswerCache:
                     return entry
         return None
 
+    def prune(self, ctx: dict) -> int:
+        """Tar bort svar som inte gäller `ctx` (dagens datum, aktuell data och modell). Returnerar antalet."""
+        with self._lock:
+            before = len(self.presets) + len(self.recent)
+            self.presets = {k: e for k, e in self.presets.items() if self._valid(e, ctx)}
+            self.recent = [e for e in self.recent if self._valid(e, ctx)]
+            removed = before - len(self.presets) - len(self.recent)
+        if removed:
+            self.save()
+            log.info("Tog bort %d inaktuella AI-svar", removed)
+        return removed
+
     def put(self, question: str, ctx: dict, answer: str, sources: list[dict], preset: bool) -> None:
         key = normalize(question)
         entry = {"key": key, "question": question, "answer": answer, "sources": sources,

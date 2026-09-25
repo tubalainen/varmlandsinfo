@@ -11,7 +11,7 @@
     ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Du kan välja flera kommuner och källor samtidigt. Kategorin Gratis visar evenemang med fri entré. Återkommande evenemang visas en gång, på första datumet, med övriga datum i kortet. Med Ett kort per datum visas de på varje datum."],
     ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska. Enkla sökningar, som \"När spelar Färjestad nästa gång?\", besvaras direkt med en lista. Frågor som kräver en bedömning, som \"Vad skulle passa min 8-åriga son i helgen?\", besvaras av AI:n med länkar och underlag. Följdfrågor fungerar."],
     ["layers", "Flera källor", "Evenemang hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång, med länkar till alla källor."],
-    ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt en gång per dygn. Källorna anropas sparsamt, och senast uppdaterad visas vid versionen i menyn."],
+    ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt varje morgon. Efter morgonkörningen städas gammal data bort: källor som inte kunde hämtas visar inga gamla evenemang, och gamla AI-svar och chattsamtal tas bort. Källorna anropas sparsamt, och senast uppdaterad visas vid versionen i menyn."],
     ["database", "Sparad data", "Allt som hämtas sparas på servern. Vid omstart visas evenemangen direkt, utan nya anrop till källorna."],
     ["shield", "Lokalt och privat", "Appen körs hemma i Docker. AI-chatten använder en egen Ollama-server, så frågorna lämnar aldrig ditt nätverk."],
   ];

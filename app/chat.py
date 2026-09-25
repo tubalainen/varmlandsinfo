@@ -585,6 +585,16 @@ def _ndjson(obj: dict) -> str:
     return json.dumps(obj, ensure_ascii=False) + "\n"
 
 
+def cache_context(today: date, data_version: str | None) -> dict:
+    """Ett sparat svar gäller bara samma dag, samma evenemangsdata och samma modell."""
+    return {"day": today.isoformat(), "data": data_version, "model": OLLAMA_MODEL}
+
+
+def prune_cache(today: date, data_version: str | None) -> int:
+    """Tar bort sparade svar som inte längre kan användas."""
+    return cache.prune(cache_context(today, data_version)) if cache else 0
+
+
 async def chat_stream(messages: list[dict], events: list[dict], today: date,
                       data_version: str | None = None) -> AsyncIterator[str]:
     """Strömmar svaret som NDJSON: sources, delta …, done eller error.
@@ -624,7 +634,7 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
                                                  "fungerar ändå."})
         return
     standalone = len(history) == 1
-    ctx = {"day": today.isoformat(), "data": data_version, "model": OLLAMA_MODEL}
+    ctx = cache_context(today, data_version)
     if standalone and cache:
         hit = cache.get(question, ctx)
         if hit:

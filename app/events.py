@@ -97,6 +97,8 @@ def load_cache() -> bool:
     """Läser in sparad data för alla källor vid start. True om någon källa hade data."""
     found = False
     for s in SOURCES:
+        if not state["sources"][s.key]["enabled"]:
+            continue   # avstängda källors filer raderas vid städningen (purge_old)
         cached = _read_cache(s.key)
         if cached:
             _payloads[s.key], state["sources"][s.key]["updated"] = cached
@@ -173,6 +175,42 @@ async def manual_refresh() -> str | None:
         return "Evenemangen hämtades för mindre än 5 minuter sedan, så de hämtades inte igen."
     await refresh()
     return None
+
+
+def _fetched_before(iso: str | None, cutoff: datetime) -> bool:
+    try:
+        return datetime.fromisoformat(iso) < cutoff
+    except (TypeError, ValueError):
+        return True
+
+
+def purge_old(cutoff: datetime) -> list[str]:
+    """Tar bort data som hämtats före `cutoff` (den senaste morgonkörningen) och data från avstängda källor,
+    både ur minnet och från disken. Kvarglömda temporära filer raderas också. Returnerar källorna som städades."""
+    purged = []
+    for s in SOURCES:
+        info = state["sources"][s.key]
+        path = cache_file(s.key)
+        try:
+            path.with_suffix(".json.tmp").unlink(missing_ok=True)
+        except OSError as exc:
+            log.warning("Kunde inte radera %s: %s", path.with_suffix(".json.tmp"), exc)
+        if info["enabled"] and not _fetched_before(info["updated"], cutoff):
+            continue
+        had_data = _payloads.pop(s.key, None) is not None or path.exists()
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            log.warning("Kunde inte radera %s: %s", path, exc)
+        if info["updated"] or had_data:
+            purged.append(s.key)
+        info["updated"] = None
+        if info["enabled"] and not info["error"]:
+            info["error"] = "Ingen aktuell data: källan kunde inte hämtas vid morgonkörningen"
+    if purged:
+        rebuild()
+        log.info("Städade bort gammal data: %s", ", ".join(state["sources"][k]["title"] for k in purged))
+    return purged
 
 
 def current_events() -> list[dict]:

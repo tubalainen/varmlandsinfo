@@ -26,7 +26,7 @@ med länkar till alla källor.
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 
 CCC, Scalateatern och Great Event saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
-hittas, behålls senast sparade data och felet visas i menyn, på sidan *Om applikationen* och i `/api/health`.
+hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
 
@@ -138,7 +138,9 @@ Skydden gäller alla källor:
 - **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
 - **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
   slut pausar hämtningen.
-- **Om en källa fallerar** behålls dess senast sparade data. Bara den källan försöks igen efter 30 minuter.
+- **Om en källa fallerar vid morgonkörningen** görs två nya försök med 5 minuters mellanrum. Lyckas inte
+  de heller tas källans gamla data bort (se [Städning](#städning-av-gammal-data)), och källan försöks igen var 30:e minut.
+- **Om en källa fallerar vid en senare uppdatering** under dagen behålls dagens data, och källan försöks igen efter 30 minuter.
 - **Anrop:** antalet anrop sedan start syns som `api_calls` i `/api/health`, och status per källa under `sources`.
 - **API-nycklar** loggas aldrig och syns aldrig i felmeddelanden.
 
@@ -161,12 +163,26 @@ Allt som hämtas från källorna sparas på värden i katalogen `./data` bredvid
   äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
 - **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
   en krasch inte lämnar en trasig fil.
-- **Om en hämtning misslyckas** behålls senast sparade data.
+- **Om en hämtning misslyckas** behålls data från samma dag, men aldrig data från före den senaste morgonkörningen.
 - Eftersom rådata sparas kan en ny version av appen tolka om den utan att hämta allt på nytt.
 - Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
   och sätt dem i `.env`.
 - Vill du lägga datan någon annanstans sätter du `VARMLANDSINFO_DATA`, till exempel `/srv/varmlandsinfo`.
 - Radera en fil för att tvinga fram en ny hämtning av den källan vid nästa start.
+
+### Städning av gammal data
+
+Ingen gammal data sparas efter morgonkörningen (`DAILY_REFRESH_TIME`). Regeln är att data som hämtats före den senaste
+morgonkörningen varken används eller sparas. Efter morgonkörningen, och när appen startar, städar appen bort:
+
+- **Källdata från före morgonkörningen**, från källor som inte kunde hämtas trots nya försök. Evenemangen tas bort
+  ur appen och filen raderas. Källan visar ett fel och försöks igen var 30:e minut.
+- **Data från avstängda källor**, till exempel Ticketmaster när API-nyckeln tagits bort.
+- **Inaktuella AI-svar** i `chat_cache.json`, alltså svar som inte gäller dagens datum, aktuell evenemangsdata och modell.
+- **Chattsamtal** från före morgonkörningen (bara efter själva morgonkörningen, inte vid omstart).
+- **Kvarglömda temporära filer** (`*.json.tmp`) från en avbruten skrivning.
+
+Andra filer i datakatalogen rörs inte. Loggen visar vad som städades.
 
 ## AI-chatt med Ollama
 
