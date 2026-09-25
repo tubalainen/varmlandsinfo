@@ -2,10 +2,12 @@
 
 from sources.ccc import CCC
 from sources.greatevent import GreatEvent
+from sources.karlstadloppis import KarlstadLoppis
+from sources.loppisar import Loppisar
 from sources.scala import Scala
 from sources.shl import SHL
 from sources.ticketmaster import Ticketmaster
 from sources.visitvarmland import VisitVarmland
 
 # Ordningen avgör prioritet vid sammanslagning av dubbletter: den första är rikast.
-SOURCES = [VisitVarmland(), Ticketmaster(), CCC(), Scala(), SHL(), GreatEvent()]
+SOURCES = [VisitVarmland(), Ticketmaster(), CCC(), Scala(), SHL(), GreatEvent(), KarlstadLoppis(), Loppisar()]

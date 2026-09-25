@@ -24,8 +24,10 @@ med länkar till alla källor.
 | [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
+| [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
+| [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
 
-CCC, Scalateatern och Great Event saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
+CCC, Scalateatern, Great Event, Karlstad Loppis och loppisar.com saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
 hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
@@ -130,6 +132,8 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
 | SHL | 2 | Säsongsfilter och spelschema. |
 | Great Event | 1 | Sidan Kommande evenemang. |
+| Karlstad Loppis | 1 | Startsidan med nästa datum. |
+| loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
 
 Skydden gäller alla källor:
 
@@ -157,6 +161,8 @@ Allt som hämtas från källorna sparas på värden i katalogen `./data` bredvid
 | `data/scala.json`          | Scalateaterns föreställningslistor. |
 | `data/shl.json`            | Lagets hemmamatcher från SHL. |
 | `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
+| `data/karlstadloppis.json` | Startsidan hos Karlstad Loppis. |
+| `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 
 - **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
@@ -281,7 +287,7 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 app/
   main.py          FastAPI-server, API och schemaläggning
   events.py        Hämtning, lagring och sammanslagning av alla källor
-  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent)
+  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent, karlstadloppis, loppisar)
   merge.py         Sammanslagning av samma evenemang från flera källor
   common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
   chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama

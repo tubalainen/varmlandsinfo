@@ -22,6 +22,8 @@
     ccc: "Konserter och shower i Karlstad CCC:s konserthall Solasalen.",
     scala: "Teater, musik och humor på Scalateaterns scener i Karlstad.",
     greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",
+    karlstadloppis: "Bakluckeloppisen på I2 Norra Fältet i Karlstad, med nästa datum från arrangören Karlstad Loppis.",
+    loppisar: "Loppisar i Värmland med öppettider per dag från loppisar.com. Kontakta gärna loppisen innan du åker långt.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",
   };
 

@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa: Karlstad Loppis. Bakluckeloppisen på I2 Norra Fältet i Karlstad visas med nästa datum, söndagar 10–15 (#43)
+- Ny källa: loppisar.com. Loppisar i Värmland med öppettider per dag, 30 dagar framåt. Ordet "loppis" räknas inte
+  vid sammanslagning av dubbletter, så att olika loppisar samma dag inte slås ihop (#43)
+
 ## [0.12.0] - 2026-09-25
 
 ### Ändrat

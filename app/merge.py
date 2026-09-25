@@ -4,7 +4,9 @@ import re
 import unicodedata
 
 SIMILARITY = 0.6   # andel gemensamma ord i titlarna för att räknas som samma evenemang
-STOP = {"och", "med", "i", "på", "the", "and", "live", "tour", "turné", "konsert", "presenterar", "feat"}
+# Vanliga ord som inte säger vilket evenemang det är ("Z loppis" ska inte bli samma som "Loppis i Oleby")
+STOP = {"och", "med", "i", "på", "the", "and", "live", "tour", "turné", "konsert", "presenterar", "feat",
+        "loppis", "loppmarknad"}
 
 
 def _words(title: str) -> set[str]:

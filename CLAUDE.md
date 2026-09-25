@@ -48,7 +48,7 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
   ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
-  CCC, Scalateatern och Great Event är vanliga webbplatser). Hämta inte oftare än nödvändigt, varken i appen
+  CCC, Scalateatern, Great Event, Karlstad Loppis och loppisar.com är vanliga webbplatser). Hämta inte oftare än nödvändigt, varken i appen
   eller under utveckling.
 - Nycklar (t.ex. `TICKETMASTER_API_KEY`) får aldrig loggas eller synas i felmeddelanden. httpx-loggningen
   är därför avstängd.
