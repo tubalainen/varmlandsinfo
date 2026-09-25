@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-25
+
 ### Tillagt
 - Ny källa: Karlstad Loppis. Bakluckeloppisen på I2 Norra Fältet i Karlstad visas med nästa datum, söndagar 10–15 (#43)
 - Ny källa: loppisar.com. Loppisar i Värmland med öppettider per dag, 30 dagar framåt. Ordet "loppis" räknas inte
@@ -189,7 +191,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.9.0...v0.10.0
