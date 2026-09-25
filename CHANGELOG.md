@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-25
+
 ### Ändrat
 - Loppisar är ett eget filter, *Loppis*, direkt efter *Gratis*. Loppisar bryts ut ur Visit Värmlands kategori
   "Marknad, mässa, auktion och loppis", som nu heter "Marknad, mässa och auktion". Fråga AI förstår loppis som
@@ -196,7 +198,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.10.0...v0.11.0
