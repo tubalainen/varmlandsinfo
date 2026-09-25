@@ -8,7 +8,7 @@ med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
 med länkar till alla källor.
 
-![Evenemangslistan med filter, kategorier och källornas status](docs/screenshots/lista.jpg)
+![Evenemangslistan med filter, kategorier (bland annat Gratis och Loppis) och källornas status](docs/screenshots/lista.jpg)
 
 | Kalendern (mörkt läge) | Fråga AI |
 |------------------------|----------|

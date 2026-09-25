@@ -11,6 +11,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   webbträffarna som extra underlag, och svaren visar dem under *Från webben*. Evenemangen i appen går före webben, och
   direktsökningar och sparade svar söker aldrig på webben (#46)
 
+### Dokumentation
+- Nya skärmdumpar i README för den aktuella versionen, med källan Loppisar, filtret Loppis och webbsökning (#47)
+
 ## [0.15.0] - 2026-09-25
 
 ### Ändrat
