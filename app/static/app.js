@@ -231,7 +231,7 @@ function buildFilters() {
     x.n++; counts.set(c.title, x);
   }
   // Gratis först, sedan efter antal
-  const order = (c) => (c.title === "Gratis" ? -1e9 : -c.n);
+  const order = (c) => (c.title === "Gratis" ? -2e9 : c.title === "Loppis" ? -1e9 : -c.n);
   $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => order(a) - order(b)).map((c) =>
     el("button", {
       class: "chip", type: "button", title: c.description, style: `--c:${c.color}`,

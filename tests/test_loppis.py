@@ -48,7 +48,7 @@ def test_loppisar_groups_days_per_loppis():
         (D1.isoformat(), "11:00", None),                               # samma start- och sluttid = ingen sluttid
         (D2.isoformat(), "09:00", "18:00")]
     assert z["municipality"] == "Karlstad" and z["place"]["address"] == "Zakrisdalsslingan 2, 653 42 Karlstad"
-    assert z["categories"][0]["title"] == "Marknad, mässa, auktion och loppis"
+    assert z["categories"][0]["title"] == "Loppis"
     assert z["images"] == []                                           # /images/ är spärrad i robots.txt
     assert events["Johans Diversehandel"]["place"]["address"] == "Arvika Maskingränd 2 67141 Arvika"
     assert events["Loppis i Hagfors"]["municipality"] == "Hagfors"     # inte "Hagfor"
@@ -84,7 +84,7 @@ def test_karlstadloppis_event():
     assert e["title"] == "Bakluckeloppis I2 Norra Fältet" and e["municipality"] == "Karlstad"
     assert e["occasions"] == [{"date_start": d.isoformat(), "date_end": d.isoformat(),
                                "time_start": "10:00", "time_end": "15:00"}]
-    assert {c["title"] for c in e["categories"]} == {"Marknad, mässa, auktion och loppis", "Gratis"}
+    assert {c["title"] for c in e["categories"]} == {"Loppis", "Gratis"}
     assert KarlstadLoppis().normalize({"html": "<p>Säsongen är slut</p>"}) == []             # inget fel utanför säsong
 
 
@@ -94,3 +94,35 @@ def test_flea_markets_from_both_sources_stay_apart():
     lc = Loppisar().normalize({"html": search_page(header(d), row(4124, "z", "Z loppis", "11:00-16:00",
                                                                   "Zakrisdalsslingan 2, Karlstads kommun"))})
     assert len(merge([kl, lc])) == 2
+
+
+# ---------------------------------------------------------------- Loppis som egen kategori (#44)
+
+def cats(*titles):
+    from common import category
+    return [category(t) for t in titles]
+
+
+def titles_after(categories, title, summary=""):
+    from categories import split_loppis
+    return [c["title"] for c in split_loppis(categories, title, summary)]
+
+
+def test_loppis_is_split_out_of_the_market_category():
+    vv = "Marknad, mässa, auktion och loppis"            # Visit Värmlands namn
+    assert titles_after(cats(vv), "Höstloppis i Arenan") == ["Loppis"]
+    assert titles_after(cats(vv), "Höstmarknad i Gunnarskog") == ["Marknad, mässa och auktion"]
+    assert titles_after(cats(vv), "Höstmarknad", "Marknad med loppis och hantverk") == \
+        ["Loppis", "Marknad, mässa och auktion"]                      # båda
+    assert titles_after(cats(vv), "Stor barnloppis i Munkfors", "Allt för barn") == ["Loppis"]
+    assert titles_after(cats(vv, "Gratis"), "Loppis och skördebord") == ["Loppis", "Gratis"]
+    assert titles_after(cats("Övriga evenemang"), "Nördloppis på Ritz") == ["Loppis", "Övriga evenemang"]
+    assert titles_after(cats("Musik"), "Konsert", "Efteråt finns en loppis i foajén") == ["Musik"]   # bara ingressen räcker inte
+    assert titles_after(cats("Mat och dryck"), "Second hand-mässa") == \
+        ["Loppis", "Mat och dryck"]
+
+
+def test_chat_understands_loppis():
+    from chat import find_categories
+    assert find_categories("Vilka loppisar finns i helgen?") == {"Loppis"}
+    assert find_categories("Finns det någon julmarknad?") == {"Marknad, mässa och auktion"}

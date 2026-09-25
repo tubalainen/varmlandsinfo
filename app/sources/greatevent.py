@@ -33,7 +33,7 @@ TYPES = [
     ("Musik", r"konsert|spelning|turné|musik|album|låtar|orchestra|orkester|sång|live music|band\b"),
     ("Teater och underhållning", r"föreställning|show\b|humor|skratt|stand-?up|komik|revy|teater|musikal"),
     ("Mat och dryck", r"\bvin\b|vinfest|\bdeli\b|middag|provning|bbq|barbecue|\bmat\b"),
-    ("Marknad, mässa, auktion och loppis", r"\bmässa|marknad"),
+    ("Marknad, mässa och auktion", r"\bmässa|marknad"),
 ]
 
 

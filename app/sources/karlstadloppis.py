@@ -72,7 +72,7 @@ def event(day: date) -> dict | None:
                    "och på området finns en kiosk.",
         "description": "Drive-in för säljare: ingen förbokning, kom mellan kl. 8 och 10 och betala vid incheckningen. "
                        "Mer information och priser för säljare finns hos Karlstad Loppis.",
-        "categories": [category("Marknad, mässa, auktion och loppis"), category("Gratis")],
+        "categories": [category("Loppis"), category("Gratis")],
         "municipality": "Karlstad",
         "place": {"title": "I2 Norra Fältet", "address": "Infanterigatan 14, 653 40 Karlstad",
                   "lat": 59.3937, "lon": 13.4923},

@@ -47,6 +47,10 @@ hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 - **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
   Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På datorn kan menyn fällas ihop
   till en smal list med ikoner. På mobil fälls menyn ut.
+- **Loppis:** loppisar, loppmarknader och second hand har en egen kategori, *Loppis*, direkt efter *Gratis*. Ett
+  evenemang räknas som loppis om titeln nämner det, eller om det är en marknad vars ingress nämner loppis. En
+  loppis behåller marknadskategorin (*Marknad, mässa och auktion*) bara om texten också nämner marknad, mässa
+  eller auktion.
 - **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
   bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.

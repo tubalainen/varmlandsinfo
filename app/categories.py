@@ -1,5 +1,7 @@
 """Klassificering och beskrivning av evenemangstyper (Visit Värmlands kategorier)."""
 
+import re
+
 CATEGORIES: dict[str, dict] = {
     "Musik": {
         "icon": "🎵", "color": "#7c3aed",
@@ -29,9 +31,13 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🧸", "color": "#f59e0b",
         "description": "Aktiviteter och föreställningar särskilt för barn och familjer.",
     },
-    "Marknad, mässa, auktion och loppis": {
+    "Marknad, mässa och auktion": {
         "icon": "🛍️", "color": "#ea580c",
-        "description": "Marknader, mässor, auktioner, loppisar och försäljning.",
+        "description": "Marknader, mässor, auktioner och försäljning.",
+    },
+    "Loppis": {
+        "icon": "🧺", "color": "#c026d3",
+        "description": "Loppisar, loppmarknader och second hand – fynda begagnat.",
     },
     "Mat och dryck": {
         "icon": "🍽️", "color": "#b45309",
@@ -68,3 +74,35 @@ DEFAULT = {"icon": "📌", "color": "#6b7280", "description": "Evenemang i Värm
 
 def describe_category(title: str | None) -> dict:
     return dict(CATEGORIES.get(title or "", DEFAULT))
+
+
+# ---------------------------------------------------------------- loppisar
+
+MARKET = "Marknad, mässa och auktion"
+LOPPIS = "Loppis"
+# Visit Värmlands namn på marknadskategorin, där loppisar ingår
+SOURCE_NAMES = {"Marknad, mässa, auktion och loppis": MARKET}
+LOPPIS_RE = re.compile(r"loppis|loppmarknad|second[ -]?hand", re.I)
+MARKET_RE = re.compile(r"(?<!lopp)marknad|mässa|mässan|auktion", re.I)
+
+
+def split_loppis(categories: list[dict], title: str, summary: str) -> list[dict]:
+    """Bryter ut loppisar ur marknadskategorin till en egen kategori.
+
+    Loppis: titeln nämner loppis (eller loppmarknad, second hand), eller marknadskategorin och ingressen nämner loppis.
+    Marknadskategorin behålls bara om texten också nämner marknad, mässa eller auktion.
+    """
+    titles = [SOURCE_NAMES.get(c["title"], c["title"]) for c in categories]
+    text = f"{title} {summary or ''}"
+    loppis = LOPPIS in titles or bool(LOPPIS_RE.search(title or "")) or (
+        MARKET in titles and bool(LOPPIS_RE.search(summary or "")))
+    result = []
+    for t in titles:
+        if t == MARKET and loppis and not MARKET_RE.search(text):
+            continue
+        if t not in result:
+            result.append(t)
+    if loppis and LOPPIS not in result:
+        result.insert(0, LOPPIS)
+    by_title = {c["title"]: c for c in categories}
+    return [by_title[t] if t in by_title else {"title": t, **describe_category(t)} for t in result]

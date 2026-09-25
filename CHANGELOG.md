@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Loppisar är ett eget filter, *Loppis*, direkt efter *Gratis*. Loppisar bryts ut ur Visit Värmlands kategori
+  "Marknad, mässa, auktion och loppis", som nu heter "Marknad, mässa och auktion". Fråga AI förstår loppis som
+  en egen typ (#44)
+
 ## [0.13.0] - 2026-09-25
 
 ### Tillagt

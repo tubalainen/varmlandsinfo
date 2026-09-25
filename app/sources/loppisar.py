@@ -102,7 +102,7 @@ def normalize_group(rows: list[dict]) -> dict | None:
         "title": first["title"],
         "summary": f"{kind.capitalize()} med öppettider enligt loppisar.com. Kontakta gärna loppisen innan du åker långt.",
         "description": "",
-        "categories": [category("Marknad, mässa, auktion och loppis")],
+        "categories": [category("Loppis")],
         "municipality": first["municipality"],
         "place": {"title": first["title"], "address": first["address"], "lat": None, "lon": None},
         "organizer": None,
