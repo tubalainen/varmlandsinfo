@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-09-25
+
 ### Ändrat
 - Karlstad Loppis och loppisar.com visas som en källa, *Loppisar*, i menyn, i filtret Källa, på korten och på sidan
   Om applikationen. I bakgrunden är de fortfarande två källor med egen hämtning och status (#45)
@@ -202,7 +204,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.11.0...v0.12.0
