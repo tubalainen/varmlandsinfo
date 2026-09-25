@@ -129,11 +129,33 @@ function showStatus(data) {
   if (data.release_url) v.href = data.release_url;
 }
 
+/** Källorna som de visas: källor med samma grupp (t.ex. Karlstad Loppis och loppisar.com = Loppisar) blir en. */
+function groupSources(sources) {
+  const groups = new Map();
+  for (const [key, s] of Object.entries(sources || {})) {
+    const name = s.group || s.title;
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push({ key, ...s });
+  }
+  return [...groups].map(([name, members]) => {
+    const on = members.filter((m) => m.enabled);
+    const errors = on.filter((m) => m.error).map((m) => (members.length > 1 ? `${m.title}: ${m.error}` : m.error));
+    const updated = on.map((m) => m.updated).filter(Boolean).sort()[0] || null;   // äldsta hämtningen
+    return {
+      key: members.length > 1 ? name : members[0].key, title: name, members,
+      homepage: members.length > 1 ? null : members[0].homepage,
+      enabled: on.length > 0, count: on.reduce((n, m) => n + (m.count || 0), 0),
+      error: errors.join("; ") || null, config_error: on.length ? null : members[0].config_error, updated,
+    };
+  });
+}
+
 function renderSources() {
-  $("#sources").replaceChildren(...Object.values(state.sources || {}).map((x) => {
+  $("#sources").replaceChildren(...groupSources(state.sources).map((x) => {
     const cls = !x.enabled ? "off" : x.error ? "err" : "";
-    const title = x.error || x.config_error || `Senast hämtad ${fmtTime(x.updated)}`;
-    return el("li", {}, el("a", { href: x.homepage, target: "_blank", rel: "noopener", title },
+    const parts = x.members.length > 1 ? ` (${x.members.map((m) => m.title).join(" och ")})` : "";
+    const title = (x.error || x.config_error || `Senast hämtad ${fmtTime(x.updated)}`) + parts;
+    return el("li", {}, el("a", { href: x.homepage, target: x.homepage ? "_blank" : null, rel: "noopener", title },
       el("span", { class: `src-dot ${cls}` }),
       el("span", { class: "name" }, x.title),
       el("span", { class: `src-count ${cls}` }, !x.enabled ? "av" : x.error ? "fel" : String(x.count))));

@@ -22,8 +22,8 @@
     ccc: "Konserter och shower i Karlstad CCC:s konserthall Solasalen.",
     scala: "Teater, musik och humor på Scalateaterns scener i Karlstad.",
     greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",
-    karlstadloppis: "Bakluckeloppisen på I2 Norra Fältet i Karlstad, med nästa datum från arrangören Karlstad Loppis.",
-    loppisar: "Loppisar i Värmland med öppettider per dag från loppisar.com. Kontakta gärna loppisen innan du åker långt.",
+    Loppisar: "Loppisar i Värmland: bakluckeloppisen på I2 Norra Fältet i Karlstad med nästa datum från arrangören "
+      + "Karlstad Loppis, och loppisar med öppettider per dag från loppisar.com. Kontakta gärna loppisen innan du åker långt.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",
   };
 
@@ -37,7 +37,7 @@
 
   window.renderAbout = () => {
     const m = state.meta || {};
-    const sources = Object.entries(m.sources || {});
+    const sources = groupSources(m.sources);
     const chat = m.chat || {};
     $("#about").replaceChildren(
       section("info", "Vad är Värmlandsinfo?",
@@ -52,9 +52,12 @@
         el("div", { style: "overflow-x:auto" }, el("table", { class: "src-table" },
           el("thead", {}, el("tr", {}, el("th", {}, "Källa"), el("th", {}, "Innehåll"), el("th", {}, "Evenemang"),
             el("th", {}, "Senast hämtad"), el("th", {}, "Status"))),
-          el("tbody", {}, sources.map(([key, s]) => el("tr", {},
-            el("td", {}, el("a", { href: s.homepage, target: "_blank", rel: "noopener" }, s.title)),
-            el("td", {}, SOURCE_INFO[key] || ""),
+          el("tbody", {}, sources.map((s) => el("tr", {},
+            el("td", {}, s.members.length > 1
+              ? [el("strong", {}, s.title), el("div", { class: "muted", style: "font-size:.8rem" },
+                  s.members.flatMap((m, i) => [i ? " och " : "", el("a", { href: m.homepage, target: "_blank", rel: "noopener" }, m.title)]))]
+              : el("a", { href: s.homepage, target: "_blank", rel: "noopener" }, s.title)),
+            el("td", {}, SOURCE_INFO[s.key] || ""),
             el("td", {}, s.enabled ? String(s.count) : "–"),
             el("td", {}, fmtTime(s.updated)),
             el("td", { title: s.error || s.config_error || "" }, status(s), s.error || s.config_error

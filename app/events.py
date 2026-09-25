@@ -24,7 +24,8 @@ state: dict = {
     "refreshing": False,
     "storage_error": None,
     # per källa: {"title", "enabled", "count", "updated", "error"}
-    "sources": {s.key: {"title": s.title, "homepage": s.homepage, "enabled": s.config_error() is None,
+    # group: namnet som visas i gränssnittet. Källor med samma grupp (t.ex. Loppisar) visas som en källa.
+    "sources": {s.key: {"title": s.title, "group": getattr(s, "group", s.title), "homepage": s.homepage, "enabled": s.config_error() is None,
                         "config_error": s.config_error(), "count": 0, "updated": None, "error": None}
                 for s in SOURCES},
 }
@@ -45,6 +46,10 @@ def rebuild() -> None:
         if payload is not None:
             try:
                 events = s.normalize(payload)
+                if group := getattr(s, "group", None):   # källan visas under gruppens namn
+                    for e in events:
+                        for link in e["sources"]:
+                            link["name"] = group
             except Exception as exc:
                 log.exception("Kunde inte tolka data från %s", s.title)
                 state["sources"][s.key]["error"] = f"Kunde inte tolka data: {exc}"

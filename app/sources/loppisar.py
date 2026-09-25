@@ -37,6 +37,7 @@ def search_url(first_day: date) -> str:
 class Loppisar:
     key = "loppisar"
     title = "loppisar.com"
+    group = "Loppisar"          # visas som en källa i gränssnittet, tillsammans med Karlstad Loppis
     homepage = HOMEPAGE
 
     def config_error(self) -> str | None:

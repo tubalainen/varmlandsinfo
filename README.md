@@ -27,6 +27,10 @@ med länkar till alla källor.
 | [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
 | [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
 
+Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten och på
+sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
+`/api/health`.
+
 CCC, Scalateatern, Great Event, Karlstad Loppis och loppisar.com saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
 hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 

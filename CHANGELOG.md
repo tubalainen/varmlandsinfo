@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Karlstad Loppis och loppisar.com visas som en källa, *Loppisar*, i menyn, i filtret Källa, på korten och på sidan
+  Om applikationen. I bakgrunden är de fortfarande två källor med egen hämtning och status (#45)
+
 ## [0.14.0] - 2026-09-25
 
 ### Ändrat

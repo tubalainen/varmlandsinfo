@@ -126,3 +126,22 @@ def test_chat_understands_loppis():
     from chat import find_categories
     assert find_categories("Vilka loppisar finns i helgen?") == {"Loppis"}
     assert find_categories("Finns det någon julmarknad?") == {"Marknad, mässa och auktion"}
+
+
+# ---------------------------------------------------------------- en källa i gränssnittet (#45)
+
+def test_flea_market_sources_are_shown_as_one(tmp_path, monkeypatch):
+    import events
+    from test_cleanup import use_tmp_data
+    use_tmp_data(tmp_path, monkeypatch)
+    d = date.today() + timedelta(days=2)
+    monkeypatch.setitem(events._payloads, "karlstadloppis", {"html": f"Nästa loppis {d.day} {MONTHS[d.month - 1]} {d.year}"})
+    monkeypatch.setitem(events._payloads, "loppisar", {"html": search_page(
+        header(d), row(4124, "z", "Z loppis", "11:00-16:00", "Zakrisdalsslingan 2, Karlstads kommun"))})
+    events.rebuild()
+    names = {s["name"] for e in events.state["events"] for s in e["sources"]}
+    assert names == {"Loppisar"}                                           # ett namn i gränssnittet
+    info = events.state["sources"]
+    assert info["karlstadloppis"]["group"] == info["loppisar"]["group"] == "Loppisar"
+    assert info["karlstadloppis"]["count"] == 1 and info["loppisar"]["count"] == 1   # status per källa finns kvar
+    assert info["visitvarmland"]["group"] == "Visit Värmland"
