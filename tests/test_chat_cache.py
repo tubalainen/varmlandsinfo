@@ -93,11 +93,18 @@ def text_of(events):
 
 
 def test_off_topic_marker_is_replaced(tmp_path, monkeypatch):
+    # Frågan klarar spärren, men modellen bedömer den ändå som utanför uppdraget
     calls = fake_ollama(monkeypatch, tmp_path, ["[UTAN", "FÖR]"])
-    out = collect(chat.chat_stream([{"role": "user", "content": "Skriv en dikt om hösten"}], [], date(2026, 9, 24), "v"))
+    out = collect(chat.chat_stream([{"role": "user", "content": "Vad skulle passa oss i helgen?"}], [], date(2026, 9, 24), "v"))
     assert text_of(out) == chat.REFUSAL and "UTANFÖR" not in json.dumps(out)
     assert out[-1]["refused"] and len(calls) == 1
     assert chat.cache.recent == []                                   # vägrade svar sparas inte
+
+
+def test_off_topic_is_stopped_before_the_model(tmp_path, monkeypatch):
+    calls = fake_ollama(monkeypatch, tmp_path, ["hej"])
+    out = collect(chat.chat_stream([{"role": "user", "content": "Skriv en dikt om hösten"}], [], date(2026, 9, 24), "v"))
+    assert text_of(out) == chat.OUT_OF_SCOPE and out[-1]["refused"] and calls == []
 
 
 def test_injection_is_stopped_without_asking_the_model(tmp_path, monkeypatch):

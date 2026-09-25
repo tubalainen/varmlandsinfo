@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Fråga AI och webbsökningen gäller bara evenemangen i appen. En spärr stoppar andra frågor innan SearXNG eller Ollama
+  anropas: frågor som nämner något som inte finns i appen (t.ex. Liseberg) och frågor som inte rör evenemang. Webben
+  söks bara när frågan nämner ett evenemang, en plats eller en arrangör i appen (#48)
+
 ## [0.16.0] - 2026-09-25
 
 ### Tillagt

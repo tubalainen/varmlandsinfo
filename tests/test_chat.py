@@ -149,3 +149,52 @@ def test_category_words_are_not_required_as_keywords():
     events = [ev("Sagostund", "2026-09-26", cat="Barn"), ev("Rockkväll", "2026-09-26")]
     text, sources = chat.search_answer("Vilka barnaktiviteter finns i helgen?", events, THU)
     assert [s["title"] for s in sources] == ["Sagostund"]
+
+
+# ---------------------------------------------------------------- avgränsning innan AI:n (#48)
+
+def scope_events():
+    return [
+        {**ev("Arvikamârten", "2026-10-03", municipality="Arvika", cat="Marknad, mässa och auktion"),
+         "organizer": "Arvika kommun", "place": {"title": "Arvika centrum"}},
+        {**ev("Färjestad BK - HV71", "2026-10-03", cat="Sport, motion och hälsa"), "place": {"title": "Löfbergs Arena"}},
+        {**ev("Jag är Carola", "2026-12-18"), "place": {"title": "Löfbergs Arena"}},
+        ev("Höstloppis i Arenan", "2026-09-26", municipality="Kristinehamn", cat="Loppis"),
+    ]
+
+
+def test_scope_allows_questions_about_events_in_the_app():
+    evs = scope_events()
+    ok = chat.scope_check("Hur många besökare har Arvikamarten årligen?", evs, THU)
+    assert ok["ok"] and ok["entities"] == ["Arvikamarten"]
+    assert chat.scope_check("hur många besökare har arvikamarten årligen?", evs, THU)["entities"] == ["arvikamarten"]
+    assert chat.scope_check("Hur tar jag mig till Löfbergs Arena?", evs, THU)["entities"] == ["Löfbergs Arena"]
+    assert chat.scope_check("Är Höstloppisen i Arenan värd ett besök?", evs, THU)["ok"]          # bestämd form
+    assert chat.scope_check("Vilka låtar brukar Carola spela?", evs, THU)["entities"] == ["Carola"]
+    general = chat.scope_check("Vad skulle passa min 8-åriga son i Karlstad i helgen?", evs, THU)
+    assert general["ok"] and general["entities"] == []                     # kommun, allmän fråga: ingen webbsökning
+    assert chat.scope_check("Vad händer i Värmland i helgen? Ge mig de bästa tipsen.", evs, THU)["ok"]
+    assert chat.scope_check("Finns det något kul för barn?", evs, THU)["ok"]
+
+
+def test_scope_blocks_everything_else():
+    evs = scope_events()
+    for q in ["Hur många besökare har Liseberg en helg under högsäsong?",
+              "Vad händer i Göteborg i helgen?",
+              "Tips på konserter med Håkan Hellström?",
+              "Skriv en dikt om hösten",
+              "Vad är huvudstaden i Norge?",
+              "Hur mycket är 17 gånger 23?",
+              "Hur blir vädret i morgon?",
+              "Vem vann melodifestivalen 2025?",
+              "Vad tycker du om Carola Häggkvist Andersson?"]:
+        assert not chat.scope_check(q, evs, THU)["ok"], q
+    assert chat.scope_check("Är Arvikamarten större än Liseberg?", evs, THU)["unknown"] == ["Liseberg"]
+
+
+def test_scope_follow_up_uses_the_conversation():
+    evs = scope_events()
+    follow = chat.scope_check("och hur många kom förra året?", evs, THU, context="Hur många besökare har Arvikamarten?")
+    assert follow["ok"] and follow["entities"] == ["Arvikamarten"]
+    assert not chat.scope_check("och Liseberg då?", evs, THU, context="Vad händer på Arvikamarten?")["ok"]
+    assert not chat.scope_check("och sen?", evs, THU, context="Skriv en dikt")["ok"]
