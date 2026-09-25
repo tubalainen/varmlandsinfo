@@ -62,7 +62,8 @@ med AI-chatt via Ollama. Användaren kommunicerar på svenska: skriv issues, PR:
 - `app/common.py`: HTTP med rate limit (felmeddelanden utan frågesträng, alltså utan API-nycklar)
 - `app/chat.py`: urval av evenemang, fördefinierade frågor och Ollama-anrop. `app/chat_cache.py`: sparade
   AI-svar (`/data/chat_cache.json`). `app/sessions.py`: samtal i Fråga AI (en session per flik, historiken på
-  servern, bara i minnet, så appen ska köras som en process)
+  servern, bara i minnet, så appen ska köras som en process). `app/websearch.py`: valfri webbsökning via SearXNG
+  för AI-frågor
 - `app/main.py`: FastAPI-rutter och schemaläggning
 - `app/static/`: gränssnittet. `app.js` sköter navigering (`#/lista`, `#/kalender`, `#/fraga`, `#/om`), filter
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`

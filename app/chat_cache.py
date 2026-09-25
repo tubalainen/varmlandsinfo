@@ -86,9 +86,10 @@ class AnswerCache:
             log.info("Tog bort %d inaktuella AI-svar", removed)
         return removed
 
-    def put(self, question: str, ctx: dict, answer: str, sources: list[dict], preset: bool) -> None:
+    def put(self, question: str, ctx: dict, answer: str, sources: list[dict], preset: bool,
+            web: list[dict] | None = None) -> None:
         key = normalize(question)
-        entry = {"key": key, "question": question, "answer": answer, "sources": sources,
+        entry = {"key": key, "question": question, "answer": answer, "sources": sources, "web": web or [],
                  "saved": now_iso(), **ctx}
         with self._lock:
             if preset:

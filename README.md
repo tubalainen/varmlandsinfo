@@ -65,6 +65,7 @@ hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
   - Följdfrågor som "och på söndag då?" fungerar.
   - AI-svar sparas och återanvänds så länge evenemangen inte har ändrats.
   - Varje flik har ett eget samtal, och flera kan använda chatten samtidigt.
+  - Valfri webbsökning via en egen SearXNG kompletterar AI-svaren med information från webben.
 
   Se [AI-chatt med Ollama](#ai-chatt-med-ollama).
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
@@ -122,6 +123,9 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
 | `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
+| `SEARXNG_URL`        | *(tom)*            | Adress till SearXNG för AI:ns webbsökning. Tom betyder att webbsökningen är avstängd. |
+| `SEARXNG_RESULTS`    | `5`                | Max antal webbträffar per fråga (1–20). |
+| `SEARXNG_LANGUAGE`   | `sv`               | Språk för webbsökningen. |
 | `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
 | `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
 | `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
@@ -245,6 +249,34 @@ bedömning, till exempel rekommendationer, jämförelser, personliga önskemål 
 son i Karlstad nu till helgen?". Ålder och ord som son, dotter och familj tolkas som barn, så barn- och
 familjeevenemang prioriteras. AI:n väljer ut 3–5 förslag och motiverar varför de passar.
 
+### Webbsökning via SearXNG (valfritt)
+
+AI:n kan komplettera svaren med information från webben via en egen [SearXNG](https://docs.searxng.org/)-instans,
+till exempel mer om en artist, en plats eller ett evenemang i Värmland som saknas i källorna.
+
+1. Kör SearXNG, till exempel med [searxng-docker](https://github.com/searxng/searxng-docker).
+2. Slå på JSON-svar i SearXNG:s `settings.yml` och starta om SearXNG:
+   ```yaml
+   search:
+     formats:
+       - html
+       - json
+   ```
+   Har du SearXNG:s `limiter` påslagen kan den stoppa appens anrop. Stäng av den eller släpp igenom appens adress.
+3. Ange adressen i `.env`, till exempel `SEARXNG_URL=http://<ip-adress>:8888` (eller `http://searxng:8080` om
+   SearXNG körs i samma compose-projekt), och starta om: `docker compose up -d`.
+
+Så fungerar webbsökningen:
+- **Bara AI-frågor** söker på webben. Direktsökningar och sparade svar gör det aldrig.
+- **Sökorden** är frågan, med "Värmland" tillagt om ingen kommun nämns.
+- **Träffarna** (titel, länk och utdrag, högst `SEARXNG_RESULTS`) skickas till modellen som ett avgränsat block som
+  räknas som data, inte instruktioner. Evenemangen i appen går före webben, och webbuppgifter anges som
+  "enligt webben" med länk.
+- **Under svaret** visas träffarna i listan *Från webben*.
+- **Svarar inte SearXNG** inom 8 sekunder svarar AI:n utan webben, och felet loggas.
+- **Avgränsningen gäller som förut:** AI:n svarar bara på frågor om evenemang och aktiviteter i Värmland.
+- **Integritet:** med webbsökning påslagen skickas frågan som sökord via SearXNG till sökmotorer på webben.
+
 **Så fungerar det:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den
 tidsuttryck (idag, i helgen, nästa vecka, 3 oktober, i oktober …), kommuner, evenemangstyper och
 sökord. Utifrån det väljer den ut de mest relevanta evenemangen (högst `CHAT_MAX_EVENTS`) och
@@ -301,6 +333,7 @@ app/
   chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama
   chat_cache.py    Sparade AI-svar
   sessions.py      Samtal (sessioner) i Fråga AI
+  websearch.py     Webbsökning via SearXNG för Fråga AI
   categories.py    Klassificering och beskrivning av evenemangstyper
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)

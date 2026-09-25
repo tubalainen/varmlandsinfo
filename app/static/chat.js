@@ -75,7 +75,7 @@
   }
 
   // Noteringar under ett svar: sökresultat, sparat svar och underlaget
-  function decorate(msg, meta, sources) {
+  function decorate(msg, meta, sources, web = []) {
     if (meta.mode === "search") {
       msg.append(el("p", { class: "cached-note" }, icon("search"),
         "Sökresultat direkt från appen. Frågan gällde att hitta evenemang, så ingen AI behövdes."));
@@ -88,6 +88,11 @@
       msg.append(el("details", { class: "sources" },
         el("summary", {}, `Underlag: ${sources.length} evenemang`),
         el("ul", {}, sources.map((src) => el("li", {}, `${src.date} – `, src.url ? link(src.title, src.url) : src.title)))));
+    }
+    if (web.length && !msg.classList.contains("error")) {
+      msg.append(el("details", { class: "sources" },
+        el("summary", {}, `Från webben: ${web.length} ${web.length === 1 ? "träff" : "träffar"}`),
+        el("ul", {}, web.map((w) => el("li", {}, link(w.title, w.url))))));
     }
   }
 
@@ -107,7 +112,7 @@
     const body = el("div", {},
       el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")), status));
     msg.append(body);
-    let answer = "", sources = [], meta = {}, expired = false;
+    let answer = "", sources = [], web = [], meta = {}, expired = false;
 
     try {
       const r = await fetch("/api/chat", {
@@ -139,6 +144,11 @@
               : "Din tur! Den lokala AI-modellen arbetar. Det kan ta en stund …";
           }
           else if (ev.type === "sources") sources = ev.events;
+          else if (ev.type === "websearch") {
+            status.textContent = ev.found === undefined ? "Söker på webben efter mer information …"
+              : `${ev.found ? `Hittade ${ev.found} webbträffar. ` : ""}Den lokala AI-modellen arbetar. Det kan ta en stund …`;
+          }
+          else if (ev.type === "web") web = ev.results;
           else if (ev.type === "done") meta = ev;
           else if (ev.type === "delta") {
             answer += ev.text;
@@ -156,7 +166,7 @@
     } finally {
       body.classList.remove("typing");
       if (expired) note(msg, "info", "Det tidigare samtalet hade gått ut, så frågan besvarades som ett nytt samtal.");
-      decorate(msg, meta, sources);
+      decorate(msg, meta, sources, web);
       busy = false;
       sendBtn.disabled = false;
       log.scrollTop = log.scrollHeight;
@@ -175,7 +185,7 @@
         const msg = addMsg("assistant"), body = el("div");
         renderMarkdown(body, m.content);
         msg.append(body);
-        decorate(msg, m, m.sources || []);
+        decorate(msg, m, m.sources || [], m.web || []);
       }
     } catch { /* samtalet kunde inte hämtas, börja om */ }
   }
@@ -193,7 +203,7 @@
       statusLoaded = true;
       if (st.enabled && st.reachable && !st.error) {
         dot.className = "dot ok";
-        model.textContent = `Modell: ${st.model}`;
+        model.textContent = `Modell: ${st.model}` + (st.websearch ? " · Webbsökning på" : "");
       } else {
         dot.className = "dot err";
         model.textContent = st.enabled ? `Modell: ${st.model} · ${st.error}` : "Inte konfigurerad: sätt OLLAMA_URL i .env";

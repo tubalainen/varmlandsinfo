@@ -230,7 +230,7 @@ async def chat_endpoint(req: ChatRequest, session_id: str | None = SessionHeader
 
 async def _session_stream(session: sessions.Session, expired: bool, question: str):
     """Svaret strömmas vidare och sparas i samtalet när det är komplett."""
-    answer, sources, meta, ok = "", [], {}, False
+    answer, sources, web, meta, ok = "", [], [], {}, False
     try:
         yield json.dumps({"type": "session", "id": session.id, "expired": expired}) + "\n"
         messages = [*session.model_history(), {"role": "user", "content": question}]
@@ -242,6 +242,8 @@ async def _session_stream(session: sessions.Session, expired: bool, question: st
                     answer += ev["text"]
                 elif ev["type"] == "sources":
                     sources = ev["events"]
+                elif ev["type"] == "web":
+                    web = ev["results"]
                 elif ev["type"] == "done":
                     ok = not ev.get("refused")
                     meta = {k: ev[k] for k in ("mode", "cached", "saved") if k in ev}
@@ -249,7 +251,7 @@ async def _session_stream(session: sessions.Session, expired: bool, question: st
     finally:
         # Vägrade, avbrutna och misslyckade svar sparas inte i samtalet
         turns = [{"role": "user", "content": question},
-                 {"role": "assistant", "content": answer, "sources": sources, **meta}] if ok and answer else None
+                 {"role": "assistant", "content": answer, "sources": sources, "web": web, **meta}] if ok and answer else None
         sessions.store.end(session, turns)
 
 

@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Fråga AI kan söka på webben via en egen SearXNG (`SEARXNG_URL`, `SEARXNG_RESULTS`, `SEARXNG_LANGUAGE`). AI-frågor får
+  webbträffarna som extra underlag, och svaren visar dem under *Från webben*. Evenemangen i appen går före webben, och
+  direktsökningar och sparade svar söker aldrig på webben (#46)
+
 ## [0.15.0] - 2026-09-25
 
 ### Ändrat

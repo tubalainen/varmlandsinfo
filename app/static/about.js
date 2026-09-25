@@ -65,12 +65,13 @@
 
       section("message", "AI-chatten",
         el("p", {}, "AI-chatten använder en språkmodell i din egen Ollama-server. För varje fråga tolkar appen tidsuttryck (idag, i helgen, nästa vecka, 3 oktober …), kommuner, evenemangstyper och sökord. Sedan skickar den de mest relevanta evenemangen till modellen, som instrueras att bara svara utifrån dem."),
-        el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon molntjänst. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
+        el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon AI-tjänst i molnet. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
+        el("p", {}, "Webbsökning (valfritt): med en egen SearXNG-server kan AI:n komplettera svaren med information från webben, till exempel om en artist eller en plats. Frågan skickas då som sökord via SearXNG till sökmotorer på webben. Webbträffarna visas under svaret, och evenemangen i appen går alltid före. Enkla sökfrågor och sparade svar söker aldrig på webben."),
         el("p", {}, "AI:n svarar bara på frågor om evenemang och aktiviteter i appen och ger personliga rekommendationer, till exempel utifrån barns ålder. Andra frågor får ett fast svar, och försök att ändra AI:ns uppdrag stoppas."),
         el("p", {}, "Alla frågor behöver inte AI. Frågor som bara söker evenemang (när, var, vilka, vad händer …) besvaras direkt med en sökning bland evenemangen, sorterad efter datum. Det går snabbt och fungerar även utan Ollama. AI:n används när frågan kräver en bedömning: rekommendationer, jämförelser eller personliga önskemål som ålder och intressen."),
         el("p", {}, "Flera kan använda Fråga AI samtidigt. Varje flik har ett eget samtal som sparas på servern och finns kvar om sidan laddas om. Nytt samtal börjar om. Den lokala AI-modellen svarar på två frågor åt gången, och övriga ställs i kö. Du ser då din plats i kön."),
         el("p", {}, "Svaren sparas. Ställs samma fråga samma dag och evenemangen inte har ändrats, visas det sparade svaret direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna frågorna."),
-        el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
+        el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}. Webbsökning: ${chat.websearch ? "på" : "av"}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 
       section("code", "Version och källkod",
         el("p", {}, `Du kör version ${m.version ? "v" + m.version : "–"}. Appen är öppen källkod. Ändringar, versioner och instruktioner finns på GitHub.`),
