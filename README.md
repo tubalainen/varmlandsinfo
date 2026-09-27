@@ -8,13 +8,15 @@ med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
 med länkar till alla källor.
 
-![Evenemangslistan med filter, kategorier (bland annat Gratis och Loppis) och källornas status](docs/screenshots/lista.jpg)
+![Evenemangslistan med filter, kategorier (bland annat Gratis, Loppis och Motorsport) och källornas status](docs/screenshots/lista.jpg)
 
 | Kalendern (mörkt läge) | Fråga AI |
 |------------------------|----------|
 | ![Kalendern med en vecka per rad och evenemangen färgkodade per typ](docs/screenshots/kalender.jpg) | ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](docs/screenshots/fraga-ai.jpg) |
 
-<p align="center"><img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="260"></p>
+| Filtret Motorsport | Mobil (mörkt läge) |
+|--------------------|--------------------|
+| ![Filtret Motorsport visar folkrace, rally och enduro från SBF och Svemo](docs/screenshots/motorsport.jpg) | <img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="260"> |
 
 | Källa | Hur | Vad |
 |-------|-----|-----|

@@ -54,6 +54,14 @@ await page("fraga-ai", {
     await p.waitForSelector(".msg.assistant .cached-note");
   },
 });
+await page("motorsport", {
+  route: "lista",
+  prepare: async (p) => {
+    await p.waitForSelector(".card");
+    await p.click(".chip:has-text('Motorsport')");
+    await p.waitForTimeout(300);
+  },
+});
 await page("mobil", { scheme: "dark", width: 390, height: 844, route: "lista", prepare: (p) => p.waitForSelector(".card") });
 
 await browser.close();

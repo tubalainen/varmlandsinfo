@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Nya skärmdumpar i README med källan och filtret Motorsport, och CLAUDE.md beskriver läget, användarens beslut och
+  lärdomar från utvecklingsmiljön (#50)
+
 ## [0.18.0] - 2026-09-27
 
 ### Tillagt
