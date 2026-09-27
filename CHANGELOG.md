@@ -6,6 +6,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa Motorsport: tävlingar och prova på-dagar i Värmland och Karlskoga från Svensk Bilsports tävlingskalender
+  (LoTS: folkrace, rally, rallycross, crosskart, karting …) och Svemo TA (motocross, enduro, speedway …). Läget
+  avgörs av banans namn och arrangörens ort. Ny filterkategori *Motorsport*, och *Motor* gäller nu motorträffar och
+  fordonsutställningar. Dubbletter mot Visit Värmland slås ihop även när titlarna skiljer sig och när tävlingen
+  pågår flera dagar. Fråga AI förstår motorsport och har ett nytt snabbval (#49)
+
 ## [0.17.0] - 2026-09-25
 
 ### Ändrat

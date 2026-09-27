@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from categories import describe_category, split_loppis
+from categories import describe_category, split_loppis, split_motorsport
 from version import __version__
 
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
@@ -128,6 +128,18 @@ async def get_text(client: httpx.AsyncClient, url: str, source: str) -> str:
     return r.text
 
 
+async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str) -> str:
+    """POST av ett formulär (t.ex. en ASP.NET-postback för att byta sida i en lista)."""
+    try:
+        r = await client.post(url, data=data, headers={"Accept": "text/html"}, follow_redirects=True)
+    except httpx.HTTPError as exc:
+        raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
+    stats["api_calls"] += 1
+    if r.status_code >= 400:
+        raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
+    return r.text
+
+
 def clean_text(fragment: str | None) -> str:
     """Text ur ett HTML-fragment, med blanksteg ihopslagna."""
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", fragment or ""))).strip()
@@ -149,6 +161,8 @@ def finalize(event: dict) -> dict | None:
         o.setdefault("time_end", None)
     event["occasions"] = occ
     event["next"] = occ[0]
-    event["categories"] = split_loppis(event.get("categories") or [], event.get("title") or "", event.get("summary") or "")
+    event["categories"] = split_motorsport(
+        split_loppis(event.get("categories") or [], event.get("title") or "", event.get("summary") or ""),
+        event.get("title") or "", event.get("summary") or "")
     event.setdefault("sources", [{"name": event["source"], "url": event.get("url")}])
     return event

@@ -26,12 +26,20 @@ med länkar till alla källor.
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 | [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
 | [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
+| [Svensk Bilsport (SBF)](https://www.sbf.se/tavlingar/tavlingskalender) | Tävlingskalendern LoTS (HTML) | Bilsport: folkrace, rally, rallycross, crosskart, karting, bilcross, racing, drifting … |
+| [Svemo](https://ta.svemo.se) | Tävlingskalendern Svemo TA (HTML) | MC- och snöskotersport: motocross, enduro, speedway, trial … |
+
+**Motorsport:** SBF och Svemo visas som **en** källa, *Motorsport*. Med kommer publika tävlingar och prova på-dagar i
+Värmland och Karlskoga (som Visit Värmland), men inte träningstillstånd, kurser, besiktningar och tävlingar utan publik.
+Kalendrarna saknar län, så läget avgörs av banans namn (t.ex. Kalvholmens Motorstadion → Karlstad, Hagforsvallen →
+Hagfors) och i andra hand arrangörsklubbens ort. Radiostyrd bilsport, Drivers Open och Ticket to drive räknas inte som
+evenemang.
 
 Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten och på
 sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
 `/api/health`.
 
-CCC, Scalateatern, Great Event, Karlstad Loppis och loppisar.com saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
+CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF och Svemo saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
 hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
@@ -55,6 +63,9 @@ hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
   evenemang räknas som loppis om titeln nämner det, eller om det är en marknad vars ingress nämner loppis. En
   loppis behåller marknadskategorin (*Marknad, mässa och auktion*) bara om texten också nämner marknad, mässa
   eller auktion.
+- **Motorsport:** tävlingar som folkrace, rally, rallycross, crosskart, karting, motocross, enduro och speedway har
+  en egen kategori, *Motorsport*, direkt efter *Loppis*. Visit Värmlands kategori *Motor* gäller nu motorträffar,
+  veteranfordon och fordonsutställningar.
 - **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
   bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
@@ -146,6 +157,8 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Great Event | 1 | Sidan Kommande evenemang. |
 | Karlstad Loppis | 1 | Startsidan med nästa datum. |
 | loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
+| Svensk Bilsport (SBF) | cirka 12 | Alla kommande tävlingar i Sverige, 50 per sida. Sidbyte med postback, 1,5 s paus mellan sidorna. |
+| Svemo | cirka 3 | Datumfiltret fungerar inte där, så bara första sidan, sista sidan och sidorna bakåt till dagens datum läses. |
 
 Skydden gäller alla källor:
 
@@ -175,6 +188,8 @@ Allt som hämtas från källorna sparas på värden i katalogen `./data` bredvid
 | `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
 | `data/karlstadloppis.json` | Startsidan hos Karlstad Loppis. |
 | `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |
+| `data/sbf.json`            | Kommande bilsporttävlingar från SBF:s kalender. |
+| `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 
 - **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
@@ -338,7 +353,8 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 app/
   main.py          FastAPI-server, API och schemaläggning
   events.py        Hämtning, lagring och sammanslagning av alla källor
-  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent, karlstadloppis, loppisar)
+  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent, karlstadloppis, loppisar,
+                   motorsport: SBF och Svemo)
   merge.py         Sammanslagning av samma evenemang från flera källor
   common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
   chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama

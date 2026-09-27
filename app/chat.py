@@ -104,6 +104,7 @@ QUICK = [
     {"label": "Barn", "q": "Vilka barnaktiviteter finns i helgen?"},
     {"label": "Musik", "q": "Vilka konserter finns nästa vecka?"},
     {"label": "Sport", "q": "Vilka sportevenemang finns i helgen?"},
+    {"label": "Motorsport", "q": "Vilka motorsporttävlingar finns den här månaden?"},
     {"label": "Karlstad", "q": "Vad händer i Karlstad i helgen?"},
     {"label": "Arvika", "q": "Vad händer i Arvika den här månaden?"},
 ]
@@ -141,7 +142,12 @@ CATEGORY_WORDS = {
     "Mat och dryck": ["mat$", "maten$", "matupplevelse", "dryck", "middag", "lunch", "provning", "vin$", "vinprovning", "öl$",
                       "restaurang", "brunch", "fika"],
     "Guidning": ["guid", "visning", "rundtur", "vandring"],
-    "Motor": ["motor", "bil$", "bilar$", "bilträff", "veteranbil", "mc$", "motorcykel", "traktor"],
+    "Motor": ["motorträff", "bilträff", "mc-träff", "veteranbil", "veteranfordon", "fordonsträff", "bilutställning",
+              "traktor", "raggarträff", "cruising"],
+    "Motorsport": ["motorsport", "bilsport", "folkrace", "rally", "rallyt", "rallyn", "rallycross", "crosskart",
+                   "karting", "gokart", "go-kart", "motocross", "enduro", "speedway", "supermoto", "trial$",
+                   "roadracing", "dragracing", "drifting", "bilcross", "racing", "skoterrace", "isracing", "mx$",
+                   "motortävling", "bilrace", "race$", "racet$"],
     "På vatten": ["båt", "vatten", "paddl", "kanot", "segl"],
     "Gratis": ["gratis", "fri entré", "fritt inträde", "gratisevenemang", "kostnadsfri"],
 }
@@ -418,7 +424,11 @@ def _index(events: list[dict]) -> dict:
             if text:
                 folded = " ".join(re.findall(r"[^\W_][\w-]*", _fold(text)))
                 texts.add(folded)
-                words.update(w for w in folded.split() if len(w) >= 3 and not w.isdigit())
+                for w in folded.split():
+                    if len(w) >= 3 and not w.isdigit():
+                        words.add(w)
+                        if w.endswith("s") and len(w) > 4:
+                            words.add(w[:-1])          # "Kalvholmens" -> även "kalvholmen"
         if e.get("municipality"):
             munis.add(_fold(e["municipality"]))
     return {"words": words, "texts": texts, "munis": munis}

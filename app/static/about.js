@@ -8,7 +8,7 @@
     ["panel", "Anpassningsbar meny", "På datorn kan menyn fällas ihop till en smal list med ikoner för mer plats. Valet sparas till nästa besök."],
     ["list", "Evenemangslista", "Alla kommande och pågående evenemang, dag för dag. Varje evenemang visar tid, plats med länk till Google Maps, arrangör, typ, beskrivning, bilder och länkar till mer information och biljetter."],
     ["calendar", "Kalender", "En månad i taget med en vecka per rad och veckonummer. Evenemangen är färgkodade per typ. Klicka på en dag för att se alla dagens evenemang."],
-    ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Du kan välja flera kommuner och källor samtidigt. Kategorin Gratis visar evenemang med fri entré, och Loppis visar loppisar, loppmarknader och second hand. Återkommande evenemang visas en gång, på första datumet, med övriga datum i kortet. Med Ett kort per datum visas de på varje datum."],
+    ["filter", "Filter och sök", "Sök i fritext och filtrera på evenemangstyp, kommun, källa och datum (idag, i helgen, nästa vecka …). Du kan välja flera kommuner och källor samtidigt. Kategorin Gratis visar evenemang med fri entré, Loppis visar loppisar, loppmarknader och second hand, och Motorsport visar folkrace, rally, rallycross, crosskart, karting, motocross, enduro, speedway med mera. Återkommande evenemang visas en gång, på första datumet, med övriga datum i kortet. Med Ett kort per datum visas de på varje datum."],
     ["sparkles", "Fråga AI", "Ställ frågor på vanlig svenska. Enkla sökningar, som \"När spelar Färjestad nästa gång?\", besvaras direkt med en lista. Frågor som kräver en bedömning, som \"Vad skulle passa min 8-åriga son i helgen?\", besvaras av AI:n med länkar och underlag. Följdfrågor fungerar."],
     ["layers", "Flera källor", "Evenemang hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång, med länkar till alla källor."],
     ["refresh", "Alltid aktuellt", "Evenemangen hämtas automatiskt varje morgon. Efter morgonkörningen städas gammal data bort: källor som inte kunde hämtas visar inga gamla evenemang, och gamla AI-svar och chattsamtal tas bort. Källorna anropas sparsamt, och senast uppdaterad visas vid versionen i menyn."],
@@ -24,6 +24,8 @@
     greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",
     Loppisar: "Loppisar i Värmland: bakluckeloppisen på I2 Norra Fältet i Karlstad med nästa datum från arrangören "
       + "Karlstad Loppis, och loppisar med öppettider per dag från loppisar.com. Kontakta gärna loppisen innan du åker långt.",
+    Motorsport: "Motorsporttävlingar och prova på-dagar i Värmland och Karlskoga: bilsport (folkrace, rally, rallycross, crosskart, karting …) "
+      + "från Svensk Bilsports tävlingskalender och MC-sport (motocross, enduro, speedway …) från Svemo.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",
   };
 

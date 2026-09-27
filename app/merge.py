@@ -2,6 +2,7 @@
 
 import re
 import unicodedata
+from datetime import date, timedelta
 
 SIMILARITY = 0.6   # andel gemensamma ord i titlarna för att räknas som samma evenemang
 # Vanliga ord som inte säger vilket evenemang det är ("Z loppis" ska inte bli samma som "Loppis i Oleby")
@@ -22,6 +23,22 @@ def similar(a: str, b: str) -> bool:
     if wa <= wb or wb <= wa:   # den ena titeln ingår helt i den andra
         return True
     return len(wa & wb) / len(wa | wb) >= SIMILARITY
+
+
+def _motorsport(e: dict) -> bool:
+    return any(c["title"] == "Motorsport" for c in e.get("categories") or [])
+
+
+def same_race(a: dict, b: dict) -> bool:
+    """Samma motorsporttävling med olika titlar: Visit Värmlands "Folkrace" och SBF:s "Höstracet" (Folkrace på
+    Tomtfallets Motorstadion). Den korta titelns ord finns i den andras titel och text, eller minst tre ord är gemensamma."""
+    if not (_motorsport(a) and _motorsport(b)):
+        return False
+    for x, y in ((a, b), (b, a)):
+        wx, wy = _words(x["title"]), _words(f"{y['title']} {y.get('summary') or ''}")
+        if wx and (wx <= wy or len(wx & wy) >= 3):
+            return True
+    return False
 
 
 def _same_place(a: dict, b: dict) -> bool:
@@ -47,6 +64,18 @@ def _absorb(primary: dict, other: dict) -> None:
             o["time_end"] = times[o["date_start"]].get("time_end")
 
 
+def _days(o: dict) -> list[str]:
+    """Dagarna ett tillfälle omfattar: varje dag i en kort period (t.ex. en tävlingshelg), annars startdagen."""
+    start, end = o["date_start"], o.get("date_end") or o["date_start"]
+    try:
+        d0, d1 = date.fromisoformat(start), date.fromisoformat(end)
+    except ValueError:
+        return [start]
+    if not 0 < (d1 - d0).days <= 7:
+        return [start]
+    return [(d0 + timedelta(days=i)).isoformat() for i in range((d1 - d0).days + 1)]
+
+
 def merge(per_source: list[list[dict]]) -> list[dict]:
     """per_source i prioritetsordning (rikaste källan först). Returnerar sammanslagen lista."""
     result: list[dict] = []
@@ -55,9 +84,10 @@ def merge(per_source: list[list[dict]]) -> list[dict]:
         for ev in events:
             ev["sources"] = [dict(s) for s in ev.get("sources") or [{"name": ev["source"], "url": ev.get("url")}]]
             match = None
-            for o in ev["occasions"]:
-                for cand in by_day.get(o["date_start"], []):
-                    if cand["source"] != ev["source"] and _same_place(cand, ev) and similar(cand["title"], ev["title"]):
+            for day in (d for o in ev["occasions"] for d in _days(o)):
+                for cand in by_day.get(day, []):
+                    if (cand["source"] != ev["source"] and _same_place(cand, ev)
+                            and (similar(cand["title"], ev["title"]) or same_race(cand, ev))):
                         match = cand
                         break
                 if match:
@@ -66,6 +96,6 @@ def merge(per_source: list[list[dict]]) -> list[dict]:
                 _absorb(match, ev)
                 continue
             result.append(ev)
-            for o in ev["occasions"]:
-                by_day.setdefault(o["date_start"], []).append(ev)
+            for day in {d for o in ev["occasions"] for d in _days(o)}:
+                by_day.setdefault(day, []).append(ev)
     return result

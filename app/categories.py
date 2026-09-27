@@ -35,6 +35,10 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🛍️", "color": "#ea580c",
         "description": "Marknader, mässor, auktioner och försäljning.",
     },
+    "Motorsport": {
+        "icon": "🏁", "color": "#dc2626",
+        "description": "Folkrace, rally, rallycross, crosskart, karting, motocross, enduro, speedway och annan motorsport.",
+    },
     "Loppis": {
         "icon": "🧺", "color": "#c026d3",
         "description": "Loppisar, loppmarknader och second hand – fynda begagnat.",
@@ -49,7 +53,7 @@ CATEGORIES: dict[str, dict] = {
     },
     "Motor": {
         "icon": "🏎️", "color": "#475569",
-        "description": "Motorträffar, tävlingar och fordonsutställningar.",
+        "description": "Motorträffar, veteranfordon och fordonsutställningar.",
     },
     "På vatten": {
         "icon": "🛶", "color": "#0284c7",
@@ -106,3 +110,26 @@ def split_loppis(categories: list[dict], title: str, summary: str) -> list[dict]
         result.insert(0, LOPPIS)
     by_title = {c["title"]: c for c in categories}
     return [by_title[t] if t in by_title else {"title": t, **describe_category(t)} for t in result]
+
+
+# ---------------------------------------------------------------- motorsport
+
+MOTOR = "Motor"
+MOTORSPORT = "Motorsport"
+MOTORSPORT_RE = re.compile(
+    r"folkrace|rallycross|crosskart|\brally|\bsprinten\b|karting|gokart|go-kart|motocross|enduro|speedway"
+    r"|supermoto|\btrial\b|roadracing|dragracing|drifting|bilcross|bilsport|motorsport|isracing|skoterrace"
+    r"|snöskotercross|racing pokal|\bmx\b", re.I)
+MEET_RE = re.compile(r"träff|utställning|mässa|veteran|kortege|cruising|motordag", re.I)
+
+
+def split_motorsport(categories: list[dict], title: str, summary: str) -> list[dict]:
+    """Tävlingar får kategorin Motorsport. "Motor" behålls för motorträffar och fordonsutställningar."""
+    titles = [c["title"] for c in categories]
+    if MOTORSPORT not in titles and not MOTORSPORT_RE.search(title or ""):
+        return categories
+    text = f"{title} {summary or ''}"
+    result = [c for c in categories if c["title"] != MOTOR or MEET_RE.search(text)]
+    if MOTORSPORT not in titles:
+        result.insert(0, {"title": MOTORSPORT, **describe_category(MOTORSPORT)})
+    return result
