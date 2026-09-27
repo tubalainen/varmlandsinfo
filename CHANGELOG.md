@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-09-27
+
 ### Tillagt
 - Ny källa Motorsport: tävlingar och prova på-dagar i Värmland och Karlskoga från Svensk Bilsports tävlingskalender
   (LoTS: folkrace, rally, rallycross, crosskart, karting …) och Svemo TA (motocross, enduro, speedway …). Läget
@@ -228,7 +230,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.14.0...v0.15.0
