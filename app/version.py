@@ -1,4 +1,4 @@
-__version__ = "0.18.0"
+__version__ = "0.18.1"
 
 REPO_URL = "https://github.com/tubalainen/varmlandsinfo"
 RELEASE_URL = f"{REPO_URL}/releases/tag/v{__version__}"

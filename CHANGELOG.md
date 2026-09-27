@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-09-27
+
 ### Rättat
 - Motorsport: rallyn och andra tävlingar som utgår från en by i Värmland (t.ex. Finnskogsvalen på Vitsand) sorterades
   bort när klubbnamnet saknade kommun. Fler orter i Värmland känns nu igen (#51)
@@ -238,7 +240,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.1...HEAD
+[0.18.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.15.0...v0.16.0
