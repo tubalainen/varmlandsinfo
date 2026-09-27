@@ -84,6 +84,16 @@ def test_municipality_from_track_or_club():
     assert municipality("Grudziadz", "Polen") is None
 
 
+def test_rally_villages():
+    """Rallyn utgår ofta från en by, och klubbnamnet saknar kommun (#51)."""
+    assert municipality("Vitsand", "Motorklubben Ratten") == "Torsby"       # Finnskogsvalen
+    assert municipality("Tillfällig", "Töcksfors MK") == "Årjäng"
+    assert municipality("Uddeholm", "X") == "Hagfors"
+    assert municipality("Nordmarkens Motorstadion", "Årjängs Motorklubb") == "Årjäng"
+    assert municipality("Sångens motorstadion", "Hällefors Motorklubb") is None
+    assert municipality("Tillfällig", "Motorklubben Ratten") is None        # klubben säger inget om orten
+
+
 def run(source, handler):
     requests = []
 

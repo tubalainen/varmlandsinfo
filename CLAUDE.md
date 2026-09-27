@@ -80,7 +80,10 @@ aktuella när något ändras.
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
   i `/api/health` är per källa.
 - **Motorsport:** publika tävlingar och prova på-dagar i Värmland + Karlskoga. Läget avgörs av banans namn (`PLACES`
-  i `motorsport.py`) och i andra hand arrangörens ort. Nya banor läggs till i `PLACES`. LoTS och Svemo är ASP.NET/Telerik:
+  i `motorsport.py`) och i andra hand arrangörens ort. Nya banor och byar läggs till i `PLACES` (rallyn har ofta
+"Tillfällig" som bana och utgår från en by), men kontrollera först mot sparad SBF-data att ordet inte träffar banor
+utanför området. motorsportivarmland.nu undersöktes som rallykälla (#51) men är en nyhetssajt utan strukturerad
+kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   sidbyte med postback (`__VIEWSTATE` + `__EVENTTARGET` från knappen med title "Next/Previous/Last Page").
 - **Kategorier** (`categories.py`, regler i `common.finalize`): `split_loppis` bryter ut *Loppis* ur Visit Värmlands
   marknadskategori (som heter "Marknad, mässa och auktion"), och `split_motorsport` ger tävlingar *Motorsport*, medan

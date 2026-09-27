@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Motorsport: rallyn och andra tävlingar som utgår från en by i Värmland (t.ex. Finnskogsvalen på Vitsand) sorterades
+  bort när klubbnamnet saknade kommun. Fler orter i Värmland känns nu igen (#51)
+
 ### Dokumentation
 - Nya skärmdumpar i README med källan och filtret Motorsport, och CLAUDE.md beskriver läget, användarens beslut och
   lärdomar från utvecklingsmiljön (#50)

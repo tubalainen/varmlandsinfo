@@ -39,6 +39,12 @@ PLACES = {
     "valsarna": "Hagfors", "ekesberget": "Hagfors", "ekshärad": "Hagfors", "elofsrud": "Sunne",
     "tossebergsklätten": "Sunne", "fryksdalens": "Sunne", "lökenebanan": "Kil", "gelleråsen": "Karlskoga",
     "skoghall": "Hammarö", "deje": "Forshaga", "glava": "Arvika", "edane": "Arvika",
+    # Byar och tätorter där rallyn och andra tävlingar utgår (rallyn har ofta "Tillfällig" som bana)
+    "vitsand": "Torsby", "lekvattnet": "Torsby", "bograngen": "Torsby", "branäs": "Torsby", "stöllet": "Torsby",
+    "gräsmark": "Sunne", "rottneros": "Sunne", "lysvik": "Sunne", "nysäter": "Säffle", "svanskog": "Säffle",
+    "värmlandsbro": "Säffle", "brunskog": "Arvika", "klässbol": "Arvika", "töcksfors": "Årjäng",
+    "vågsäter": "Årjäng", "lesjöfors": "Filipstad", "slottsbron": "Grums", "vålberg": "Karlstad",
+    "ransäter": "Munkfors", "uddeholm": "Hagfors", "älvsbacka": "Hagfors", "bjurtjärn": "Storfors",
 }
 MUNI_RE = re.compile(r"(?<![\wåäö])(" + "|".join(MUNICIPALITIES) + r")s?(?![\wåäö])", re.I)
 PLACE_RE = re.compile(r"(?<![\wåäö])(" + "|".join(re.escape(p) for p in PLACES) + r")", re.I)
