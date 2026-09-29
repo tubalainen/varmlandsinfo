@@ -25,6 +25,7 @@ app/
 tests/             Tester (pytest)
 tools/             Kontrastkontroll i ljust och mörkt läge, och skärmdumparna till dokumentationen
 docs/              Dokumentationen
+docs/arkitektur/   Arkitekturbilden: Archify-källan, det interaktiva diagrammet och SVG-bilderna
 docs/screenshots/  Skärmdumparna i README och docs/
 .github/workflows/ CI, Docker-publicering och releaser
 Dockerfile

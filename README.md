@@ -12,6 +12,15 @@ kalender och via **Fråga AI**, en chatt som svarar med hjälp av din egen Ollam
 |------------------------|----------|--------------------|
 | ![Kalendern med en vecka per rad och evenemangen färgkodade per typ](docs/screenshots/kalender.jpg) | ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](docs/screenshots/fraga-ai.jpg) | <img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="200"> |
 
+## Arkitektur
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/arkitektur/varmlandsinfo-mork.svg">
+  <img src="docs/arkitektur/varmlandsinfo-ljus.svg" alt="Arkitekturen i Värmlandsinfo: webbläsaren, FastAPI-appen och dess delar, lagringen i /data, källorna samt Ollama och SearXNG">
+</picture>
+
+Skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden. Se [Arkitektur](docs/arkitektur.md).
+
 ## Funktioner
 
 - **Evenemang från tio källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
@@ -53,6 +62,7 @@ Alla inställningar och hur Ollama och SearXNG sätts upp står i [Installation]
 
 | | |
 |---|---|
+| [Arkitektur](docs/arkitektur.md) | Delarna i appen och hur de hänger ihop |
 | [Installation och inställningar](docs/installation.md) | Docker, versioner, `.env`, Ollama, SearXNG |
 | [Funktioner](docs/funktioner.md) | Lista, kalender, filter, kategorier |
 | [Källor](docs/kallor.md) | Källorna och hur ofta de anropas |

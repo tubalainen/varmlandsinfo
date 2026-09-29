@@ -128,11 +128,19 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
   byggs av appens källor). Nya källor ska läggas till i README (Funktioner) och i `docs/kallor.md`.
 - **Dokumentation** (#61): README är kort och konkret (vad, skärmdumpar, kom igång, viktigaste inställningarna,
-  länkar, licens, Claude Code). Detaljerna finns i `docs/` (`README.md` är innehållsförteckningen): `installation.md`,
-  `funktioner.md`, `kallor.md`, `fraga-ai.md`, `data-och-integritet.md`, `api.md`, `utveckling.md`. Nytt innehåll
-  läggs i rätt dokument i `docs/`, inte i README. Skärmdumparna i `docs/screenshots/` skapas med
+  länkar, licens, Claude Code). Detaljerna finns i `docs/` (`README.md` är innehållsförteckningen): `arkitektur.md`,
+  `installation.md`, `funktioner.md`, `kallor.md`, `fraga-ai.md`, `data-och-integritet.md`, `api.md`,
+  `utveckling.md`. Nytt innehåll läggs i rätt dokument i `docs/`, inte i README. Skärmdumparna i `docs/screenshots/` skapas med
   `tools/readme-screenshots.mjs` (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras
   synligt.
+- **Arkitekturbild** (#63): skapad med [Archify](https://github.com/tt-a1i/archify) i `docs/arkitektur/`
+  (`varmlandsinfo.architecture.json` är källan med hänvisningar till koden, `varmlandsinfo.html` det interaktiva
+  diagrammet, `varmlandsinfo-ljus.svg`/`-mork.svg` bilderna i README). Ta om den när delar, källor eller kopplingar
+  ändras. Gör så här: läs Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit
+  med de citerade raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
+  `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska bilden i båda lägena och exportera SVG
+  via visningslägets meny (Exportera → SVG · Light/Dark) med Playwright. En Archify-boundary ritas som en rektangel
+  runt sina delar och får inte omsluta delar som inte hör dit.
 
 ## Beslut och önskemål från användaren (gäller framåt)
 

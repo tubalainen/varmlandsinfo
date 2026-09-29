@@ -1,0 +1,617 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Värmlandsinfo – arkitektur",
+    "output": "docs/arkitektur/varmlandsinfo.html",
+    "quality_profile": "showcase",
+    "locale": "sv",
+    "translations": {
+      "page.title": "{title} – diagram",
+      "diagram.description.architecture": "Ett arkitekturdiagram skapat med Archify.",
+      "node.focus": "Fokusera {label}",
+      "node.focus.detail": "Fokusera {label}, {detail}",
+      "node.context.architecture": "Komponent",
+      "legend.title": "Förklaring",
+      "legend.architecture.frontend": "Gränssnitt",
+      "legend.architecture.backend": "Server",
+      "legend.architecture.database": "Lagring",
+      "legend.architecture.cloud": "Moln",
+      "legend.architecture.security": "Säkerhet",
+      "legend.architecture.messagebus": "Meddelandekö",
+      "legend.architecture.external": "Extern",
+      "viewer.kind.frontend": "Gränssnitt",
+      "viewer.kind.backend": "Server",
+      "viewer.kind.database": "Lagring",
+      "viewer.kind.cloud": "Moln",
+      "viewer.kind.security": "Säkerhet",
+      "viewer.kind.messagebus": "Meddelandekö",
+      "viewer.kind.external": "Extern",
+      "viewer.toolbar.actions": "Diagramåtgärder",
+      "viewer.theme.toggle.title": "Byt tema (T)",
+      "viewer.theme.toggle": "Byt färgtema",
+      "viewer.theme.dark": "Mörkt",
+      "viewer.theme.light": "Ljust",
+      "viewer.present.enter": "Visa i presentationsläge",
+      "viewer.present.enter.title": "Presentationsläge (F)",
+      "viewer.present.exit": "Lämna presentationsläget",
+      "viewer.present.exit.title": "Lämna presentationsläget (F eller Escape)",
+      "viewer.present.present": "Presentera",
+      "viewer.present.exit.label": "Lämna",
+      "viewer.export.button": "Exportera",
+      "viewer.export.button.title": "Exportera diagrammet (E)",
+      "viewer.export.diagram": "Exportera diagrammet",
+      "viewer.export.menu": "Exportera"
+    },
+    "repository": {
+      "url": "https://github.com/tubalainen/varmlandsinfo",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "be10092dc891c2fde6b1c885773741afb23bbccb"
+    }
+  },
+  "components": [
+    {
+      "id": "visitor",
+      "type": "external",
+      "label": "Besökare",
+      "sublabel": "webbläsare",
+      "pos": [
+        20,
+        220
+      ],
+      "size": [
+        120,
+        64
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Webbgränssnitt",
+      "sublabel": "lista · kalender · Fråga AI",
+      "pos": [
+        200,
+        220
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/static/app.js",
+          "line": 59,
+          "end_line": 64,
+          "label": "vyerna"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 167,
+          "label": "hämtar /api/events"
+        },
+        {
+          "path": "app/static/chat.js",
+          "line": 118,
+          "label": "frågar /api/chat"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI-app",
+      "sublabel": "sidor och API :8080",
+      "pos": [
+        510,
+        220
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/main.py",
+          "line": 200,
+          "end_line": 219,
+          "label": "/api/events och /img"
+        },
+        {
+          "path": "app/main.py",
+          "line": 258,
+          "label": "/api/chat"
+        },
+        {
+          "path": "app/main.py",
+          "line": 348,
+          "end_line": 352,
+          "label": "sidan och CSP"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "type": "security",
+      "label": "Åtkomst",
+      "sublabel": "bara lokalt · spärr per IP",
+      "pos": [
+        500,
+        40
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/access.py",
+          "line": 33,
+          "end_line": 56,
+          "label": "lokalt och klientens IP"
+        },
+        {
+          "path": "app/access.py",
+          "line": 58,
+          "label": "IpLimiter"
+        },
+        {
+          "path": "app/main.py",
+          "line": 221,
+          "end_line": 227,
+          "label": "health och refresh"
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "type": "backend",
+      "label": "Fråga AI",
+      "sublabel": "sökning · spärr · kö",
+      "pos": [
+        760,
+        220
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/chat.py",
+          "line": 738,
+          "label": "chat_stream"
+        },
+        {
+          "path": "app/chat.py",
+          "line": 823,
+          "label": "kön till Ollama"
+        },
+        {
+          "path": "app/main.py",
+          "line": 290,
+          "label": "anropas från API:t"
+        }
+      ]
+    },
+    {
+      "id": "ollama",
+      "type": "external",
+      "label": "Ollama",
+      "sublabel": "egen AI-server (valfri)",
+      "pos": [
+        1020,
+        220
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/chat.py",
+          "line": 844,
+          "label": "POST /api/chat"
+        }
+      ]
+    },
+    {
+      "id": "searxng",
+      "type": "external",
+      "label": "SearXNG",
+      "sublabel": "webbsökning (valfri)",
+      "pos": [
+        760,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/chat.py",
+          "line": 812,
+          "label": "webbsökning"
+        },
+        {
+          "path": "app/websearch.py",
+          "line": 56,
+          "end_line": 63,
+          "label": "GET /search"
+        }
+      ]
+    },
+    {
+      "id": "images",
+      "type": "backend",
+      "label": "Bildproxy",
+      "sublabel": "/img/<nyckel>",
+      "pos": [
+        510,
+        400
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/images.py",
+          "line": 71,
+          "label": "ImageProxy"
+        },
+        {
+          "path": "app/images.py",
+          "line": 135,
+          "label": "get"
+        },
+        {
+          "path": "app/images.py",
+          "line": 169,
+          "label": "_download"
+        }
+      ]
+    },
+    {
+      "id": "imagehosts",
+      "type": "external",
+      "label": "Källornas bildservrar",
+      "sublabel": "bara publika värdar",
+      "pos": [
+        820,
+        400
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/images.py",
+          "line": 169,
+          "end_line": 191,
+          "label": "hämtning med kontroller"
+        }
+      ]
+    },
+    {
+      "id": "merge",
+      "type": "backend",
+      "label": "Evenemang i minnet",
+      "sublabel": "sammanslagning · kategorier",
+      "pos": [
+        210,
+        400
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/events.py",
+          "line": 40,
+          "end_line": 60,
+          "label": "rebuild"
+        },
+        {
+          "path": "app/merge.py",
+          "line": 79,
+          "label": "merge"
+        },
+        {
+          "path": "app/events.py",
+          "line": 221,
+          "label": "current_events"
+        }
+      ]
+    },
+    {
+      "id": "scheduler",
+      "type": "backend",
+      "label": "Schemaläggare",
+      "sublabel": "05:00 · städning",
+      "pos": [
+        40,
+        580
+      ],
+      "size": [
+        110,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/main.py",
+          "line": 124,
+          "label": "scheduler"
+        },
+        {
+          "path": "app/main.py",
+          "line": 95,
+          "label": "cleanup"
+        }
+      ]
+    },
+    {
+      "id": "fetch",
+      "type": "backend",
+      "label": "Hämtning",
+      "sublabel": "en modul per källa",
+      "pos": [
+        210,
+        580
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/events.py",
+          "line": 125,
+          "end_line": 145,
+          "label": "_refresh"
+        },
+        {
+          "path": "app/sources/__init__.py",
+          "line": 14,
+          "label": "källorna"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "/data",
+      "sublabel": "källdata · AI-svar · bilder",
+      "pos": [
+        495,
+        580
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/events.py",
+          "line": 63,
+          "end_line": 74,
+          "label": "källdata (JSON)"
+        },
+        {
+          "path": "app/chat_cache.py",
+          "line": 49,
+          "end_line": 55,
+          "label": "sparade AI-svar"
+        },
+        {
+          "path": "app/images.py",
+          "line": 160,
+          "label": "bilder"
+        }
+      ]
+    },
+    {
+      "id": "apisources",
+      "type": "external",
+      "label": "API-källor",
+      "sublabel": "Visit Värmland, Ticketmaster, SHL",
+      "pos": [
+        85,
+        760
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/sources/visitvarmland.py",
+          "line": 50,
+          "label": "Visit Värmland"
+        },
+        {
+          "path": "app/sources/shl.py",
+          "line": 37,
+          "label": "SHL"
+        },
+        {
+          "path": "app/common.py",
+          "line": 85,
+          "label": "get_json"
+        }
+      ]
+    },
+    {
+      "id": "websources",
+      "type": "external",
+      "label": "Webbsidor",
+      "sublabel": "CCC · Scala · loppisar · SBF …",
+      "pos": [
+        305,
+        760
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sources": [
+        {
+          "path": "app/sources/ccc.py",
+          "line": 30,
+          "label": "Karlstad CCC"
+        },
+        {
+          "path": "app/sources/motorsport.py",
+          "line": 116,
+          "end_line": 136,
+          "label": "SBF och Svemo"
+        },
+        {
+          "path": "app/common.py",
+          "line": 119,
+          "label": "get_text"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "visitor-ui",
+      "from": "visitor",
+      "to": "ui",
+      "label": "öppnar",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ui-api",
+      "from": "ui",
+      "to": "api",
+      "label": "HTTP /api · /img",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-chat",
+      "from": "api",
+      "to": "chat",
+      "label": "/api/chat",
+      "variant": "emphasis"
+    },
+    {
+      "id": "chat-ollama",
+      "from": "chat",
+      "to": "ollama",
+      "label": "HTTP /api/chat",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-access",
+      "from": "api",
+      "to": "access",
+      "label": "kontrollerar",
+      "variant": "security"
+    },
+    {
+      "id": "chat-searxng",
+      "from": "chat",
+      "to": "searxng",
+      "label": "sökord",
+      "variant": "dashed"
+    },
+    {
+      "id": "api-images",
+      "from": "api",
+      "to": "images",
+      "label": "/img"
+    },
+    {
+      "id": "images-hosts",
+      "from": "images",
+      "to": "imagehosts",
+      "label": "hämtar vid behov"
+    },
+    {
+      "id": "images-data",
+      "from": "images",
+      "to": "data",
+      "label": "sparar"
+    },
+    {
+      "id": "api-merge",
+      "from": "api",
+      "to": "merge",
+      "label": "läser"
+    },
+    {
+      "id": "scheduler-fetch",
+      "from": "scheduler",
+      "to": "fetch",
+      "label": "05:00"
+    },
+    {
+      "id": "fetch-merge",
+      "from": "fetch",
+      "to": "merge",
+      "label": "bygger om"
+    },
+    {
+      "id": "fetch-data",
+      "from": "fetch",
+      "to": "data",
+      "label": "JSON-filer"
+    },
+    {
+      "id": "fetch-api-sources",
+      "from": "fetch",
+      "to": "apisources",
+      "label": "JSON"
+    },
+    {
+      "id": "fetch-web-sources",
+      "from": "fetch",
+      "to": "websources",
+      "label": "HTML"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "Drift",
+      "items": [
+        "Allt utom besökaren och de externa tjänsterna körs i en Docker-container",
+        "/data är en volym på värden",
+        "Ollama och SearXNG är valfria"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Integritet",
+      "items": [
+        "Inga cookies eller externa skript",
+        "Bilder bara via appen (CSP img-src 'self')",
+        "Frågor bara till egen Ollama",
+        "Ingen åtkomstlogg"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Lagring och städning",
+      "items": [
+        "/data: källdata, sparade AI-svar och bilder",
+        "Samtal och IP-spärr bara i minnet",
+        "Inaktuell data rensas efter varje hämtning"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Åtkomst",
+      "items": [
+        "/api/health och /api/refresh bara lokalt",
+        "Fråga AI: 5 AI-frågor per 30 min och samtal",
+        "20 per 30 min och IP-adress"
+      ]
+    }
+  ]
+}

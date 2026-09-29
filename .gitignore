@@ -5,3 +5,8 @@ __pycache__/
 .pytest_cache/
 data/
 tools/screenshots/
+# Archifys kvitton (bara diagrammets källa, HTML och SVG checkas in)
+docs/arkitektur/*.delivery.json
+docs/arkitektur/*.finalize*.json
+docs/arkitektur/*.browser-check.json
+.archify/

@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Arkitekturbild skapad med Archify i README och i `docs/arkitektur.md`, med diagrammets källa och ett interaktivt
+  diagram i `docs/arkitektur/` (#63)
+
 ## [0.22.0] - 2026-09-29
 
 ### Ändrat
