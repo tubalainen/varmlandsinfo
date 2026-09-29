@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-09-29
+
 ### Tillagt
 - Nya kategorier ur ordregler i titel och ingress: Film, Spel och quiz, Träffar och caféer samt Böcker och
   litteratur. Konserter som saknar kategorin Musik (t.ex. gospel och körer) får den. Fråga AI känner igen de nya
@@ -251,7 +253,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.16.0...v0.17.0
