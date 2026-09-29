@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-09-29
+
 ### Ändrat
 - Fråga AI har sammanhang i samtalet: följdfrågor som syftar tillbaka ("Vilken tid börjar den?", "Var ligger
   arenan?") besvaras av AI:n med samtalets historik och evenemangen från de senaste svaren först i underlaget, i
@@ -343,7 +345,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.21.0...v0.22.0
