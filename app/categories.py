@@ -40,7 +40,7 @@ CATEGORIES: dict[str, dict] = {
         "description": "Hemmamatcher i SHL, herrarnas högsta serie i ishockey (Färjestad BK i Löfbergs Arena).",
     },
     "Bandy": {
-        "icon": "🏑", "color": "#0e7490",
+        "icon": "⛸️", "color": "#0e7490",
         "description": "Bandymatcher i Värmland: seriematcher, cuper och träningsmatcher.",
     },
     "Motorsport": {

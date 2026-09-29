@@ -50,7 +50,9 @@ aktuella när något ändras.
   ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
-  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS och Svemo TA är vanliga webbplatser).
+  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA och Profixio är vanliga webbplatser).
+  Profixio (bandy): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
+  sedan bara serierna med lag från Värmland.
   Svemo TA har 13 000+ historiska tävlingar: bläddra aldrig igenom hela listan, bara sista sidorna bakåt.
   Hämta inte oftare än nödvändigt, varken i appen eller under utveckling. Testa mot sparad data (se Lärdomar).
 - Nycklar (t.ex. `TICKETMASTER_API_KEY`) får aldrig loggas eller synas i felmeddelanden. httpx-loggningen
@@ -77,7 +79,7 @@ aktuella när något ändras.
 ## Läget (v0.23.0, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
-  standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Great Event, Karlstad Loppis + loppisar.com
+  standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Great Event, Karlstad Loppis + loppisar.com
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`). En källas `group` gör att
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
   i `/api/health` är per källa.
@@ -207,10 +209,13 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`
   i en `until`-loop tills CI, Publicera Docker-image och Release är klara.
-- **Bandy (analys 2026-09-29):** IF Boltic (tidigare BS BolticGöta) spelar Bandyallsvenskan 2026/27, inte Elitserien, och
-  finns inte hos Visit Värmland. Bandyförbundets matcher finns i Profixio: API:t kräver nyckel (elitserien.se har en
-  egen proxy för Elitserien), men de publika sidorna `profixio.com/app/lx/competition/leagueid<id>?t=schedule` är
-  serverrenderade (Allsvenskan herr 2026/27: `leagueid28502`, hemmaplan Tingvalla Isstadion). Klubbens SportAdmin-sida
-  `ifboltic.com/match/?ID=521641` listar också kommande matcher (även ungdom och träningsmatcher).
+- **Bandy** (`sources/bandy.py`, #72): Profixio (Laravel Livewire). API:t kräver nyckel, så de publika sidorna läses:
+  tävlingslistan `/lx/SBF?t=competitions` (säsongens serier, id byts varje säsong), seriens spelschema
+  `/lx/competition/leagueid<id>?t=schedule` (25 kommande matcher plus lagen) och nästa sida med ett Livewire-anrop
+  (`__lazyLoad` på komponenten `infinite-scroll-next-page`, med sidans `csrf-token` och cookies). Lagsidor visar bara
+  15 matcher och de gamla `/fx/`-sidorna ligger bakom Cloudflare. Avspark från `registerMatch(... kickoff: <unix>)`.
+  Läget: `PLACES` i `bandy.py` (arenor och klubbar) och motorsportens orter och kommuner. Seniorer och
+  träningsmatcher, inte ungdom (`YOUTH_RE`: U17, F15, flick …, men "Katrineholm Bandy U" är ett utvecklingslag).
+  2026/27: IF Boltic (Bandyallsvenskan herr, Tingvalla) och Slottsbron IF (träningsmatcher Mellansverige).
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
 

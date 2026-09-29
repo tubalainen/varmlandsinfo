@@ -140,6 +140,21 @@ async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str
     return r.text
 
 
+async def post_json(client: httpx.AsyncClient, url: str, data: dict, source: str, headers: dict | None = None) -> dict:
+    """POST med JSON (t.ex. när en sida laddar fler rader med ett Livewire-anrop, som i webbläsaren)."""
+    try:
+        r = await client.post(url, json=data, headers={"Accept": "application/json", **(headers or {})})
+    except httpx.HTTPError as exc:
+        raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
+    stats["api_calls"] += 1
+    if r.status_code >= 400:
+        raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
+    try:
+        return r.json()
+    except ValueError:
+        raise SourceError(f"{source} ({urlsplit(url).path}) svarade inte med JSON") from None
+
+
 def clean_text(fragment: str | None) -> str:
     """Text ur ett HTML-fragment, med blanksteg ihopslagna."""
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", fragment or ""))).strip()

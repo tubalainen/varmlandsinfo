@@ -123,7 +123,8 @@ for (const scheme of ["light", "dark"]) {
   await page.waitForSelector(".card");
 
   await run("lista", async (p) => { await p.click(".chip >> nth=0"); });   // med ett valt kategorifilter
-  await run("kalender", async (p) => { await p.goto(`${BASE}/#/kalender`); await p.waitForSelector(".cal-grid"); });
+  // Rensa kategorifiltret först, annars kan dagens datum sakna evenemang (det första filtret kan vara t.ex. Bandy)
+  await run("kalender", async (p) => { await p.click("#reset"); await p.goto(`${BASE}/#/kalender`); await p.waitForSelector(".cal-grid"); });
   await run("dag", async (p) => { await p.click(".cal-day.today .cal-num"); await p.waitForSelector("#daydialog[open]"); });
   await run("fraga", async (p) => { await p.keyboard.press("Escape"); await p.goto(`${BASE}/#/fraga`); await p.waitForSelector(".suggestion"); });
   await run("chatt", async (p) => {

@@ -113,7 +113,7 @@ QUICK = [
     {"label": "Musik", "q": "Vilka konserter finns nästa vecka?"},
     {"label": "Sport", "q": "Vilka sportevenemang finns i helgen?"},
     {"label": "SHL", "q": "Vilka SHL-matcher spelas den här månaden?"},
-    {"label": "Bandy", "q": "Vilka bandymatcher spelas den här månaden?"},
+    {"label": "Bandy", "q": "Vilka bandymatcher spelas framöver?"},
     {"label": "Motorsport", "q": "Vilka motorsporttävlingar finns den här månaden?"},
     {"label": "Karlstad", "q": "Vad händer i Karlstad i helgen?"},
     {"label": "Arvika", "q": "Vad händer i Arvika den här månaden?"},

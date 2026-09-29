@@ -7,6 +7,7 @@
 | [Karlstad CCC](https://www.karlstadccc.se/17/38/program-biljetter/) | Kalendersidan (HTML) | Konserter och shower i Solasalen. |
 | [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
+| [Bandy (Profixio)](https://www.profixio.com/app/lx/SBF) | Svenska Bandyförbundets matcher i Profixio (HTML) | Bandymatcher i Värmland för seniorer: serier, cuper och träningsmatcher (inte ungdom). Bandy spelas på is med skridskor, inte innebandy. |
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 | [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
 | [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
@@ -22,11 +23,17 @@ Kalendrarna saknar län, så läget avgörs av banans namn (t.ex. Kalvholmens Mo
 Hagfors) och i andra hand arrangörsklubbens ort. Radiostyrd bilsport, Drivers Open och Ticket to drive räknas inte som
 evenemang.
 
+**Bandy:** Svenska Bandyförbundets matcher finns i Profixio. Profixios API kräver en nyckel, men de publika sidorna går
+att läsa. Med kommer seniormatcher (nationella serier och cuper, och distrikt Mellansveriges serier och träningsmatcher,
+dit Värmland hör) som spelas i Värmland: på en värmländsk arena (t.ex. Tingvalla Isstadion → Karlstad) eller med ett
+värmländskt hemmalag (lagets ort, t.ex. Slottsbron IF → Grums). Ungdoms- och juniorlag (U17, F15 …) räknas inte.
+Säsongen 2026/27 är det IF Boltic (Bandyallsvenskan herr) och Slottsbron IF (träningsmatcher).
+
 **Loppisar:** Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten
 och på sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
 `/api/health`.
 
-**Webbsidor utan API:** CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF och Svemo saknar API, så
+**Webbsidor utan API:** Profixio (bandy), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF och Svemo saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
 
@@ -41,6 +48,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Karlstad CCC | 1 | En kalendersida. |
 | Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
 | SHL | 2 | Säsongsfilter och spelschema. |
+| Bandy | cirka 10 | Spelschemat för serierna med lag från Värmland, bara kommande matcher: 25 matcher per sida, nästa sida med ett Livewire-anrop som i webbläsaren, 2 s paus mellan anropen. En gång i veckan dessutom tävlingslistan och första sidan av varje seniorserie (cirka 15 anrop) för att se vilka serier som har lag från Värmland. |
 | Great Event | 1 | Sidan Kommande evenemang. |
 | Karlstad Loppis | 1 | Startsidan med nästa datum. |
 | loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |

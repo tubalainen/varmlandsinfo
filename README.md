@@ -25,8 +25,8 @@ Klicka på bilden för den interaktiva, animerade översikten, eller ändra
 
 ## Funktioner
 
-- **Evenemang från tio källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
-  Karlstad CCC, Scalateatern, SHL, Great Event, Loppisar (Karlstad Loppis och loppisar.com) och Motorsport (SBF och
+- **Evenemang från elva källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
+  Karlstad CCC, Scalateatern, SHL, Bandy (Svenska Bandyförbundets matcher i Profixio), Great Event, Loppisar (Karlstad Loppis och loppisar.com) och Motorsport (SBF och
   Svemo).
 - **Lista och kalender** dag för dag, med filter på kategori, kommun, källa och datum.
 - **Fråga AI:** sökfrågor besvaras direkt, och frågor som kräver en bedömning besvaras av din egen Ollama.

@@ -12,6 +12,7 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 | `data/ccc.json`            | Karlstad CCC:s kalendersida. |
 | `data/scala.json`          | Scalateaterns föreställningslistor. |
 | `data/shl.json`            | Lagets hemmamatcher från SHL. |
+| `data/bandy.json`          | Kommande bandymatcher från Profixio och vilka serier som har lag från Värmland. |
 | `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
 | `data/karlstadloppis.json` | Startsidan hos Karlstad Loppis. |
 | `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |

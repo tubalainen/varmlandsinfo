@@ -7,6 +7,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 ## [Unreleased]
 
 ### Tillagt
+- Ny källa Bandy: Svenska Bandyförbundets matcher i Profixio som spelas i Värmland, för seniorer (serier, cuper och
+  träningsmatcher), till exempel IF Boltics hemmamatcher i Bandyallsvenskan på Tingvalla (#72).
 - Inställningen `CHAT_ENABLED` (standard `true`): med `false` döljs Fråga AI helt, med menyval, sida, texter på sidan
   Om och API:t för chatten (#69).
 - Snabbfiltret Bandy: bandymatcher får en egen kategori (titeln nämner bandy, inte innebandy), som följer med vid
