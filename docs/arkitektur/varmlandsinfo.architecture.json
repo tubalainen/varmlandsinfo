@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "be10092dc891c2fde6b1c885773741afb23bbccb"
+      "revision": "9274ca332d7392e29bf7d31fe782e2fad370a3e0"
     }
   },
   "components": [
@@ -88,13 +88,13 @@
       "sources": [
         {
           "path": "app/static/app.js",
-          "line": 59,
-          "end_line": 64,
+          "line": 134,
+          "end_line": 139,
           "label": "vyerna"
         },
         {
           "path": "app/static/app.js",
-          "line": 167,
+          "line": 244,
           "label": "hämtar /api/events"
         },
         {
@@ -120,19 +120,19 @@
       "sources": [
         {
           "path": "app/main.py",
-          "line": 200,
-          "end_line": 219,
+          "line": 225,
+          "end_line": 244,
           "label": "/api/events och /img"
         },
         {
           "path": "app/main.py",
-          "line": 258,
+          "line": 290,
           "label": "/api/chat"
         },
         {
           "path": "app/main.py",
-          "line": 348,
-          "end_line": 352,
+          "line": 384,
+          "end_line": 391,
           "label": "sidan och CSP"
         }
       ]
@@ -164,8 +164,8 @@
         },
         {
           "path": "app/main.py",
-          "line": 221,
-          "end_line": 227,
+          "line": 246,
+          "end_line": 252,
           "label": "health och refresh"
         }
       ]
@@ -186,17 +186,17 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 738,
+          "line": 756,
           "label": "chat_stream"
         },
         {
           "path": "app/chat.py",
-          "line": 823,
+          "line": 841,
           "label": "kön till Ollama"
         },
         {
           "path": "app/main.py",
-          "line": 290,
+          "line": 322,
           "label": "anropas från API:t"
         }
       ]
@@ -217,7 +217,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 844,
+          "line": 862,
           "label": "POST /api/chat"
         }
       ]
@@ -238,7 +238,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 812,
+          "line": 830,
           "label": "webbsökning"
         },
         {
@@ -324,7 +324,7 @@
         },
         {
           "path": "app/merge.py",
-          "line": 79,
+          "line": 83,
           "label": "merge"
         },
         {
@@ -350,12 +350,12 @@
       "sources": [
         {
           "path": "app/main.py",
-          "line": 124,
+          "line": 140,
           "label": "scheduler"
         },
         {
           "path": "app/main.py",
-          "line": 95,
+          "line": 101,
           "label": "cleanup"
         }
       ]
@@ -382,7 +382,7 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 14,
+          "line": 15,
           "label": "källorna"
         }
       ]
@@ -423,7 +423,7 @@
     {
       "id": "sources",
       "type": "external",
-      "label": "Källorna (10 st)",
+      "label": "Källorna (11 st)",
       "sublabel": "API (JSON) och webbsidor (HTML)",
       "sources": [
         {
@@ -439,7 +439,7 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 14,
+          "line": 15,
           "label": "alla källor"
         }
       ],
