@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-09-29
+
 ### Tillagt
 - Ny källa Bandy: Svenska Bandyförbundets matcher i Profixio som spelas i Värmland, för seniorer (serier, cuper och
   träningsmatcher), till exempel IF Boltics hemmamatcher i Bandyallsvenskan på Tingvalla (#72).
@@ -23,6 +25,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Beskrivningen under "Beskrivning och bilder" är lättare att läsa: långa textmassor delas i stycken vid
   meningsgränser, med behaglig radlängd och radavstånd. Webb- och e-postadresser blir länkar, och sammanfattningen
   upprepas inte när beskrivningen är utfälld. Ticketmasters sammanfattning klipps vid ett ordslut (#67).
+
+### Dokumentation
+- Skärmdumparna i README och `docs/` är tagna om (filtren SHL och Bandy), och arkitekturbilden visar elva källor
+  (#72).
 
 ## [0.23.0] - 2026-09-29
 
@@ -331,7 +337,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.20.0...v0.21.0
