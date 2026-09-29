@@ -171,7 +171,7 @@ CATEGORY_WORDS = {
 }
 
 STOPWORDS = set("""
-alla allt att av bara blir de dem den denna deras det detta dig din du där efter eller en ett fanns finns
+alla allt att av bara blir de dem den denna deras det detta dig din du där här efter eller en ett fanns finns
 för från följande gå går ha har hej hur i idag imorgon inte ja jag kan kanske kommer man med men mig mitt
 mot mycket någon något några när nästa och om oss på sig ska skulle som så tack till tips under upp ut
 vad var vi vilka vilken vilket vill visa värmland värmlands år är åt över evenemang evenemanget händer
@@ -568,7 +568,11 @@ def search_answer(question: str, events: list[dict], today: date, context: str =
     # Ord som redan gav en evenemangstyp ("barnaktiviteter" → Barn) ska inte också krävas som sökord
     typed = {_stem(w) for w in keywords(question) if find_categories(w)}
     kws = [k for k in sel["keywords"] if k not in typed]
-    if kws and any(sc > 0 for sc, _, _ in ranked):
+    if kws and not any(sc > 0 for sc, _, _ in ranked):
+        # Sökorden finns inte i något evenemang: inga träffar, i stället för allt som matchar övriga filter
+        # ("När spelas innebandy i Karlstad?" ska inte svara med bandy eller annat i Karlstad)
+        ranked = []
+    elif kws:
         def title_hits(x):
             return sum(word_hit(k, x[1]["title"].lower()) for k in kws)
         most = max(title_hits(x) for x in ranked)

@@ -350,7 +350,9 @@ function matches(e, q) {
   if (q) {
     const hay = [e.title, e.summary, e.description, e.organizer, e.municipality, e.place?.title, e.place?.address,
       ...e.categories.map((c) => c.title)].join(" ").toLowerCase();
-    return q.split(/\s+/).every((w) => hay.includes(w));
+    // Bandy och innebandy är olika sporter: "bandy" ska inte hitta "Innebandy"
+    const noFloorball = hay.replace(/innebandy/g, "inne");
+    return q.split(/\s+/).every((w) => (w.startsWith("bandy") ? noFloorball : hay).includes(w));
   }
   return true;
 }

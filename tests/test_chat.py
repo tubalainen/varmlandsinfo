@@ -223,3 +223,22 @@ def test_bandy_quick_question():
     assert chat.scope_check(q, events, THU)["ok"]
     _, sources = chat.search_answer(q, events, THU)
     assert [s["title"] for s in sources] == ["IF Boltic - Djurgårdens IF"]
+
+
+def test_bandy_and_innebandy_are_kept_apart():
+    """Bandy spelas på is med skridskor, innebandy inomhus utan: frågor om den ena ska aldrig ge den andra."""
+    bandy = {**ev("IF Boltic - Djurgårdens IF", "2026-09-30", cat="Sport, motion och hälsa"),
+             "categories": [{"title": "Sport, motion och hälsa"}, {"title": "Bandy"}]}
+    innebandy = ev("Innebandy: Damer", "2026-09-30", cat="Sport, motion och hälsa")
+    ask = lambda q, evs: [s["title"] for s in chat.search_answer(q, evs, THU)[1]]
+    assert ask("Vilka bandymatcher finns?", [bandy, innebandy]) == ["IF Boltic - Djurgårdens IF"]
+    assert ask("Vilka innebandymatcher finns?", [bandy, innebandy]) == ["Innebandy: Damer"]
+    assert ask("Vilka bandymatcher finns?", [innebandy]) == []
+    assert ask("Vilka innebandymatcher finns?", [bandy]) == []
+    assert ask("När spelas innebandy i Karlstad?", [bandy]) == []      # inte allt annat i Karlstad
+
+
+def test_search_without_keyword_hits_gives_no_answer():
+    events = [ev("Höstkonsert", "2026-09-26"), ev("Sagostund", "2026-09-26", cat="Barn")]
+    text, sources = chat.search_answer("Finns det curling i Karlstad?", events, THU)
+    assert sources == [] and "inga evenemang" in text
