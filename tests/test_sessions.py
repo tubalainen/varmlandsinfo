@@ -67,13 +67,14 @@ def test_one_question_at_a_time_and_rate_limit():
     assert store.begin(s) == "busy"
     store.end(s)
     for _ in range(3):                      # spärren gäller bara frågor till AI:n
-        assert store.ai_allowed(s)
+        assert store.ai_wait(s) == 0
         store.count_ai(s)
-    assert not store.ai_allowed(s)
+        clock.t += 10
+    assert store.ai_wait(s) == 30           # den första frågan (för 30 s sedan) faller ur fönstret om 30 s
     assert store.begin(s) is None           # en fråga utan AI går fortfarande
     store.end(s)
-    clock.t += 61
-    assert store.ai_allowed(s)
+    clock.t += 30
+    assert store.ai_wait(s) == 0
 
 
 def test_history_is_kept_and_capped():
@@ -234,8 +235,9 @@ def test_ai_questions_are_limited_per_session(client, monkeypatch):
     for _ in range(sessions.RATE_LIMIT - 1):
         assert ask(client, "Vad passar en 8-åring?", first["id"])[2][-1]["type"] == "done"
     _, _, lines = ask(client, "Vad passar en 8-åring?", first["id"])
-    assert lines[-1]["type"] == "error" and "AI:n på kort tid" in lines[-1]["error"]
-    assert sessions.RATE_LIMIT == 5
+    assert lines[-1]["type"] == "error"
+    assert "5 frågor till AI:n på 30 minuter" in lines[-1]["error"] and "om 30 minuter" in lines[-1]["error"]
+    assert (sessions.RATE_LIMIT, sessions.RATE_WINDOW) == (5, 30 * 60)
     # En ny session får fråga igen (spärren per IP-adress är högre)
     assert ask(client, "Vad passar en 8-åring?")[2][-1]["type"] == "done"
 

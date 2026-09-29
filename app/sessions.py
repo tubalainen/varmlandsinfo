@@ -17,7 +17,7 @@ SESSION_TTL = 2 * 3600          # sekunder utan aktivitet innan sessionen tas bo
 MAX_SESSIONS = 1000
 MAX_TURNS = 20                  # meddelanden som sparas per session (frågor och svar)
 RATE_LIMIT = 5                  # frågor till AI:n per session …
-RATE_WINDOW = 60                # … och tidsfönster i sekunder
+RATE_WINDOW = 30 * 60           # … och tidsfönster i sekunder (rullande)
 BUSY_TIMEOUT = 20 * 60          # en fråga som aldrig avslutades spärrar inte sessionen längre än så
 
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{32,64}$")
@@ -115,12 +115,12 @@ class SessionStore:
             s.last_seen = now
             return None
 
-    def ai_allowed(self, s: Session) -> bool:
-        """Om sessionen får ställa en fråga till AI:n till (spärren per minut). Räknar inte frågan."""
+    def ai_wait(self, s: Session) -> float:
+        """Sekunder tills sessionen får ställa nästa fråga till AI:n (0 = nu). Räknar inte frågan."""
         with self._lock:
             now = self.clock()
             s.asked = [t for t in s.asked if now - t < self.rate_window]
-            return len(s.asked) < self.rate_limit
+            return 0 if len(s.asked) < self.rate_limit else s.asked[0] + self.rate_window - now
 
     def count_ai(self, s: Session) -> None:
         """Frågan går till AI:n och räknas mot spärren."""

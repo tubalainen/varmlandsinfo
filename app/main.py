@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import math
 import os
 import json
 import re
@@ -216,6 +217,14 @@ async def chat_status():
     return await chat.ollama_status()
 
 
+SEARCH_STILL_WORKS = "Enkla sökfrågor som \"Vad händer i helgen?\" fungerar som vanligt."
+
+
+def _minutes(seconds: float) -> str:
+    n = max(1, math.ceil(seconds / 60))
+    return "1 minut" if n == 1 else f"{n} minuter"
+
+
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | None = SessionHeader):
     """Ny fråga i ett samtal. Samtalet (sessionen) och dess historik finns på servern, klienten skickar
@@ -228,10 +237,13 @@ async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | No
     def admit() -> str | None:
         """Spärrarna gäller bara frågor som går till AI:n: per session, och per IP-adress för den som skapar
         nya sessioner för att komma runt spärren per session."""
-        if not sessions.store.ai_allowed(session):
-            return "Du har ställt många frågor till AI:n på kort tid. Vänta en minut och försök igen."
-        if not access.chat_limiter.allow(ip):
-            return "Många frågor till AI:n har ställts från din adress på kort tid. Vänta en minut och försök igen."
+        if wait := sessions.store.ai_wait(session):
+            return (f"Du har ställt {sessions.RATE_LIMIT} frågor till AI:n på {sessions.RATE_WINDOW // 60} minuter. "
+                    f"Nästa fråga till AI:n går att ställa om {_minutes(wait)}. {SEARCH_STILL_WORKS}")
+        if wait := access.chat_limiter.wait(ip):
+            return (f"Många frågor till AI:n har ställts från din adress den senaste halvtimmen. "
+                    f"Nästa fråga till AI:n går att ställa om {_minutes(wait)}. {SEARCH_STILL_WORKS}")
+        access.chat_limiter.allow(ip)
         sessions.store.count_ai(session)
         return None
 

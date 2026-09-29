@@ -8,7 +8,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ### Ändrat
 - Spärrarna i Fråga AI gäller bara frågor som går till AI:n. Sökfrågor, sparade svar och stoppade frågor räknas
-  inte. Högst 5 AI-frågor per minut och session (tidigare 10 frågor av alla slag), och 20 per minut och IP-adress (#57)
+  inte (#57)
+- Högst 5 frågor till AI:n per 30 minuter och samtal (tidigare 10 frågor av alla slag per minut) och 20 per
+  30 minuter och IP-adress (tidigare 20 per minut). Meddelandet säger hur länge man behöver vänta (#58)
+
+### Dokumentation
+- Sidan Om applikationen och README beskriver vad som lagras hos besökaren: inga cookies, tre små värden i
+  webbläsarens lagring, samtalen bara i serverns minne, och att bilderna hämtas från källornas bildservrar (#59)
 
 ## [0.20.0] - 2026-09-29
 

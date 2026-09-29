@@ -10,8 +10,8 @@ import time
 
 from fastapi import HTTPException, Request
 
-IP_RATE_LIMIT = 20              # frågor i Fråga AI per IP-adress …
-IP_RATE_WINDOW = 60             # … och tidsfönster i sekunder
+IP_RATE_LIMIT = 20              # frågor till AI:n per IP-adress …
+IP_RATE_WINDOW = 30 * 60        # … och tidsfönster i sekunder (rullande)
 MAX_TRACKED_IPS = 5000
 
 # Huvuden som omvända proxyer (nginx, Traefik, Caddy, Nginx Proxy Manager, Cloudflare …) lägger till
@@ -62,6 +62,13 @@ class IpLimiter:
         self.limit, self.window, self.clock = limit, window, clock
         self._hits: dict[str, list[float]] = {}
         self._lock = threading.Lock()
+
+    def wait(self, key: str) -> float:
+        """Sekunder tills nyckeln får göra nästa anrop (0 = nu). Räknar inte anropet."""
+        with self._lock:
+            now = self.clock()
+            hits = [t for t in self._hits.get(key, []) if now - t < self.window]
+            return 0 if len(hits) < self.limit else hits[0] + self.window - now
 
     def allow(self, key: str) -> bool:
         """Räknar anropet och svarar om det ryms inom gränsen."""

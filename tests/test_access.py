@@ -45,8 +45,11 @@ def test_ip_limiter():
     limiter = access.IpLimiter(limit=2, window=60, clock=lambda: now[0])
     assert limiter.allow("a") and limiter.allow("a") and not limiter.allow("a")
     assert limiter.allow("b")
+    now[0] = 20
+    assert limiter.wait("a") == 40 and limiter.wait("b") == 0
     now[0] = 61
-    assert limiter.allow("a")
+    assert limiter.wait("a") == 0 and limiter.allow("a")
+    assert (access.IP_RATE_LIMIT, access.IP_RATE_WINDOW) == (20, 30 * 60)
 
 
 def test_docs_are_closed():

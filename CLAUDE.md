@@ -109,10 +109,12 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   fallerar på morgonen får två nya försök (5 min) innan dess data tas bort.
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
   (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: spärrarna gäller bara frågor som går
-  till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per minut och session och
-  `chat_limiter`, 20 per minut och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer från en
-  lokal adress).
+  till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per 30 minuter och session och
+  `chat_limiter`, 20 per 30 minuter och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer
+  från en lokal adress).
   Gränssnittet får aldrig börja använda `/api/health` eller `/api/refresh`, eftersom de nekas utifrån.
+- **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`) och `sessionStorage` (`chat-session`).
+  Beskrivs i README och på sidan Om (Cookies och lagring). Nya värden i webbläsarens lagring ska läggas till där.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
   byggs av appens källor). Nya källor ska läggas till i listan över källor i README.
@@ -130,6 +132,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).
 - Motorsport: både bil- (SBF) och MC-sport (Svemo), publika tävlingar och prova på-dagar, Värmland + Karlskoga.
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
+- Fråga AI: högst 5 frågor till AI:n per 30 minuter och samtal och 20 per 30 minuter och IP-adress. Frågor som
+  besvaras utan AI (sökfrågor, sparade svar, stoppade frågor) ska aldrig begränsas.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
 - Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna
