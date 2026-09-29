@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-09-29
+
 ### Ändrat
 - Mycket försiktiga nya försök mot källorna, så att appen aldrig riskerar att bli spärrad: vid 429 och serverfel
   (5xx) högst ett nytt försök, aldrig tidigare än källan ber om (`Retry-After`) och aldrig om den ber om mer än 60
@@ -368,7 +370,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.26.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.27.0...HEAD
+[0.27.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...v0.25.0
