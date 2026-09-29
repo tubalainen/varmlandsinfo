@@ -145,3 +145,22 @@ def test_ai_questions_require_ollama(tmp_path, monkeypatch):
     monkeypatch.setattr(chat, "OLLAMA_URL", "")
     out = collect(chat.chat_stream([{"role": "user", "content": "Vad passar min 8-åriga son i helgen?"}], [], date(2026, 9, 24), "v"))
     assert out[0]["type"] == "error"
+
+
+def test_limits_only_apply_to_questions_for_the_ai(tmp_path, monkeypatch):
+    """Spärrarna (admit) prövas bara när frågan ska till AI:n, inte för sökfrågor, stoppade frågor eller sparade svar (#57)."""
+    calls = fake_ollama(monkeypatch, tmp_path, ["Hej ", "där"])
+    admitted = []
+
+    def admit():
+        admitted.append(1)
+        return "Stopp" if len(admitted) > 1 else None
+    ask = lambda q: collect(chat.chat_stream([{"role": "user", "content": q}], [], date(2026, 9, 24), "v1", admit=admit))
+
+    assert ask("Vad händer idag?")[-1]["mode"] == "search" and admitted == []              # sökfråga
+    assert ask("Vad kostar en biljett till Liseberg?")[-1]["refused"] and admitted == []    # utanför uppdraget
+    q = chat.SUGGESTIONS[0]["q"]
+    assert "".join(e.get("text", "") for e in ask(q)) == "Hej där" and len(admitted) == 1
+    assert ask(q)[-1]["cached"] and len(admitted) == 1                                      # sparat svar
+    stopped = ask("Vad skulle passa min 8-åring på söndag?")
+    assert stopped == [{"type": "error", "error": "Stopp"}] and len(calls) == 1             # ingen förfrågan till Ollama

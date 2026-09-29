@@ -272,7 +272,8 @@ Andra filer i datakatalogen rörs inte. Loggen visar vad som städades.
 - Samtalet finns kvar när sidan laddas om. En ny flik ger ett nytt samtal, och *Nytt samtal* rensar samtalet på
   servern.
 - Samtal som inte används på 2 timmar tas bort. Samtalen finns bara i minnet och försvinner vid omstart.
-- Varje samtal ställer en fråga i taget och högst 10 frågor per minut.
+- Varje samtal ställer en fråga i taget. Frågor till AI:n är begränsade till 5 per minut och samtal och 20 per
+  minut och IP-adress. Enkla sökfrågor, sparade svar och stoppade frågor räknas inte.
 - Högst 2 frågor körs samtidigt mot Ollama. Övriga väntar i en rättvis kö (först till kvarn, högst 10 i kö), och
   den som väntar ser sin plats i kön. Enkla sökfrågor och sparade svar går förbi kön.
 - Sparade AI-svar delas mellan alla användare.
@@ -330,7 +331,7 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. **Bara lokalt.** |
 | GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
-| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, 429 vid för många frågor (10 per minut och session, 20 per minut och IP-adress). |
+| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, För många frågor till AI:n (5 per minut och session, 20 per minut och IP-adress) ger en händelse `{"type": "error"}` i svaret. |
 | GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
 | DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
 
@@ -348,8 +349,9 @@ hämtas av den som når appen, även med ett skript. Resten är begränsat:
   räknas aldrig som lokala. Allt som når appen via proxyn nekas alltså till `/api/health` och `/api/refresh`. En
   proxy som inte sätter något av huvudena (t.ex. ren TCP-vidarebefordran) ser ut som ett lokalt anrop. Blockera
   då gärna `/api/health` och `/api/refresh` i proxyn.
-- **Fråga AI:** högst 10 frågor per minut och session och 20 per minut och IP-adress, så att ingen kan belasta
-  Ollama genom att byta session. När anropet kommer från en proxy i det lokala nätverket gäller spärren adressen
+- **Fråga AI:** högst 5 frågor till AI:n per minut och session och 20 per minut och IP-adress, så att ingen kan
+  belasta Ollama genom att byta session. Frågor som besvaras utan AI (sökfrågor, sparade svar, stoppade frågor)
+  räknas inte. När anropet kommer från en proxy i det lokala nätverket gäller spärren adressen
   som proxyn lagt till sist i `X-Forwarded-For`.
 
 ## Versioner och releaser

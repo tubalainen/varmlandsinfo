@@ -66,12 +66,14 @@ def test_one_question_at_a_time_and_rate_limit():
     assert store.begin(s) is None
     assert store.begin(s) == "busy"
     store.end(s)
-    for _ in range(2):
-        assert store.begin(s) is None
-        store.end(s)
-    assert store.begin(s) == "rate"
+    for _ in range(3):                      # spärren gäller bara frågor till AI:n
+        assert store.ai_allowed(s)
+        store.count_ai(s)
+    assert not store.ai_allowed(s)
+    assert store.begin(s) is None           # en fråga utan AI går fortfarande
+    store.end(s)
     clock.t += 61
-    assert store.begin(s) is None
+    assert store.ai_allowed(s)
 
 
 def test_history_is_kept_and_capped():
@@ -197,7 +199,18 @@ def test_unknown_session_starts_a_new_conversation(client):
     assert first["expired"] and first["id"] != "x" * 40
 
 
-def test_busy_and_rate_limited_sessions(client):
+def fake_ai(monkeypatch):
+    """chat_stream som låtsas att varje fråga går till AI:n: spärrarna (admit) prövas, sedan kommer ett svar."""
+    async def stream(messages, *a, admit=None, **kw):
+        if admit and (problem := admit()):
+            yield json.dumps({"type": "error", "error": problem}) + "\n"
+            return
+        yield json.dumps({"type": "delta", "text": "Svar"}) + "\n"
+        yield json.dumps({"type": "done"}) + "\n"
+    monkeypatch.setattr(chat, "chat_stream", stream)
+
+
+def test_busy_session(client):
     _, first, _ = ask(client, "Vad händer idag?")
     sid = first["id"]
     s = sessions.store.get(sid)
@@ -205,10 +218,26 @@ def test_busy_and_rate_limited_sessions(client):
     r, _, _ = ask(client, "Vad händer i helgen?", sid)
     assert r.status_code == 409 and "förra frågan" in r.json()["error"]
     sessions.store.end(s)
-    for _ in range(sessions.RATE_LIMIT - 2):
-        assert ask(client, "Vad händer idag?", sid)[0].status_code == 200
-    r, _, _ = ask(client, "Vad händer idag?", sid)
-    assert r.status_code == 429
+    assert ask(client, "Vad händer i helgen?", sid)[0].status_code == 200
+
+
+def test_questions_without_ai_are_not_limited(client):
+    _, first, _ = ask(client, "Vad händer idag?")
+    for _ in range(3 * sessions.RATE_LIMIT):
+        r, _, lines = ask(client, "Vad händer idag?", first["id"])
+        assert r.status_code == 200 and lines[-1]["type"] == "done" and lines[-1]["mode"] == "search"
+
+
+def test_ai_questions_are_limited_per_session(client, monkeypatch):
+    fake_ai(monkeypatch)
+    _, first, _ = ask(client, "Vad passar en 8-åring?")
+    for _ in range(sessions.RATE_LIMIT - 1):
+        assert ask(client, "Vad passar en 8-åring?", first["id"])[2][-1]["type"] == "done"
+    _, _, lines = ask(client, "Vad passar en 8-åring?", first["id"])
+    assert lines[-1]["type"] == "error" and "AI:n på kort tid" in lines[-1]["error"]
+    assert sessions.RATE_LIMIT == 5
+    # En ny session får fråga igen (spärren per IP-adress är högre)
+    assert ask(client, "Vad passar en 8-åring?")[2][-1]["type"] == "done"
 
 
 def test_new_conversation_clears_history(client):

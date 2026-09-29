@@ -1,5 +1,7 @@
 """Åtkomst till API:t: lokala adresser, omvända proxyer och spärren per IP i Fråga AI (#56)."""
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from starlette.requests import Request
@@ -71,7 +73,16 @@ def client(monkeypatch):
     return TestClient(main.app)
 
 
-def test_chat_is_limited_per_ip_even_with_new_sessions(client):
-    codes = [client.post("/api/chat", json={"question": "Vad händer idag?"}).status_code for _ in range(4)]
-    assert codes == [200, 200, 200, 429]
-    assert "Vänta en minut" in client.post("/api/chat", json={"question": "Vad händer idag?"}).json()["error"]
+def test_chat_is_limited_per_ip_even_with_new_sessions(client, monkeypatch):
+    from test_sessions import fake_ai
+    fake_ai(monkeypatch)
+    last = [client.post("/api/chat", json={"question": "Vad passar en 8-åring?"}).text.splitlines()[-1]
+            for _ in range(4)]
+    assert ["error" in x for x in last] == [False, False, False, True]
+    assert "från din adress" in json.loads(last[-1])["error"]
+
+
+def test_questions_without_ai_are_not_limited_per_ip(client):
+    for _ in range(6):
+        r = client.post("/api/chat", json={"question": "Vad händer idag?"})
+        assert r.status_code == 200 and '"mode": "search"' in r.text.splitlines()[-1]

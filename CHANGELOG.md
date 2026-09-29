@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Spärrarna i Fråga AI gäller bara frågor som går till AI:n. Sökfrågor, sparade svar och stoppade frågor räknas
+  inte. Högst 5 AI-frågor per minut och session (tidigare 10 frågor av alla slag), och 20 per minut och IP-adress (#57)
+
 ## [0.20.0] - 2026-09-29
 
 ### Säkerhet

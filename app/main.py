@@ -220,29 +220,33 @@ async def chat_status():
 async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | None = SessionHeader):
     """Ny fråga i ett samtal. Samtalet (sessionen) och dess historik finns på servern, klienten skickar
     bara frågan och sitt sessions-id. Okänt eller utgånget id ger ett nytt samtal."""
-    # Spärren per IP-adress gäller även den som skapar nya sessioner för att komma runt spärren per session
-    if not access.chat_limiter.allow(access.client_ip(request)):
-        return JSONResponse({"error": "Många frågor har ställts från din adress på kort tid. "
-                                      "Vänta en minut och försök igen."}, status_code=429)
     session, created = sessions.store.get_or_create(session_id)
-    problem = sessions.store.begin(session)
-    if problem == "busy":
+    if sessions.store.begin(session) == "busy":
         return JSONResponse({"error": "Vänta tills svaret på förra frågan är klart."}, status_code=409)
-    if problem == "rate":
-        return JSONResponse({"error": "Du har ställt många frågor på kort tid. Vänta en minut och försök igen."},
-                            status_code=429)
-    return StreamingResponse(_session_stream(session, created and bool(session_id), req.question),
+    ip = access.client_ip(request)
+
+    def admit() -> str | None:
+        """Spärrarna gäller bara frågor som går till AI:n: per session, och per IP-adress för den som skapar
+        nya sessioner för att komma runt spärren per session."""
+        if not sessions.store.ai_allowed(session):
+            return "Du har ställt många frågor till AI:n på kort tid. Vänta en minut och försök igen."
+        if not access.chat_limiter.allow(ip):
+            return "Många frågor till AI:n har ställts från din adress på kort tid. Vänta en minut och försök igen."
+        sessions.store.count_ai(session)
+        return None
+
+    return StreamingResponse(_session_stream(session, created and bool(session_id), req.question, admit),
                              media_type="application/x-ndjson")
 
 
-async def _session_stream(session: sessions.Session, expired: bool, question: str):
+async def _session_stream(session: sessions.Session, expired: bool, question: str, admit=None):
     """Svaret strömmas vidare och sparas i samtalet när det är komplett."""
     answer, sources, web, meta, ok = "", [], [], {}, False
     try:
         yield json.dumps({"type": "session", "id": session.id, "expired": expired}) + "\n"
         messages = [*session.model_history(), {"role": "user", "content": question}]
         async with aclosing(chat.chat_stream(messages, events.current_events(), events.today(),
-                                             data_version=events.state["updated"])) as stream:
+                                             data_version=events.state["updated"], admit=admit)) as stream:
             async for line in stream:
                 ev = json.loads(line)
                 if ev["type"] == "delta":

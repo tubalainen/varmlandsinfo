@@ -736,12 +736,15 @@ def prune_cache(today: date, data_version: str | None) -> int:
 
 
 async def chat_stream(messages: list[dict], events: list[dict], today: date,
-                      data_version: str | None = None) -> AsyncIterator[str]:
+                      data_version: str | None = None, admit=None) -> AsyncIterator[str]:
     """Strömmar svaret som NDJSON: sources, delta …, done eller error.
 
     Sökfrågor besvaras direkt av appen (search_answer) utan AI. Övriga frågor går till Ollama.
     Fristående AI-frågor (utan samtalshistorik) besvaras från sparade svar när frågan, dagen, datan och
-    modellen är desamma. Annars ställs frågan till Ollama och svaret sparas."""
+    modellen är desamma. Annars ställs frågan till Ollama och svaret sparas.
+
+    `admit` anropas först när frågan ska till AI:n (före webbsökning och kö) och returnerar ett felmeddelande
+    om spärrarna för frågor per minut säger nej."""
     history = [
         {"role": m["role"], "content": str(m.get("content", ""))[:4000]}
         for m in messages if m.get("role") in ("user", "assistant") and m.get("content")
@@ -792,6 +795,10 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
             yield _ndjson({"type": "delta", "text": hit["answer"]})
             yield _ndjson({"type": "done", "cached": True, "saved": hit.get("saved")})
             return
+
+    if admit and (problem := admit()):
+        yield _ndjson({"type": "error", "error": problem})
+        return
 
     # Följdfrågor ("och på söndag då?") saknar ofta sammanhang, så tidigare frågor tas med i sökningen
     selection = select_events(question, events, today, context=context)

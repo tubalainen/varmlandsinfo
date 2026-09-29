@@ -1,7 +1,8 @@
 """Samtal i Fråga AI: en session per webbläsarflik, med historiken på servern.
 
 Klienten skickar bara sin nya fråga och sitt sessions-id. Servern äger historiken, så den kan inte
-förfalskas. Varje session får ställa en fråga i taget och ett begränsat antal frågor per minut.
+förfalskas. Varje session får ställa en fråga i taget och ett begränsat antal frågor till AI:n per minut
+(frågor som besvaras utan AI räknas inte).
 
 Sessionerna finns bara i minnet (appen körs som en process) och försvinner vid omstart.
 """
@@ -15,7 +16,7 @@ from dataclasses import dataclass, field
 SESSION_TTL = 2 * 3600          # sekunder utan aktivitet innan sessionen tas bort
 MAX_SESSIONS = 1000
 MAX_TURNS = 20                  # meddelanden som sparas per session (frågor och svar)
-RATE_LIMIT = 10                 # frågor per session …
+RATE_LIMIT = 5                  # frågor till AI:n per session …
 RATE_WINDOW = 60                # … och tidsfönster i sekunder
 BUSY_TIMEOUT = 20 * 60          # en fråga som aldrig avslutades spärrar inte sessionen längre än så
 
@@ -28,7 +29,7 @@ class Session:
     history: list[dict] = field(default_factory=list)   # {"role", "content", + visningsdata}
     last_seen: float = field(default_factory=time.monotonic)
     busy_since: float | None = None                      # när pågående fråga ställdes
-    asked: list[float] = field(default_factory=list)     # tidpunkter för de senaste frågorna
+    asked: list[float] = field(default_factory=list)     # tidpunkter för de senaste frågorna till AI:n
 
     def is_busy(self, now: float | None = None) -> bool:
         if self.busy_since is None:
@@ -105,18 +106,26 @@ class SessionStore:
             return self._sessions.pop(sid, None) is not None if sid else False
 
     def begin(self, s: Session) -> str | None:
-        """Markerar att sessionen ställer en fråga. Returnerar ett felmeddelande om det inte går."""
+        """Markerar att sessionen ställer en fråga. Returnerar "busy" om en fråga redan pågår."""
         with self._lock:
             now = self.clock()
             if s.is_busy(now):
                 return "busy"
-            s.asked = [t for t in s.asked if now - t < self.rate_window]
-            if len(s.asked) >= self.rate_limit:
-                return "rate"
-            s.asked.append(now)
             s.busy_since = now
             s.last_seen = now
             return None
+
+    def ai_allowed(self, s: Session) -> bool:
+        """Om sessionen får ställa en fråga till AI:n till (spärren per minut). Räknar inte frågan."""
+        with self._lock:
+            now = self.clock()
+            s.asked = [t for t in s.asked if now - t < self.rate_window]
+            return len(s.asked) < self.rate_limit
+
+    def count_ai(self, s: Session) -> None:
+        """Frågan går till AI:n och räknas mot spärren."""
+        with self._lock:
+            s.asked.append(self.clock())
 
     def end(self, s: Session, turns: list[dict] | None = None) -> None:
         """Frågan är klar. `turns` (fråga och svar) läggs till i historiken om svaret blev komplett."""

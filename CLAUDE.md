@@ -108,8 +108,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   morgonkörningen bort, liksom avstängda källors filer, inaktuella AI-svar och gårdagens chattsamtal. En källa som
   fallerar på morgonen får två nya försök (5 min) innan dess data tas bort.
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
-  (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: `chat_limiter`, 20 frågor per minut
-  och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer från en lokal adress).
+  (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: spärrarna gäller bara frågor som går
+  till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per minut och session och
+  `chat_limiter`, 20 per minut och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer från en
+  lokal adress).
   Gränssnittet får aldrig börja använda `/api/health` eller `/api/refresh`, eftersom de nekas utifrån.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
