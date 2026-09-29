@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-09-29
+
 ### Säkerhet
 - Begränsad åtkomst till API:t: FastAPI:s `/docs`, `/redoc` och `/openapi.json` är avstängda, `/api/health` och
   `/api/refresh` svarar bara inom det lokala nätverket (aldrig via omvänd proxy), och Fråga AI har en spärr på
@@ -268,7 +270,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...v0.18.1
