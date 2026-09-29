@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.28.2] - 2026-09-29
+
 ### Dokumentation
 - Arkitekturbilden visar 13 källor (med Säffle och Kil), och hänvisningarna till koden pekar på dagens rader (#80).
 
@@ -393,7 +395,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.2...HEAD
+[0.28.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.1...v0.28.2
 [0.28.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.0...v0.28.1
 [0.28.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.26.0...v0.27.0
