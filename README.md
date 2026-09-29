@@ -14,12 +14,14 @@ kalender och via **Fråga AI**, en chatt som svarar med hjälp av din egen Ollam
 
 ## Arkitektur
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/arkitektur/varmlandsinfo-mork.svg">
-  <img src="docs/arkitektur/varmlandsinfo-ljus.svg" alt="Arkitekturen i Värmlandsinfo: webbläsaren, FastAPI-appen och dess delar, lagringen i /data, källorna samt Ollama och SearXNG">
-</picture>
+[![Arkitekturöversikt](docs/arkitektur/varmlandsinfo.png)](https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html)
 
-Skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden. Se [Arkitektur](docs/arkitektur.md).
+Webbläsaren hämtar allt från en FastAPI-app i Docker. Appen hämtar evenemangen från källorna varje morgon, sparar
+dem i `/data` och håller dem sammanslagna i minnet. Fråga AI använder din egen Ollama och valfritt SearXNG, och
+bilderna hämtas via appen så att källorna aldrig ser besökarna.
+
+Klicka på bilden för den interaktiva, animerade översikten, eller ändra
+[Archify-specifikationen](docs/arkitektur/varmlandsinfo.architecture.json). Mer i [Arkitektur](docs/arkitektur.md).
 
 ## Funktioner
 

@@ -5,6 +5,7 @@
     "title": "Värmlandsinfo – arkitektur",
     "output": "docs/arkitektur/varmlandsinfo.html",
     "quality_profile": "showcase",
+    "animation": "trace",
     "locale": "sv",
     "translations": {
       "page.title": "{title} – diagram",
@@ -41,7 +42,13 @@
       "viewer.export.button": "Exportera",
       "viewer.export.button.title": "Exportera diagrammet (E)",
       "viewer.export.diagram": "Exportera diagrammet",
-      "viewer.export.menu": "Exportera"
+      "viewer.export.menu": "Exportera",
+      "viewer.motion.live": "Rörelse",
+      "viewer.motion.still": "Stilla",
+      "viewer.motion.pause": "Pausa rörelsen",
+      "viewer.motion.resume": "Starta rörelsen",
+      "viewer.motion.reduced": "Rörelsen är pausad eftersom minskad rörelse är vald",
+      "viewer.motion.hidden": "Rörelsen är pausad medan sidan är dold"
     },
     "repository": {
       "url": "https://github.com/tubalainen/varmlandsinfo",

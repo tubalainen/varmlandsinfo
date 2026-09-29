@@ -1,13 +1,14 @@
 # Arkitektur
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="arkitektur/varmlandsinfo-mork.svg">
-  <img src="arkitektur/varmlandsinfo-ljus.svg" alt="Arkitekturen i Värmlandsinfo: besökarens webbläsare, FastAPI-appen med åtkomst, Fråga AI, bildproxy, evenemang i minnet, schemaläggare och hämtning, lagringen i /data, källorna och de valfria tjänsterna Ollama och SearXNG">
-</picture>
+[![Arkitekturöversikt](arkitektur/varmlandsinfo.png)](https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html)
 
-Bilden är skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden. Varje del i diagrammet hänvisar till
-källkoden. Öppna [det interaktiva diagrammet](arkitektur/varmlandsinfo.html) (ladda ner filen och öppna den i en
-webbläsare) för att se hänvisningarna, följa vägar mellan delarna och byta tema.
+Klicka på bilden för den [interaktiva, animerade översikten](https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html), eller ändra
+[Archify-specifikationen](arkitektur/varmlandsinfo.architecture.json).
+
+Översikten är skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden, och varje del hänvisar till
+källkoden. I den interaktiva versionen följer en animering huvudvägen genom appen (*Rörelse*/*Stilla*), och du kan
+klicka på delarna för att se hänvisningarna, följa vägar mellan dem (PATH), jämföra typer (LENS), byta tema och
+exportera bilden.
 
 ## Delarna
 
@@ -37,6 +38,9 @@ node <archify>/bin/archify.mjs finalize architecture docs/arkitektur/varmlandsin
 ```
 
 `finalize` validerar diagrammet mot koden och kontrollerar det i en webbläsare (sätt `ARCHIFY_CHROME` till Chrome
-eller Chromium om den inte hittas). SVG-filerna exporteras från det interaktiva diagrammet med *Exportera → SVG · Light*
-och *SVG · Dark* och sparas som `varmlandsinfo-ljus.svg` och `varmlandsinfo-mork.svg`. Archifys kvitton
-(`*.delivery.json`, `*.finalize*.json`, `*.browser-check.json`) checkas inte in.
+eller Chromium om den inte hittas). `varmlandsinfo.png` är en skärmbild av det interaktiva diagrammet i ljust läge
+(1440 px bred, till och med korten). Archifys kvitton (`*.delivery.json`, `*.finalize*.json`, `*.browser-check.json`)
+checkas inte in.
+
+Det interaktiva diagrammet publiceras med GitHub Pages från katalogen `docs/` på `main` (`docs/.nojekyll` gör att
+filerna visas som de är): <https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html>.

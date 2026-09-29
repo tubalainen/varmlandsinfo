@@ -133,14 +133,16 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `utveckling.md`. Nytt innehåll läggs i rätt dokument i `docs/`, inte i README. Skärmdumparna i `docs/screenshots/` skapas med
   `tools/readme-screenshots.mjs` (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras
   synligt.
-- **Arkitekturbild** (#63): skapad med [Archify](https://github.com/tt-a1i/archify) i `docs/arkitektur/`
-  (`varmlandsinfo.architecture.json` är källan med hänvisningar till koden, `varmlandsinfo.html` det interaktiva
-  diagrammet, `varmlandsinfo-ljus.svg`/`-mork.svg` bilderna i README). Ta om den när delar, källor eller kopplingar
-  ändras. Gör så här: läs Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit
-  med de citerade raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
-  `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska bilden i båda lägena och exportera SVG
-  via visningslägets meny (Exportera → SVG · Light/Dark) med Playwright. En Archify-boundary ritas som en rektangel
-  runt sina delar och får inte omsluta delar som inte hör dit.
+- **Arkitekturbild** (#63, #64), gjord som i användarens repo `tubalainen/reforger-server-manager`: källan
+  `docs/arkitektur/varmlandsinfo.architecture.json` (Archify, `meta.animation: "trace"`, svenska texter i
+  `meta.translations`, hänvisningar till koden), det interaktiva och animerade diagrammet `varmlandsinfo.html` och
+  skärmbilden `varmlandsinfo.png`. README och `docs/arkitektur.md` visar bilden som länk till https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html
+  (GitHub Pages från `main`, `/docs`, med `docs/.nojekyll`). Ta om den när delar, källor eller kopplingar ändras: läs
+  Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit med de citerade
+  raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
+  `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska i båda lägena och ta skärmbilden i
+  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). En
+  Archify-boundary ritas som en rektangel runt sina delar och får inte omsluta delar som inte hör dit.
 
 ## Beslut och önskemål från användaren (gäller framåt)
 

@@ -2,7 +2,7 @@
 
 | Dokument | Innehåll |
 |----------|----------|
-| [Arkitektur](arkitektur.md) | Arkitekturbilden (Archify) och delarna i appen |
+| [Arkitektur](arkitektur.md) | Arkitekturbilden (Archify), [den interaktiva översikten](https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html) och delarna i appen |
 | [Installation och inställningar](installation.md) | Kom igång med Docker, versioner, alla inställningar i `.env`, Ollama och SearXNG |
 | [Funktioner](funktioner.md) | Lista, kalender, filter, kategorier, ordning, ikonen |
 | [Källor](kallor.md) | Varifrån evenemangen kommer, hur ofta källorna anropas och skydden |
