@@ -18,6 +18,7 @@ TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
 USER_AGENT = f"varmlandsinfo/{__version__} (+https://github.com/tubalainen/varmlandsinfo)"
 RATE_LIMIT_LOW = 5   # pausa när så här få anrop återstår i kvoten
 MAX_RETRIES = 4
+SERVER_ERROR_RETRY_DELAY = 5    # sekunder före det enda nya försöket vid ett serverfel (HTTP 5xx)
 
 log = logging.getLogger("varmlandsinfo")
 
@@ -82,15 +83,27 @@ class SourceError(RuntimeError):
     """Fel från en källa. Meddelandet innehåller aldrig frågesträngen (där API-nycklar kan finnas)."""
 
 
+async def _request(send, unreachable: str, where: str) -> httpx.Response:
+    """Ett anrop till en källa. Serverfel (HTTP 5xx) är ofta tillfälliga, så då görs ett nytt försök efter en kort
+    paus. `where` (källa och sökväg, aldrig frågesträngen) används i loggen, `unreachable` i felmeddelandet."""
+    for attempt in range(2):
+        try:
+            r = await send()
+        except httpx.HTTPError as exc:
+            raise SourceError(f"Kunde inte nå {unreachable}: {type(exc).__name__}") from None
+        stats["api_calls"] += 1
+        if r.status_code < 500 or attempt:
+            return r
+        log.warning("Serverfel (HTTP %s) från %s, försöker igen om %ss", r.status_code, where, SERVER_ERROR_RETRY_DELAY)
+        await asyncio.sleep(SERVER_ERROR_RETRY_DELAY)
+    return r
+
+
 async def get_json(client: httpx.AsyncClient, url: str, source: str, **params) -> dict:
     """GET som respekterar källans rate limit och aldrig läcker frågesträngen i felmeddelanden."""
     where = f"{source} ({urlsplit(url).path})"
     for attempt in range(MAX_RETRIES + 1):
-        try:
-            r = await client.get(url, params=params)
-        except httpx.HTTPError as exc:
-            raise SourceError(f"Kunde inte nå {where}: {type(exc).__name__}") from None
-        stats["api_calls"] += 1
+        r = await _request(lambda: client.get(url, params=params), where, where)
         if r.status_code == 429:
             if attempt == MAX_RETRIES:
                 break
@@ -118,11 +131,8 @@ async def get_json(client: httpx.AsyncClient, url: str, source: str, **params) -
 
 async def get_text(client: httpx.AsyncClient, url: str, source: str, headers: dict | None = None) -> str:
     """GET av en HTML-sida (för källor utan API)."""
-    try:
-        r = await client.get(url, headers={"Accept": "text/html", **(headers or {})}, follow_redirects=True)
-    except httpx.HTTPError as exc:
-        raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
-    stats["api_calls"] += 1
+    r = await _request(lambda: client.get(url, headers={"Accept": "text/html", **(headers or {})}, follow_redirects=True),
+                       source, f"{source} ({urlsplit(url).path})")
     if r.status_code >= 400:
         raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
     return r.text
@@ -130,11 +140,8 @@ async def get_text(client: httpx.AsyncClient, url: str, source: str, headers: di
 
 async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str) -> str:
     """POST av ett formulär (t.ex. en ASP.NET-postback för att byta sida i en lista)."""
-    try:
-        r = await client.post(url, data=data, headers={"Accept": "text/html"}, follow_redirects=True)
-    except httpx.HTTPError as exc:
-        raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
-    stats["api_calls"] += 1
+    r = await _request(lambda: client.post(url, data=data, headers={"Accept": "text/html"}, follow_redirects=True),
+                       source, f"{source} ({urlsplit(url).path})")
     if r.status_code >= 400:
         raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
     return r.text
@@ -142,11 +149,8 @@ async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str
 
 async def post_json(client: httpx.AsyncClient, url: str, data: dict, source: str, headers: dict | None = None) -> dict:
     """POST med JSON (t.ex. när en sida laddar fler rader med ett Livewire-anrop, som i webbläsaren)."""
-    try:
-        r = await client.post(url, json=data, headers={"Accept": "application/json", **(headers or {})})
-    except httpx.HTTPError as exc:
-        raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
-    stats["api_calls"] += 1
+    r = await _request(lambda: client.post(url, json=data, headers={"Accept": "application/json", **(headers or {})}),
+                       source, f"{source} ({urlsplit(url).path})")
     if r.status_code >= 400:
         raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
     try:

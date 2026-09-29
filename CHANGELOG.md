@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Svarar en källa med ett tillfälligt serverfel (HTTP 500–599) görs ett nytt försök efter 5 sekunder, i stället för
+  att källan direkt markeras med fel (#75).
+
 ## [0.25.1] - 2026-09-29
 
 ### Rättat

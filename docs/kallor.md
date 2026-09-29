@@ -65,6 +65,8 @@ Skydden gäller alla källor:
 - **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
 - **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
   slut pausar hämtningen.
+- **Om en källa svarar med ett serverfel (HTTP 500–599)** görs ett nytt försök efter 5 sekunder, eftersom sådana fel
+  ofta är tillfälliga. Misslyckas även det visas felet för källan. Andra fel (t.ex. 404) försöker appen inte igen.
 - **Om en källa fallerar vid morgonkörningen** görs två nya försök med 5 minuters mellanrum. Lyckas inte
   de heller tas källans gamla data bort (se [Städning](data-och-integritet.md#städning-av-inaktuell-data)), och källan
   försöks igen var 30:e minut.
