@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-09-29
+
 ### Ändrat
 - Svarar en källa med ett tillfälligt serverfel (HTTP 500–599) görs ett nytt försök efter 5 sekunder, i stället för
   att källan direkt markeras med fel (#75).
@@ -356,7 +358,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.26.0...HEAD
+[0.26.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.1...v0.26.0
 [0.25.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...v0.24.0

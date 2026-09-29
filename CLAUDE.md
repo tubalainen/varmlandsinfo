@@ -76,7 +76,7 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Läget (v0.25.1, 2026-09-29)
+## Läget (v0.26.0, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Great Event, Karlstad Loppis + loppisar.com
