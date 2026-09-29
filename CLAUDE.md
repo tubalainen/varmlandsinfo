@@ -82,7 +82,21 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Läget (v0.28.0, 2026-09-29)
+## Återuppta arbetet (senast uppdaterat 2026-09-29, efter v0.28.1)
+
+Läs detta först i en ny session. Senaste releasen är **v0.28.1**. Allt är pushat till `main`, CI och Docker-bygget är
+gröna och det finns inga andra grenar eller öppna PR:er.
+
+- **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
+  Kommunerna (#79, v0.28.0) och bara kommuner i filtret Kommun (#81, v0.28.1).
+- **Öppet:** [#80](https://github.com/tubalainen/varmlandsinfo/issues/80) arkitekturbilden ska säga "Källorna (13 st)".
+  Användaren vill göra det senare. Issuen beskriver exakt vad som ska ändras och hur Archify-felet med `origin` undviks.
+- **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster och Svenska kyrkan (kräver nycklar som
+  användaren i så fall registrerar), handboll via Profixio (`lx/SHF`). Fråga användaren innan något av dem påbörjas.
+- **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
+  "Medis stora scen" utan Medis i titeln kommer inte med. Gäller alla platser och fanns före #79.
+
+## Läget (v0.28.1, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Great Event, Karlstad Loppis + loppisar.com
@@ -217,6 +231,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   lokal geodatabas, aldrig via en extern tjänst.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
+- **Belasta inte Visit Värmland under utvecklingen** (användarens önskan 2026-09-29): inga omhämtningar, och inga
+  kontrastkontroller eller skärmdumpar som laddar många bilder i onödan (Visit Värmlands bildserver svarade 429).
+  Testa mot sparad data. Skärmdumpar och arkitekturbild tas om när användaren ber om det.
+- Filtret Kommun har bara kommuner (Värmlands 16 + Karlskoga och Degerfors), inga orter (#81).
 - Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna
   paraplykategorier som "Evenemang" ska inte visas som egna filter.
 
@@ -256,4 +274,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   träningsmatcher, inte ungdom (`YOUTH_RE`: U17, F15, flick …, men "Katrineholm Bandy U" är ett utvecklingslag).
   2026/27: IF Boltic (Bandyallsvenskan herr, Tingvalla) och Slottsbron IF (träningsmatcher Mellansverige).
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
+- **Archify** finns inte installerat: `git clone --depth 1 https://github.com/tt-a1i/archify` till scratchpaden och kör
+  `archify/bin/archify.mjs`. I kopian av repot måste `origin` vara `https://github.com/tubalainen/varmlandsinfo`
+  (`git remote set-url origin …`), annars stoppar Archify med `repository-evidence/origin-mismatch`, som `finalize`
+  bara visar som "Renderer failed before emitting a structured diagnostic" (kör `render … --repo-root .` för felet).
+- **Behörighetskontrollen för Bash** i molnmiljön svarar ibland inte ("no verdict") flera gånger i rad. Pausa och
+  berätta för användaren i stället för att försöka många gånger (efter 10 i rad avbryts turen).
 

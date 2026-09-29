@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.28.1] - 2026-09-29
+
 ### Rättat
 - Filtret Kommun visar bara kommuner, inte orter som Väse och Brunskog eller orter utanför området som Stockholm.
   Orter och postnummer knyts till sin kommun, så att fler evenemang får rätt kommun (t.ex. Karlskoga Konserthall),
@@ -388,7 +390,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.1...HEAD
+[0.28.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.0...v0.28.1
 [0.28.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.1...v0.26.0
