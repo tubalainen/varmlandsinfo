@@ -51,7 +51,8 @@ aktuella när något ändras.
   ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
-  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA och Profixio är vanliga webbplatser).
+  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA, Profixio, Säffle och Kil är vanliga
+  webbplatser).
   Profixio (bandy): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
   sedan bara serierna med lag från Värmland.
   Svemo TA har 13 000+ historiska tävlingar: bläddra aldrig igenom hela listan, bara sista sidorna bakåt.
@@ -85,7 +86,8 @@ aktuella när något ändras.
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Great Event, Karlstad Loppis + loppisar.com
-  (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`). En källas `group` gör att
+  (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
+  **Kommunerna**, `sources/kommunerna.py`, #79). En källas `group` gör att
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
   i `/api/health` är per källa.
 - **Motorsport:** publika tävlingar och prova på-dagar i Värmland + Karlskoga. Läget avgörs av banans namn (`PLACES`
@@ -94,6 +96,16 @@ aktuella när något ändras.
 utanför området. motorsportivarmland.nu undersöktes som rallykälla (#51) men är en nyhetssajt utan strukturerad
 kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   sidbyte med postback (`__VIEWSTATE` + `__EVENTTARGET` från knappen med title "Next/Previous/Last Page").
+- **Kommunerna** (#79): Säffle och Kil använder Sitevision med Soleil IT:s moduler. Säffle: JSON från modulens
+  appresource-anrop (`SAFFLE_ITEMS` och `SAFFLE_PATHS` ur sidans konfiguration), datum utan år (räknas fram, adressen
+  ger året när den stämmer). Kil: `registerInitialState` i sidan, 25 per sida (`?start=25`), utan plats och kategori
+  (`KIL_RULES` och `CHILD_RE` ur titeln). Samma titel (och plats) blir ett evenemang med flera tillfällen. Karlstad,
+  Hammarö, Sunne (Sagolika Sunne) och Grums visar Visit Värmlands data.
+- **Analys av källor som saknas** (2026-09-29): möjliga nästa steg är Tickster (Event Dump API, en fil per dygn,
+  kräver nyckel), Svenska kyrkans CalendarAPI (kräver nyckel) och handboll i Profixio (`lx/SHF`, samma upplägg som
+  bandy). Avfärdade: Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
+  (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
+  Storfors (fritext) och Karlstads universitet (mest för studenter).
 - **Kategorier** (`categories.py`, regler i `common.finalize`): `SOURCE_NAMES` byter källornas namn (Visit Värmlands
   *Evenemang* och *Övriga evenemang* blir *Övrigt*, *Motor* blir *Motorträffar*). `split_loppis` bryter ut *Loppis* ur
   marknadskategorin, och `split_motorsport` ger tävlingar *Motorsport*, medan *Motorträffar* bara gäller träffar och

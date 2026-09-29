@@ -53,7 +53,7 @@ def _absorb(primary: dict, other: dict) -> None:
     for s in other["sources"]:
         if s["name"] not in known:
             primary["sources"].append(s)
-    for key in ("booking_link", "website_link", "summary", "description", "place", "organizer"):
+    for key in ("municipality", "booking_link", "website_link", "summary", "description", "place", "organizer"):
         if not primary.get(key) and other.get(key):
             primary[key] = other[key]
     have = {c["title"] for c in primary["categories"]}

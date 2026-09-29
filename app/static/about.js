@@ -29,6 +29,8 @@
     Motorsport: "Motorsporttävlingar och prova på-dagar i Värmland och Karlskoga: bilsport (folkrace, rally, rallycross, crosskart, karting …) "
       + "från Svensk Bilsports tävlingskalender och MC-sport (motocross, enduro, speedway …) från Svemo.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",
+    Kommunerna: "Evenemang från kommunernas egna evenemangskalendrar, som inte finns hos Visit Värmland: Säffle (bland annat Medis, "
+      + "Sagabiografen och biblioteket) och Kil (bland annat biblioteket, konserter och barnaktiviteter).",
     bandy: "Bandymatcher i Värmland från Svenska Bandyförbundets spelprogram i Profixio: seniorernas serier, cuper och träningsmatcher, till exempel IF Boltics hemmamatcher på Tingvalla. Bandy spelas på is med skridskor (inte innebandy).",
   };
 

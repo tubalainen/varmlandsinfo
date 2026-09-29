@@ -145,10 +145,10 @@ def _check(r: httpx.Response, source: str, where: str, key_hint: bool = False) -
         raise SourceError(f"{where} svarade HTTP {r.status_code}")
 
 
-async def get_json(client: httpx.AsyncClient, url: str, source: str, **params) -> dict:
+async def get_json(client: httpx.AsyncClient, url: str, source: str, headers: dict | None = None, **params) -> dict:
     """GET som respekterar källans rate limit och aldrig läcker frågesträngen i felmeddelanden."""
     where = f"{source} ({urlsplit(url).path})"
-    r = await _request(lambda: client.get(url, params=params), where, where)
+    r = await _request(lambda: client.get(url, params=params, headers=headers), where, where)
     _check(r, source, where, key_hint=True)
     remaining = r.headers.get("x-ratelimit-remaining") or r.headers.get("rate-limit-available")
     if remaining is not None and remaining.isdigit() and int(remaining) < RATE_LIMIT_LOW:

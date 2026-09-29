@@ -18,6 +18,8 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 | `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |
 | `data/sbf.json`            | Kommande bilsporttävlingar från SBF:s kalender. |
 | `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
+| `data/saffle.json`         | Kommande evenemang i Säffle kommuns kalender. |
+| `data/kil.json`            | Kommande evenemang i Kils kommuns kalender. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 | `data/images/`             | Evenemangens bilder, hämtade första gången någon visade dem. |
 | `data/besoksinfo.json`     | Besöksstatistiken, när den är påslagen (se nedan). |

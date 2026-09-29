@@ -13,6 +13,8 @@
 | [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
 | [Svensk Bilsport (SBF)](https://www.sbf.se/tavlingar/tavlingskalender) | Tävlingskalendern LoTS (HTML) | Bilsport: folkrace, rally, rallycross, crosskart, karting, bilcross, racing, drifting … |
 | [Svemo](https://ta.svemo.se) | Tävlingskalendern Svemo TA (HTML) | MC- och snöskotersport: motocross, enduro, speedway, trial … |
+| [Säffle kommun](https://saffle.se/uppleva-och-gora/visit-saffle/evenemang.html) | Kommunens evenemangskalender (JSON) | Evenemang i Säffle som inte finns hos Visit Värmland: Medis, Sagabiografen, biblioteket, Silvénska villan, bygdegårdar … |
+| [Kils kommun](https://kil.se/arkiv/evenemang) | Kommunens evenemangskalender (HTML) | Evenemang i Kil: biblioteket, konserter, barnaktiviteter … |
 
 Samma evenemang från flera källor slås ihop och visas en gång, med länkar till alla källor. Källornas ordning i
 tabellen är också deras prioritet vid sammanslagningen.
@@ -33,7 +35,13 @@ Säsongen 2026/27 är det IF Boltic (Bandyallsvenskan herr) och Slottsbron IF (t
 och på sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
 `/api/health`.
 
-**Webbsidor utan API:** Profixio (bandy), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF och Svemo saknar API, så
+**Kommunerna:** Säffles och Kils kommuner har egna evenemangskalendrar, som inte är kopplade till Visit Värmland. De
+visas som **en** källa, *Kommunerna*. Säffles kalender ger datum utan år, så året räknas fram (listan har bara
+tillfällen som inte är slut). Kils kalender saknar plats och kategori, så kategorierna tas ur titeln. Återkommande
+tillfällen (t.ex. Babytorsdag) blir ett evenemang med flera tillfällen. Karlstads och Hammarö kommuns kalendrar
+visar Visit Värmlands evenemang och behövs inte, och det gäller även Sunne (Sagolika Sunne) och Grums.
+
+**Webbsidor utan API:** Profixio (bandy), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
 
@@ -54,6 +62,8 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
 | Svensk Bilsport (SBF) | cirka 12 | Alla kommande tävlingar i Sverige, 50 per sida. Sidbyte med postback, 1,5 s paus mellan sidorna. |
 | Svemo | cirka 3 | Datumfiltret fungerar inte där, så bara första sidan, sista sidan och sidorna bakåt till dagens datum läses. |
+| Säffle kommun | 1 | Kalenderns lista som JSON, alla kommande tillfällen i ett anrop. |
+| Kils kommun | 1–2 | Kalendersidan, 25 evenemang per sida. |
 
 Evenemangens **bilder** hämtas inte vid uppdateringen, utan först när någon visar dem. De sparas sedan på servern,
 och högst 4 bilder hämtas samtidigt. Se [Bilder via appen](data-och-integritet.md#bilder-via-appen).

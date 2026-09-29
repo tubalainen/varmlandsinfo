@@ -6,6 +6,14 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Två nya källor, som visas som en källa, *Kommunerna*: Säffles och Kils egna evenemangskalendrar, med evenemang som
+  inte finns hos Visit Värmland (till exempel Medis, Sagabiografen och biblioteken). Säffle hämtas med ett anrop och
+  Kil med ett eller två (#79).
+
+### Ändrat
+- När samma evenemang finns i flera källor fylls kommunen i från en annan källa om den första saknar den (#79).
+
 ### Dokumentation
 - CLAUDE.md beskriver att grenar inte kan tas bort från Claudes molnmiljö och hur städningen görs i stället (#78).
 
