@@ -82,21 +82,21 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-09-29, efter v0.28.2)
+## Återuppta arbetet (senast uppdaterat 2026-09-29, efter v0.29.0)
 
-Läs detta först i en ny session. Senaste releasen är **v0.28.2**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.29.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1) och arkitekturbilden med 13 källor och
-  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll (#82, pushad men inte släppt ännu).
+  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll med arkitekturbilden med 14 källor (#82, v0.29.0).
 - **Öppet:** inga issues.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
   "Medis stora scen" utan Medis i titeln kommer inte med. Gäller alla platser och fanns före #79.
 
-## Läget (v0.28.2, 2026-09-29)
+## Läget (v0.29.0, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
