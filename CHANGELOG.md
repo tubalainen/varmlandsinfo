@@ -12,6 +12,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   värmländska lagens egna sidor (2 anrop per lag), och letar upp lagen en gång i veckan. Fråga AI förstår
   handboll (#82).
 
+### Dokumentation
+- Arkitekturbilden visar 14 källor (med Handboll) (#82).
+
 ## [0.28.2] - 2026-09-29
 
 ### Dokumentation
