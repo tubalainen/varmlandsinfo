@@ -31,7 +31,8 @@ aktuella när något ändras.
      via push till `main` är därför vägen. Höj aldrig versionen utan att användaren bett om en release.
 6. **Ingen `edge`.** Images publiceras bara vid release.
 7. **Städa efter varje release.** När releasen är klar och flödet **Release** är grönt:
-   - inga öppna PR:er eller kvarglömda grenar (utöver `main`) ska finnas
+   - inga öppna PR:er eller kvarglömda grenar (utöver `main`) ska finnas. Grenar kan inte tas bort från molnmiljön
+     (se Lärdomar), så kontrollera att de redan finns i `main` och be användaren ta bort dem
    - alla issues som ingår i releasen är stängda (`completed`), och övriga inaktuella issues stängs
      med motivering (`not_planned`)
    - inga väntande påminnelser eller bevakningar ligger kvar
@@ -221,6 +222,11 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`
   i en `until`-loop tills CI, Publicera Docker-image och Release är klara.
+- **Grenar kan inte tas bort från molnmiljön** (#78): `git push origin --delete` bryter anslutningen ("remote end hung
+  up") och GitHub-verktygen saknar borttagning av grenar. Kontrollera att grenen redan finns i `main`
+  (`git merge-base --is-ancestor <sha> origin/main`) och be användaren ta bort den under *Branches* på GitHub.
+- **Sessionsgrenen** (`claude/…`) ska inte pushas, eftersom den då blir en kvarglömd gren. Arbeta på `main` lokalt
+  (`git checkout -B main origin/main`), så varnar inte stoppkontrollen för opushade commits.
 - **Bandy** (`sources/bandy.py`, #72): Profixio (Laravel Livewire). API:t kräver nyckel, så de publika sidorna läses:
   tävlingslistan `/lx/SBF?t=competitions` (säsongens serier, id byts varje säsong), seriens spelschema
   `/lx/competition/leagueid<id>?t=schedule` (25 kommande matcher plus lagen) och nästa sida med ett Livewire-anrop

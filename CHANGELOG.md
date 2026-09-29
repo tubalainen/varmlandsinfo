@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- CLAUDE.md beskriver att grenar inte kan tas bort från Claudes molnmiljö och hur städningen görs i stället (#78).
+
 ## [0.27.0] - 2026-09-29
 
 ### Ändrat
