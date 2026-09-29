@@ -107,6 +107,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - **Städning** (`events.purge_old`, `main.cleanup`): efter morgonkörningen (05:00) och vid start tas data från före
   morgonkörningen bort, liksom avstängda källors filer, inaktuella AI-svar och gårdagens chattsamtal. En källa som
   fallerar på morgonen får två nya försök (5 min) innan dess data tas bort.
+- **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
+  ansvar för funktionen) och Framtagen med Claude Code. Nya källor ska läggas till i listan över källor där.
 - **Dokumentation:** README har skärmdumpar i `docs/screenshots/` som skapas med `tools/readme-screenshots.mjs`
   (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras synligt.
 

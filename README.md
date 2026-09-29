@@ -8,6 +8,8 @@ med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
 med länkar till alla källor.
 
+Appen är öppen källkod under [MIT-licensen](LICENSE). Se [Licens och ansvar](#licens-och-ansvar).
+
 ![Evenemangslistan med filter, kategorier i bokstavsordning och källornas status](docs/screenshots/lista.jpg)
 
 | Kalendern (mörkt läge) | Fråga AI |
@@ -384,5 +386,30 @@ Dockerfile
 docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID
 docker-compose.yaml
 .env.example
+LICENSE               MIT-licensen
 data/                 Sparad data (skapas vid körning, ingår inte i git)
 ```
+
+## Licens och ansvar
+
+Värmlandsinfo är öppen källkod under [MIT-licensen](LICENSE). Du får använda, kopiera, ändra och dela koden fritt,
+så länge licenstexten följer med.
+
+**Källornas innehåll:** appen gör inga anspråk på innehållet från källorna. Texter, bilder och uppgifter om
+evenemangen tillhör respektive källa och upphovsperson (Visit Värmland, Ticketmaster, Karlstad CCC, Scalateatern,
+SHL, Great Event, Karlstad Loppis, loppisar.com, Svensk Bilsport och Svemo). Appen visar ett urval och länkar till
+källan för varje evenemang. Kontrollera alltid tider och andra uppgifter hos arrangören eller källan.
+
+**Inget ansvar:** appen levereras i befintligt skick, utan garantier av något slag. Inget som helst ansvar tas för
+appens funktion, för att uppgifterna stämmer eller är aktuella, för AI-chattens svar eller för följderna av att
+använda appen. Se licensen för den fullständiga texten.
+
+## Framtagen med Claude Code
+
+Värmlandsinfo är framtagen med hjälp av [Claude Code](https://claude.com/claude-code), Anthropics AI-assistent för
+programmering. Idéer, krav och beslut kommer från projektets ägare. Claude Code har skrivit det mesta av koden,
+testerna och dokumentationen, och arbetar efter issues på GitHub, kör testerna och följer upp CI och releaser.
+Arbetssättet och projektets minne mellan sessionerna finns i [CLAUDE.md](CLAUDE.md).
+
+Claude används bara för att utveckla appen. AI-chatten i appen använder en egen Ollama-server, och inga frågor
+skickas till Claude eller någon annan AI-tjänst i molnet.
