@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-09-29
+
 ### Tillagt
 - Besöksstatistik på den dolda sidan `/besoksinfo`, skyddad med lösenordet `BESOKSINFO_PASSWORD` (av som standard):
   unika besökare per dygn utan cookies, sidvisningar, land och ort (DB-IP:s fria databas, uppslagen lokalt), enhet,
@@ -311,7 +313,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.1...v0.20.0
