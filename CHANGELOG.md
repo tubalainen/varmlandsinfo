@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Bandy: källan gav 0 matcher (och filtret Bandy saknades) när Profixio svarade på svenska, vilket det gör från en
+  server i Sverige. Tolkningen klarar nu både svenska och engelska, källan begär svenska, och matcher som inte går att
+  tolka ger ett tydligt fel i stället för 0 matcher (#74).
+
 ## [0.25.0] - 2026-09-29
 
 ### Ändrat

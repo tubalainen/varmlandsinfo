@@ -221,6 +221,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `/lx/competition/leagueid<id>?t=schedule` (25 kommande matcher plus lagen) och nästa sida med ett Livewire-anrop
   (`__lazyLoad` på komponenten `infinite-scroll-next-page`, med sidans `csrf-token` och cookies). Lagsidor visar bara
   15 matcher och de gamla `/fx/`-sidorna ligger bakom Cloudflare. Avspark från `registerMatch(... kickoff: <unix>)`.
+  **Språket** väljs efter besökaren: från Sverige svenska ("Omgång 1", "16 okt • 19:00"), via molnmiljöns proxy
+  engelska ("Runde 1", "Oct 16 • 19:00"). Källan begär `Accept-Language: sv` och tolkningen klarar båda (#74).
+  Testa alltid tolkningen mot svenska sidor.
   Läget: `PLACES` i `bandy.py` (arenor och klubbar) och motorsportens orter och kommuner. Seniorer och
   träningsmatcher, inte ungdom (`YOUTH_RE`: U17, F15, flick …, men "Katrineholm Bandy U" är ett utvecklingslag).
   2026/27: IF Boltic (Bandyallsvenskan herr, Tingvalla) och Slottsbron IF (träningsmatcher Mellansverige).

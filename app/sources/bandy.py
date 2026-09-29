@@ -32,6 +32,9 @@ COMPETITIONS_URL = f"{BASE}/lx/SBF?t=competitions"
 PAGE_DELAY = 2                   # sekunder mellan anropen
 MAX_PAGES = 12                   # sidor à 25 matcher per serie
 DISCOVER_DAYS = 7                # så ofta serierna och deras lag gås igenom
+# Profixio väljer språk efter besökaren (svenska från Sverige, annars ofta engelska). Svenska begärs alltid, och
+# tolkningen klarar båda.
+HEADERS = {"Accept-Language": "sv"}
 
 # Seniorserier: nationella serier och cuper, och distrikt Mellansveriges serier och träningsmatcher (Värmland hör
 # till Mellansverige). Ungdom, junior och andra distrikt räknas inte.
@@ -87,7 +90,9 @@ def parse_teams(page: str) -> list[str]:
     return sorted(n for n in names if n)
 
 
-DATE_LINE = re.compile(r"^[A-Z][a-z]{2} \d{1,2} • \d{2}:\d{2}$")
+# Raden med datum och tid: "16 okt • 19:00" (svenska) eller "Oct 16 • 19:00" (engelska). Tiden tas ur tidsstämpeln.
+DATE_LINE = re.compile(r"•\s*\d{1,2}[:.]\d{2}$")
+ROUND_RE = re.compile(r"^(?:Omgång|Runde|Round)\s+(\d+)$", re.I)
 
 
 def parse_matches(page: str) -> list[dict]:
@@ -102,13 +107,21 @@ def parse_matches(page: str) -> list[dict]:
         block = part[part.find("mc_mini_"):] if "mc_mini_" in part else part
         arena = re.search(r'/facility/\d+"\s*>\s*(.*?)\s*</a>', block, re.S)
         lines = _lines(block[block.find(">") + 1:])
-        i = next((n for n, x in enumerate(lines) if DATE_LINE.match(x)), None)
+        i = next((n for n, x in enumerate(lines) if DATE_LINE.search(x)), None)
         if not kickoff or i is None or len(lines) < i + 5 or lines[i + 2] != "-":
             continue
-        rnd = next((re.match(r"Runde (\d+)$", x).group(1) for x in lines[:i] if re.match(r"Runde \d+$", x)), None)
+        rnd = next((m.group(1) for m in map(ROUND_RE.match, lines[:i]) if m), None)
         matches.append({"id": head.group(1), "kickoff": int(kickoff.group(1)),
                         "arena": " ".join(_lines(arena.group(1))) if arena else None,
                         "home": lines[i + 1], "away": lines[i + 4], "round": rnd})
+    return matches
+
+
+def parse_checked(page: str, source: str) -> list[dict]:
+    """parse_matches, men ett tydligt fel när sidan har matcher som inte går att tolka (i stället för 0 matcher)."""
+    matches = parse_matches(page)
+    if not matches and "registerMatch(" in page:
+        raise SourceError(f"Kunde inte tolka matcherna hos {source}, sidans struktur kan ha ändrats")
     return matches
 
 
@@ -142,8 +155,8 @@ class Bandy:
         url = f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule"
         if page is None:
             await asyncio.sleep(PAGE_DELAY)
-            page = await get_text(client, url, self.title)
-        matches = parse_matches(page)
+            page = await get_text(client, url, self.title, HEADERS)
+        matches = parse_checked(page, self.title)
         token = re.search(r'name="csrf-token" content="([^"]+)"', page)
         update = re.search(r'data-update-uri="([^"]+)"', page)
         for _ in range(MAX_PAGES - 1):
@@ -154,12 +167,12 @@ class Bandy:
             await asyncio.sleep(PAGE_DELAY)
             data = await post_json(client, update.group(1), {"_token": token.group(1), "components": [
                 {"snapshot": snapshot, "updates": {}, "calls": [{"path": "", "method": "__lazyLoad", "params": [param]}]}]},
-                self.title, headers={"X-Livewire": "1", "Referer": url})
+                self.title, headers={"X-Livewire": "1", "Referer": url, **HEADERS})
             try:
                 page = data["components"][0]["effects"]["html"]
             except (KeyError, IndexError, TypeError):
                 raise SourceError(f"Oväntat svar från {self.title} vid nästa sida, sidans struktur kan ha ändrats")
-            found = parse_matches(page)
+            found = parse_checked(page, self.title)
             if not found:
                 break
             matches += found
@@ -167,16 +180,16 @@ class Bandy:
 
     async def _discover(self, client: httpx.AsyncClient) -> tuple[list[dict], dict[str, str]]:
         """Seniorserierna med lag från Värmland, och första sidan av deras spelschema (för att slippa hämta den igen)."""
-        listing = await get_text(client, COMPETITIONS_URL, self.title)
+        listing = await get_text(client, COMPETITIONS_URL, self.title, HEADERS)
         leagues = [x for x in parse_leagues(listing) if senior_league(x["name"])]
         if not leagues:
             raise SourceError(f"Hittade inga serier hos {self.title}, sidans struktur kan ha ändrats")
         found, first_pages = [], {}
         for league in leagues:
             await asyncio.sleep(PAGE_DELAY)
-            page = await get_text(client, f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule", self.title)
+            page = await get_text(client, f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule", self.title, HEADERS)
             teams = [t for t in parse_teams(page) if not youth(t) and municipality(None, t)]
-            arenas = any(municipality(m["arena"], None) for m in parse_matches(page))
+            arenas = any(municipality(m["arena"], None) for m in parse_checked(page, self.title))
             if teams or arenas:
                 found.append({**league, "teams": teams})
                 first_pages[league["id"]] = page

@@ -20,8 +20,14 @@ def kickoff(day: date, hhmm: str) -> int:
     return int(datetime(day.year, day.month, day.day, h, m, tzinfo=TZ).timestamp())
 
 
-def match(mid, day, hhmm, home, away, arena="Tingvalla Isstadion", rnd="1"):
-    """Ett matchblock som på Profixios publika sidor (förenklat men med samma struktur)."""
+SV_MONTHS = ["jan", "feb", "mars", "apr", "maj", "juni", "juli", "aug", "sep", "okt", "nov", "dec"]
+
+
+def match(mid, day, hhmm, home, away, arena="Tingvalla Isstadion", rnd="1", lang="en"):
+    """Ett matchblock som på Profixios publika sidor (förenklat men med samma struktur). Profixio väljer språk efter
+    besökaren: engelska ("Runde 1", "Oct 16 • 19:00") eller svenska ("Omgång 1", "16 okt • 19:00")."""
+    when = (f"{day.day} {SV_MONTHS[day.month - 1]}" if lang == "sv" else f"{day.strftime('%b')} {day.day}")
+    runde = "Omgång" if lang == "sv" else "Runde"
     facility = f'<a class="text-blue-950" href="https://www.profixio.com/app/lx/SBF/facility/5766">\n {arena}\n</a>' if arena else ""
     return f'''<div x-data="{{ init() {{ $store.matches.registerMatch(
       {mid},
@@ -30,9 +36,9 @@ def match(mid, day, hhmm, home, away, arena="Tingvalla Isstadion", rnd="1"):
     ); }} }}" class="flex flex-col h-full"
      wire:key="mc_mini_{mid}"
     >
-      <div>Runde {rnd}</div><div>•</div><div class="hidden">Bandyallsvenskan He</div>
+      <div>{runde} {rnd}</div><div>•</div><div class="hidden">Bandyallsvenskan He</div>
       {facility}
-      <div class="flex">{day.strftime("%b")} {day.day} • {hhmm}</div>
+      <div class="flex">{when} • {hhmm}</div>
       <div>{home}</div><div>-</div><div>{hhmm}</div><div>{away}</div>
       <div>Finished</div><a href="https://www.profixio.com/app/lx/match/{mid}">Matchinfo</a>
     </div>'''
@@ -86,6 +92,27 @@ def test_parse_matches_and_teams():
     assert parse_teams(page) == ["IF Boltic", "Nässjö IF"]
 
 
+def test_parse_swedish_pages():
+    """Från en server i Sverige svarar Profixio på svenska (#74)."""
+    ms = parse_matches(schedule_page([match(1, DAY, "19:00", "IF Boltic", "Djurgårdens IF Bandy", lang="sv", rnd="3")]))
+    assert [(m["home"], m["away"], m["round"], m["arena"]) for m in ms] == [
+        ("IF Boltic", "Djurgårdens IF Bandy", "3", "Tingvalla Isstadion")]
+    e = normalize_match({**ms[0], "league": "Bandyallsvenskan Herr"})
+    assert e["next"]["date_start"] == DAY.isoformat() and e["next"]["time_start"] == "19:00"
+
+
+def test_unparsable_matches_give_a_clear_error():
+    page = schedule_page([match(1, DAY, "19:00", "IF Boltic", "Djurgårdens IF Bandy")]).replace(" • ", " – ")
+    assert parse_matches(page) == []
+    try:
+        bandy.parse_checked(page, "Bandy")
+    except Exception as exc:
+        assert "tolka" in str(exc)
+    else:
+        raise AssertionError("inget fel")
+    assert bandy.parse_checked(schedule_page([]), "Bandy") == []        # inga matcher alls är inget fel
+
+
 def test_normalize_home_games_in_varmland_only():
     home, away = parse_matches(schedule_page([match(1, DAY, "19:00", "IF Boltic", "Djurgårdens IF Bandy"),
                                               match(2, DAY, "15:00", "Nässjö IF", "IF Boltic", arena="Stinsen Arena")]))
@@ -131,6 +158,7 @@ def test_fetch_discovers_leagues_and_reads_next_pages(monkeypatch):
 
     def handler(request):
         url = str(request.url)
+        assert request.headers["Accept-Language"] == "sv"
         if request.method == "POST":
             body = json.loads(request.content)
             assert body["_token"] == "TOKEN" and request.headers["X-Livewire"] == "1"

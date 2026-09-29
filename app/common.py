@@ -116,10 +116,10 @@ async def get_json(client: httpx.AsyncClient, url: str, source: str, **params) -
     raise SourceError(f"{source} svarar fortsatt 429 (Too Many Requests)")
 
 
-async def get_text(client: httpx.AsyncClient, url: str, source: str) -> str:
+async def get_text(client: httpx.AsyncClient, url: str, source: str, headers: dict | None = None) -> str:
     """GET av en HTML-sida (för källor utan API)."""
     try:
-        r = await client.get(url, headers={"Accept": "text/html"}, follow_redirects=True)
+        r = await client.get(url, headers={"Accept": "text/html", **(headers or {})}, follow_redirects=True)
     except httpx.HTTPError as exc:
         raise SourceError(f"Kunde inte nå {source}: {type(exc).__name__}") from None
     stats["api_calls"] += 1
