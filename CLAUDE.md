@@ -43,7 +43,7 @@ aktuella när något ändras.
 - Köra lokalt: `cd app && DATA_DIR=/tmp/data uvicorn main:app --port 8080`
 - Docker: `docker compose up -d --build`. Porten på värden är 7799.
 - Inställningar finns i `.env` (mall: `.env.example`). Nya inställningar ska in i `.env.example`,
-  `docker-compose.yaml` och README.
+  `docker-compose.yaml` och `docs/installation.md` (de viktigaste även i README).
 - **Gränssnittet ska fungera i både ljust och mörkt läge.** Använd färgvariablerna i `style.css`
   (`--text`, `--muted`, `--accent`, `--on-accent`, `--danger` …) och aldrig fast vit text på färgad
   bakgrund. Kör `node tools/contrast-check.mjs` mot en körande app efter ändringar i gränssnittet. Den
@@ -67,7 +67,8 @@ aktuella när något ändras.
   AI-svar (`/data/chat_cache.json`). `app/sessions.py`: samtal i Fråga AI (en session per flik, historiken på
   servern, bara i minnet, så appen ska köras som en process). `app/websearch.py`: valfri webbsökning via SearXNG
   för AI-frågor
-- `app/main.py`: FastAPI-rutter och schemaläggning. `app/access.py`: vad som bara får anropas lokalt och spärren per IP
+- `app/main.py`: FastAPI-rutter, schemaläggning och städning (`cleanup`). `app/access.py`: vad som bara får anropas
+  lokalt och spärren per IP. `app/images.py`: bilderna via appen (`/img/<nyckel>`)
 - `app/static/`: gränssnittet. `app.js` sköter navigering (`#/lista`, `#/kalender`, `#/fraga`, `#/om`), filter
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
@@ -104,22 +105,34 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
      frågan nämner ett evenemang, en plats eller en arrangör i appen.
   3. Kön till Ollama (högst 2 samtidigt), sessioner per flik och sparade svar (`chat_cache.py`).
   4. Valfri SearXNG (`websearch.py`, `SEARXNG_URL`).
-- **Städning** (`events.purge_old`, `main.cleanup`): efter morgonkörningen (05:00) och vid start tas data från före
-  morgonkörningen bort, liksom avstängda källors filer, inaktuella AI-svar och gårdagens chattsamtal. En källa som
-  fallerar på morgonen får två nya försök (5 min) innan dess data tas bort.
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
   (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: spärrarna gäller bara frågor som går
   till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per 30 minuter och session och
   `chat_limiter`, 20 per 30 minuter och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer
   från en lokal adress).
   Gränssnittet får aldrig börja använda `/api/health` eller `/api/refresh`, eftersom de nekas utifrån.
+- **Bilder via appen** (`images.py`, #60): `/api/events` ger `/img/<nyckel>` (hash av källans adress). Bara adresser
+  som finns i evenemangen, bara publika värdar (även vid omdirigering), bara riktiga bilder (JPEG, PNG, GIF, WebP,
+  AVIF, högst 10 MB, kontrolleras mot innehållet). Hämtas vid första visningen och sparas i `data/images/`, högst 4
+  samtidigt. Sidan har `Content-Security-Policy: img-src 'self' data:` och `referrer` `no-referrer`, så webbläsaren
+  kontaktar aldrig källorna. Nya källor med bilder behöver inget extra.
+- **Städning** (`main.cleanup`, `events.purge_old`): körs efter varje hämtning från källorna (även `POST /api/refresh`)
+  och vid start, aldrig oftare (användarens beslut). Rensar källdata från före morgonkörningen (05:00) och från
+  avstängda källor, inaktuella AI-svar, bilder utan evenemang och `.tmp`-filer, utgångna samtal, IP-adresser i
+  spärren och, efter morgonkörningen, alla chattsamtal. En källa som fallerar på morgonen får två nya försök (5 min)
+  innan dess data tas bort. Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
+  Ny lagrad data ska rensas där när den blir inaktuell, och läggas till i tabellen i `docs/data-och-integritet.md`.
 - **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`) och `sessionStorage` (`chat-session`).
-  Beskrivs i README och på sidan Om (Cookies och lagring). Nya värden i webbläsarens lagring ska läggas till där.
+  Beskrivs i `docs/data-och-integritet.md` och på sidan Om (Cookies och lagring). Nya värden ska läggas till där.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
-  byggs av appens källor). Nya källor ska läggas till i listan över källor i README.
-- **Dokumentation:** README har skärmdumpar i `docs/screenshots/` som skapas med `tools/readme-screenshots.mjs`
-  (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras synligt.
+  byggs av appens källor). Nya källor ska läggas till i README (Funktioner) och i `docs/kallor.md`.
+- **Dokumentation** (#61): README är kort och konkret (vad, skärmdumpar, kom igång, viktigaste inställningarna,
+  länkar, licens, Claude Code). Detaljerna finns i `docs/` (`README.md` är innehållsförteckningen): `installation.md`,
+  `funktioner.md`, `kallor.md`, `fraga-ai.md`, `data-och-integritet.md`, `api.md`, `utveckling.md`. Nytt innehåll
+  läggs i rätt dokument i `docs/`, inte i README. Skärmdumparna i `docs/screenshots/` skapas med
+  `tools/readme-screenshots.mjs` (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras
+  synligt.
 
 ## Beslut och önskemål från användaren (gäller framåt)
 
@@ -134,6 +147,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
 - Fråga AI: högst 5 frågor till AI:n per 30 minuter och samtal och 20 per 30 minuter och IP-adress. Frågor som
   besvaras utan AI (sökfrågor, sparade svar, stoppade frågor) ska aldrig begränsas.
+- All lagrad data ska rensas när den blir inaktuell, men bara i samband med hämtningarna från källorna (och vid
+  start). Ingen återkommande städning utöver det.
+- Bilderna visas via appen, så att källorna aldrig ser besökarna.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
 - Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna
@@ -153,9 +169,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   utan en säker stoppmekanism (`timeout`).
 - **Webbläsarprov:** Playwright finns globalt: `NODE_PATH=$(npm root -g) node skript.mjs` (i ESM via
   `createRequire`). Kontrastkontrollen: `NODE_PATH=$(npm root -g) node tools/contrast-check.mjs`.
-- **Skärmdumpar med riktiga bilder:** externa bilder nås bara via miljöns proxy, och Playwright skickar då även
-  localhost genom proxyn. Kör appen med `--host 0.0.0.0` och
-  `SCREENSHOT_PROXY=$HTTPS_PROXY node tools/readme-screenshots.mjs http://$(hostname -I | awk '{print $1}'):8080`.
+- **Skärmdumpar med riktiga bilder:** bilderna visas via appen, och appen hämtar dem genom miljöns proxy (httpx
+  följer `HTTPS_PROXY`). Kör `NODE_PATH=$(npm root -g) node tools/readme-screenshots.mjs http://localhost:8080`.
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`
   i en `until`-loop tills CI, Publicera Docker-image och Release är klara.

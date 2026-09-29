@@ -13,6 +13,12 @@ services:
       - ${VARMLANDSINFO_DATA:-./data}:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Loggen roteras: högst 3 filer à 10 MB, äldre rader tas bort
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # Värden nedan kan sättas i en .env-fil bredvid denna fil (se .env.example)
     environment:
       TZ: ${TZ:-Europe/Stockholm}

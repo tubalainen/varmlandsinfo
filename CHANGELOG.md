@@ -6,6 +6,20 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Evenemangens bilder visas via appen (`/img/…`), så att källornas bildservrar aldrig ser besökarna. Bilderna hämtas
+  på serversidan första gången de visas och sparas i `data/images/`. Bara bilder som finns i evenemangen, bara
+  publika värdar och bara riktiga bilder släpps igenom. Sidan tillåter bara bilder från appen själv, och länkar till
+  källorna skickar inte med att besökaren kommer från appen (#60)
+- All lagrad data rensas när den blir inaktuell, i samband med varje hämtning från källorna (även `POST /api/refresh`)
+  och vid start: även utgångna chattsamtal, IP-adresser i spärren för Fråga AI och halvfärdiga bildfiler.
+  Webbserverns åtkomstlogg är avstängd, så besökarnas IP-adresser hamnar inte i loggen, och Dockers logg roteras
+  (3 filer à 10 MB) (#62)
+
+### Dokumentation
+- Kortfattad README, och detaljerna i `docs/`: installation, funktioner, källor, Fråga AI, data och integritet, API
+  och utveckling (#61)
+
 ## [0.21.0] - 2026-09-29
 
 ### Ändrat

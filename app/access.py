@@ -63,6 +63,18 @@ class IpLimiter:
         self._hits: dict[str, list[float]] = {}
         self._lock = threading.Lock()
 
+    def __len__(self) -> int:
+        return len(self._hits)
+
+    def prune(self) -> int:
+        """Glömmer adresser vars anrop alla är äldre än fönstret (IP-adresser sparas inte längre än så)."""
+        with self._lock:
+            now = self.clock()
+            old = [k for k, v in self._hits.items() if not v or now - v[-1] >= self.window]
+            for k in old:
+                del self._hits[k]
+            return len(old)
+
     def wait(self, key: str) -> float:
         """Sekunder tills nyckeln får göra nästa anrop (0 = nu). Räknar inte anropet."""
         with self._lock:
@@ -80,10 +92,10 @@ class IpLimiter:
                 return False
             hits.append(now)
             self._hits[key] = hits
-            if len(self._hits) > MAX_TRACKED_IPS:
-                for k in [k for k, v in self._hits.items() if not v or now - v[-1] >= self.window]:
-                    del self._hits[k]
-            return True
+            full = len(self._hits) > MAX_TRACKED_IPS
+        if full:
+            self.prune()
+        return True
 
 
 chat_limiter = IpLimiter()

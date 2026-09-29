@@ -11,13 +11,14 @@ from datetime import datetime, time, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import access
 import chat
 import events
+import images
 import sessions
 from common import TZ, stats
 from version import RELEASE_URL, REPO_URL, __version__
@@ -92,10 +93,16 @@ def failed_sources() -> list[str]:
 
 
 def cleanup(now: datetime, conversations: bool = False) -> None:
-    """Städar bort gammal data: källdata från före den senaste morgonkörningen (och från avstängda källor),
-    inaktuella AI-svar och, efter morgonkörningen, gårdagens chattsamtal."""
+    """Städar bort inaktuell data. Körs efter varje hämtning från källorna och vid start:
+    källdata från före den senaste morgonkörningen (och från avstängda källor), inaktuella AI-svar, bilder som inte
+    hör till något evenemang, samtal som inte använts på 2 timmar, IP-adresser som inte längre räknas i spärren för
+    Fråga AI och, efter morgonkörningen, gårdagens chattsamtal."""
     events.purge_old(last_daily_run(now))
     chat.prune_cache(events.today(), events.state["updated"])
+    if n := image_proxy.prune(events.state["events"]):
+        log.info("Rensade %d bilder som inte hör till något evenemang", n)
+    sessions.store.expire()
+    access.chat_limiter.prune()
     if conversations and (n := sessions.store.clear()):
         log.info("Rensade %d chattsamtal", n)
 
@@ -185,9 +192,30 @@ def status() -> dict:
     }
 
 
+# Bilderna visas via appen (/img/<nyckel>), så att källornas bildservrar aldrig ser besökarna
+image_proxy = images.ImageProxy(events.DATA_DIR / "images")
+IMAGE_KEY = re.compile(r"[0-9a-f]{32}")
+
+
 @app.get("/api/events")
 async def get_events():
-    return {**status(), "today": events.today().isoformat(), "events": events.current_events()}
+    image_proxy.register(events.state["events"])
+    return {**status(), "today": events.today().isoformat(),
+            "events": image_proxy.rewrite(events.current_events())}
+
+
+@app.get("/img/{key}", include_in_schema=False)
+async def image(key: str):
+    """En evenemangsbild. Bara bilder som finns i appens evenemang kan hämtas."""
+    if not IMAGE_KEY.fullmatch(key):
+        return Response(status_code=404)
+    image_proxy.register(events.state["events"])
+    hit = await image_proxy.get(key)
+    if not hit:
+        return Response(status_code=404, headers={"Cache-Control": "no-store"})
+    data, kind = hit
+    return Response(data, media_type=kind,
+                    headers={"Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff"})
 
 
 @app.get("/api/health", dependencies=[Depends(access.require_local)])
@@ -198,6 +226,8 @@ async def health():
 @app.post("/api/refresh", dependencies=[Depends(access.require_local)])
 async def refresh():
     message = await events.manual_refresh()
+    if not message:                     # städningen görs efter varje hämtning
+        cleanup(datetime.now(TZ))
     return {**status(), "message": message}
 
 
@@ -317,7 +347,9 @@ INDEX_HTML = _render_index()
 
 @app.get("/")
 async def index():
-    return HTMLResponse(INDEX_HTML, headers={"Cache-Control": "no-cache"})
+    # Bilder bara från appen själv: webbläsaren ska aldrig hämta något från källorna
+    return HTMLResponse(INDEX_HTML, headers={"Cache-Control": "no-cache",
+                                             "Content-Security-Policy": "img-src 'self' data:"})
 
 
 @app.get("/favicon.ico", include_in_schema=False)

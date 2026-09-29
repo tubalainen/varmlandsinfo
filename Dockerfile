@@ -24,4 +24,5 @@ HEALTHCHECK --interval=60s --timeout=5s --start-period=20s \
 
 # Entrypointen startar som root bara för att ge /data rätt ägare och byter sedan till PUID:PGID
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]
+# Ingen åtkomstlogg: besökarnas IP-adresser ska inte sparas i loggen. Appens egen logg finns kvar.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers", "--no-access-log"]

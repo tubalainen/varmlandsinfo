@@ -63,7 +63,7 @@ npm i -g playwright            # en gång
 node tools/contrast-check.mjs http://localhost:8080
 ```
 
-## Skärmdumparna i README
+## Skärmdumparna i README och docs/
 
 Bilderna i `docs/screenshots/` skapas av ett skript. Kör det mot en app med riktig evenemangsdata, efter
 ändringar som syns i gränssnittet:
@@ -72,9 +72,9 @@ Bilderna i `docs/screenshots/` skapas av ett skript. Kör det mot en app med rik
 node tools/readme-screenshots.mjs http://localhost:8080
 ```
 
-Granska bilderna innan de checkas in. Inga privata adresser (t.ex. Ollama-adressen) får synas. Bakom en proxy
-som bryter upp HTTPS laddas evenemangsbilderna med `SCREENSHOT_PROXY=http://värd:port`. Appen måste då nås via
-en adress som inte är `localhost`, eftersom Playwright annars skickar även den genom proxyn.
+Granska bilderna innan de checkas in. Inga privata adresser (t.ex. Ollama-adressen) får synas. Evenemangsbilderna
+visas via appen, så webbläsaren behöver bara nå appen. Appen hämtar bilderna från källorna och följer då miljöns
+`HTTPS_PROXY`.
 
 ## Köra tester lokalt
 

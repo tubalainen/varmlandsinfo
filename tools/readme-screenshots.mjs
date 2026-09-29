@@ -1,4 +1,4 @@
-// Skärmdumpar till README (docs/screenshots/). Kör mot en app med riktig evenemangsdata:
+// Skärmdumpar till README och docs/ (docs/screenshots/). Kör mot en app med riktig evenemangsdata:
 //
 //   npm i -g playwright            # en gång
 //   node tools/readme-screenshots.mjs [http://localhost:8080]
@@ -6,8 +6,8 @@
 // Fråga AI-bilden använder en sökfråga, så den fungerar utan Ollama. Status-raden visar modellnamnet
 // om Ollama går att nå. Kontrollera alltid bilderna innan de checkas in: inga privata adresser får synas.
 //
-// Bakom en proxy som bryter upp HTTPS (t.ex. i en molnmiljö) laddas evenemangsbilderna via
-// SCREENSHOT_PROXY=http://värd:port.
+// Evenemangsbilderna visas via appen (/img/…), så webbläsaren behöver bara nå appen. Appen hämtar bilderna
+// från källorna och följer då miljöns HTTPS_PROXY.
 
 import { mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -19,11 +19,10 @@ const base = (process.argv[2] || "http://localhost:8080").replace(/\/$/, "");
 const out = new URL("../docs/screenshots/", import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
 
-const proxy = process.env.SCREENSHOT_PROXY;
-const browser = await chromium.launch(proxy ? { proxy: { server: proxy, bypass: new URL(base).hostname } } : {});
+const browser = await chromium.launch();
 
 async function page(name, { scheme = "light", width = 1400, height = 900, route, prepare }) {
-  const ctx = await browser.newContext({ colorScheme: scheme, viewport: { width, height }, ignoreHTTPSErrors: !!proxy,
+  const ctx = await browser.newContext({ colorScheme: scheme, viewport: { width, height },
                                          locale: "sv-SE", timezoneId: "Europe/Stockholm" });
   const p = await ctx.newPage();
   // Bilderna som syns ska vara laddade. Misslyckas någon laddas sidan om (högst tre försök).

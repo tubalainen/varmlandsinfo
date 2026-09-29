@@ -2,110 +2,27 @@
 
 # Värmlandsinfo
 
-En liten webbapp i Docker som visar en översikt över **aktuella evenemang i Värmland** i datumordning,
-med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
-
-Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
-med länkar till alla källor.
-
-Appen är öppen källkod under [MIT-licensen](LICENSE). Se [Licens och ansvar](#licens-och-ansvar).
+En webbapp i Docker som samlar **aktuella evenemang i Värmland** från flera källor på ett ställe: som lista, i en
+kalender och via **Fråga AI**, en chatt som svarar med hjälp av din egen Ollama. Öppen källkod under
+[MIT-licensen](LICENSE).
 
 ![Evenemangslistan med filter, kategorier i bokstavsordning och källornas status](docs/screenshots/lista.jpg)
 
-| Kalendern (mörkt läge) | Fråga AI |
-|------------------------|----------|
-| ![Kalendern med en vecka per rad och evenemangen färgkodade per typ](docs/screenshots/kalender.jpg) | ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](docs/screenshots/fraga-ai.jpg) |
-
-| Filtret Motorsport | Mobil (mörkt läge) |
-|--------------------|--------------------|
-| ![Filtret Motorsport visar folkrace, rally och enduro från SBF och Svemo](docs/screenshots/motorsport.jpg) | <img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="260"> |
-
-| Källa | Hur | Vad |
-|-------|-----|-----|
-| [Visit Värmland](https://visitvarmland.com/evenemang) | Öppet API (Turid v8) | Evenemang i hela Värmland. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar, som visar ett urval ur samma API. |
-| [Ticketmaster](https://www.ticketmaster.se) | Discovery API v2 (kräver API-nyckel) | Konserter, shower och sport på arenor i Värmland. |
-| [Karlstad CCC](https://www.karlstadccc.se/17/38/program-biljetter/) | Kalendersidan (HTML) | Konserter och shower i Solasalen. |
-| [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
-| [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
-| [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
-| [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
-| [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
-| [Svensk Bilsport (SBF)](https://www.sbf.se/tavlingar/tavlingskalender) | Tävlingskalendern LoTS (HTML) | Bilsport: folkrace, rally, rallycross, crosskart, karting, bilcross, racing, drifting … |
-| [Svemo](https://ta.svemo.se) | Tävlingskalendern Svemo TA (HTML) | MC- och snöskotersport: motocross, enduro, speedway, trial … |
-
-**Motorsport:** SBF och Svemo visas som **en** källa, *Motorsport*. Med kommer publika tävlingar och prova på-dagar i
-Värmland och Karlskoga (som Visit Värmland), men inte träningstillstånd, kurser, besiktningar och tävlingar utan publik.
-Kalendrarna saknar län, så läget avgörs av banans namn (t.ex. Kalvholmens Motorstadion → Karlstad, Hagforsvallen →
-Hagfors) och i andra hand arrangörsklubbens ort. Radiostyrd bilsport, Drivers Open och Ticket to drive räknas inte som
-evenemang.
-
-Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten och på
-sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
-`/api/health`.
-
-CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF och Svemo saknar API, så deras webbsidor läses. Ändras sidornas struktur och inga evenemang
-hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
+| Kalendern (mörkt läge) | Fråga AI | Mobil (mörkt läge) |
+|------------------------|----------|--------------------|
+| ![Kalendern med en vecka per rad och evenemangen färgkodade per typ](docs/screenshots/kalender.jpg) | ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](docs/screenshots/fraga-ai.jpg) | <img src="docs/screenshots/mobil.jpg" alt="Evenemangslistan på mobil i mörkt läge" width="200"> |
 
 ## Funktioner
 
-- **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …). Under varje
-  dag står först evenemangen som bara äger rum en dag och sedan de som har flera datum, t.ex. utställningar och
-  återkommande evenemang. Samma ordning gäller i kalendern.
-- **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen. Kategorifiltren står i
-  bokstavsordning.
-- **Kategorier:** källornas kategorier kompletteras med ordregler i titeln, och i ingressen när källan inte angett
-  någon egen typ. *Film* (bio, filmkvällar), *Spel och quiz* (bingo, quiz, korsord, brädspel, tipspromenader),
-  *Träffar och caféer* (caféträffar, handarbete, språkcafé), *Böcker och litteratur* (bokcirklar, författarbesök,
-  sagostunder) och *Musik* (konserter, gospel, körer) fångas så även när källan bara har en allmän kategori.
-  Visit Värmlands allmänna kategorier *Evenemang* och *Övriga evenemang* blir *Övrigt*, som bara visas när
-  ingen annan kategori passar.
-- **Detaljer:** sammanfattning, längre beskrivning, plats (med länk till Google Maps) och arrangör.
-- **Länkar:** till evenemanget hos källan, samt biljett- och webbplatslänk när sådana finns.
-- **Bilder:** från evenemanget (klicka för att förstora).
-- **Kalender:** en egen sida i menyn. Kalendern visar en månad med en vecka per rad
-  (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka på en dag för att se alla
-  dagens evenemang med bilder och länkar.
-- **Källor:** varje evenemang visar sina källor och har länkar till dem. Det finns ett filter per källa.
-- **Filter:** fritextsök, kategori, kommun, källa och datumintervall. Kommun och källa är flerval, så det går
-  att välja flera samtidigt. Återkommande evenemang visas en gång, på första datumet, med övriga datum i kortet.
-  Med reglaget *Ett kort per datum* visas de i stället som ett eget kort på varje datum.
-- **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
-  Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På datorn kan menyn fällas ihop
-  till en smal list med ikoner. På mobil fälls menyn ut.
-- **Loppis:** loppisar, loppmarknader och second hand har en egen kategori, *Loppis*. Ett
-  evenemang räknas som loppis om titeln nämner det, eller om det är en marknad vars ingress nämner loppis. En
-  loppis behåller marknadskategorin (*Marknad, mässa och auktion*) bara om texten också nämner marknad, mässa
-  eller auktion.
-- **Motorsport:** tävlingar som folkrace, rally, rallycross, crosskart, karting, motocross, enduro och speedway har
-  en egen kategori, *Motorsport*. Visit Värmlands kategori *Motor* heter *Motorträffar* i appen och gäller
-  bil- och MC-träffar, veteranfordon och fordonsutställningar.
-- **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
-  bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
-- **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
-- **Fråga AI:** ställ frågor på vanlig svenska, med förslagskort och snabbval.
-  - Enkla sökfrågor ("När spelar Färjestad nästa gång?") besvaras direkt av appen, utan AI.
-  - Frågor som kräver en bedömning ("Vad passar min 8-åriga son i helgen?") besvaras av din egen Ollama. Svaren
-    strömmas, länkar till evenemangen och visar vilket underlag de bygger på.
-  - Följdfrågor som "och på söndag då?" fungerar.
-  - AI-svar sparas och återanvänds så länge evenemangen inte har ändrats.
-  - Varje flik har ett eget samtal, och flera kan använda chatten samtidigt.
-  - Valfri webbsökning via en egen SearXNG kompletterar AI-svaren med information från webben.
-
-  Se [AI-chatt med Ollama](#ai-chatt-med-ollama).
-- **Ljust och mörkt läge:** sidan följer webbläsarens tema och all text klarar WCAG AA i båda lägena.
-- **Om applikationen:** en sida som beskriver funktionerna och visar källornas status och versionen.
-- **Version:** versionen syns i menyn och länkar till releasen på GitHub.
-- **Uppdatering:** evenemangen hämtas automatiskt en gång per dygn (standard 05:00). Vill du uppdatera
-  direkt anropar du `POST /api/refresh`, till exempel `curl -X POST http://localhost:7799/api/refresh`.
-- **Lagring:** allt som hämtas sparas i `./data` på värden. Vid omstart visas evenemangen direkt,
-  utan att API:et anropas i onödan.
-
-## Ikon
-
-Appens ikon är en sol över en våg, inspirerad av Karlstad, "Solstaden", och Vänern. Det är en egen
-design och ingen kopia av Karlstads kommuns logotyp. Källfilen är `app/static/icons/icon.svg`. PNG-filerna
-(favicon, Apple touch-ikon och webbappikoner) är renderade från den. Appen kan läggas till på
-hemskärmen i mobilen.
+- **Evenemang från tio källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
+  Karlstad CCC, Scalateatern, SHL, Great Event, Loppisar (Karlstad Loppis och loppisar.com) och Motorsport (SBF och
+  Svemo).
+- **Lista och kalender** dag för dag, med filter på kategori, kommun, källa och datum.
+- **Fråga AI:** sökfrågor besvaras direkt, och frågor som kräver en bedömning besvaras av din egen Ollama.
+  Valfri webbsökning via SearXNG.
+- **Integritet:** inga cookies eller spårning, bilderna visas via appen, AI:n körs lokalt och inaktuell data
+  rensas bort.
+- **Ljust och mörkt läge**, fungerar på mobil.
 
 ## Kom igång
 
@@ -115,341 +32,53 @@ Kräver Docker med Compose-pluginet.
 git clone https://github.com/tubalainen/varmlandsinfo.git
 cd varmlandsinfo
 cp .env.example .env      # justera inställningarna, t.ex. OLLAMA_URL
-docker compose pull       # hämtar imagen från ghcr.io
+docker compose pull
 docker compose up -d
 ```
 
-Öppna sedan <http://localhost:7799>.
+Öppna <http://localhost:7799>. Evenemangen hämtas första gången vid start och sedan varje morgon kl. 05.00.
 
-Vill du bygga imagen själv i stället: `docker compose up -d --build`.
+De viktigaste inställningarna i `.env`:
 
-Första hämtningen tar ungefär 10–30 sekunder, eftersom API:et ger max 50 evenemang per sida.
-Därefter sparas datan och laddas direkt vid omstart.
+| Variabel | Beskrivning |
+|----------|-------------|
+| `OLLAMA_URL` | Adress till din Ollama, t.ex. `http://host.docker.internal:11434`. Tom = Fråga AI svarar bara på sökfrågor. |
+| `SEARXNG_URL` | Adress till SearXNG för webbsökning i Fråga AI. Tom = av. |
+| `TICKETMASTER_API_KEY` | API-nyckel för Ticketmaster. Tom = källan är av. |
+| `VARMLANDSINFO_PORT` | Port på värden (standard `7799`). |
 
-### Köra en viss version
+Alla inställningar och hur Ollama och SearXNG sätts upp står i [Installation](docs/installation.md).
 
-Sätt `VARMLANDSINFO_TAG` i `.env`, till exempel `VARMLANDSINFO_TAG=0.11.0`, och kör
-`docker compose pull && docker compose up -d`. `latest` pekar alltid på senaste release.
+## Dokumentation
 
-## Inställningar
+| | |
+|---|---|
+| [Installation och inställningar](docs/installation.md) | Docker, versioner, `.env`, Ollama, SearXNG |
+| [Funktioner](docs/funktioner.md) | Lista, kalender, filter, kategorier |
+| [Källor](docs/kallor.md) | Källorna och hur ofta de anropas |
+| [Fråga AI](docs/fraga-ai.md) | Direktsökning, AI, avgränsning, spärrar, webbsökning |
+| [Data och integritet](docs/data-och-integritet.md) | Lagring, städning, bilder via appen, cookies |
+| [API](docs/api.md) | Adresserna och vem som får anropa dem |
+| [Utveckling](docs/utveckling.md) | Projektstruktur, tester, releaser |
 
-Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå från `.env.example`.
-`.env` checkas aldrig in i git, så privata adresser stannar lokalt.
-
-| Variabel             | Standard           | Beskrivning |
-|----------------------|--------------------|-------------|
-| `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
-| `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.11.0`). |
-| `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
-| `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
-| `SHL_TEAM_CODE`      | `FBK`              | Lag vars hemmamatcher hämtas från SHL. |
-| `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI-chatten är avstängd. |
-| `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
-| `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
-| `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |
-| `SEARXNG_URL`        | *(tom)*            | Adress till SearXNG för AI:ns webbsökning. Tom betyder att webbsökningen är avstängd. |
-| `SEARXNG_RESULTS`    | `5`                | Max antal webbträffar per fråga (1–20). |
-| `SEARXNG_LANGUAGE`   | `sv`               | Språk för webbsökningen. |
-| `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
-| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
-| `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
-| `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
-| `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
-
-## Hur källorna anropas
-
-Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En normal dag blir det ungefär:
-
-| Källa | Anrop | Kommentar |
-|-------|-------|-----------|
-| Visit Värmland | cirka 15 | Max 50 evenemang per sida. Kommunlistan hämtas en gång i veckan. Gräns: 60 anrop/minut. |
-| Ticketmaster | 1–5 | 200 evenemang per sida. Gräns: 5 anrop/sekund, 5000 per dygn. |
-| Karlstad CCC | 1 | En kalendersida. |
-| Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
-| SHL | 2 | Säsongsfilter och spelschema. |
-| Great Event | 1 | Sidan Kommande evenemang. |
-| Karlstad Loppis | 1 | Startsidan med nästa datum. |
-| loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
-| Svensk Bilsport (SBF) | cirka 12 | Alla kommande tävlingar i Sverige, 50 per sida. Sidbyte med postback, 1,5 s paus mellan sidorna. |
-| Svemo | cirka 3 | Datumfiltret fungerar inte där, så bara första sidan, sista sidan och sidorna bakåt till dagens datum läses. |
-
-Skydden gäller alla källor:
-
-- **Vid start** används sparad data, och bara källor vars data är inaktuell hämtas.
-- **`POST /api/refresh`** hämtar inte om datan är yngre än 5 minuter.
-- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
-- **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
-  slut pausar hämtningen.
-- **Om en källa fallerar vid morgonkörningen** görs två nya försök med 5 minuters mellanrum. Lyckas inte
-  de heller tas källans gamla data bort (se [Städning](#städning-av-gammal-data)), och källan försöks igen var 30:e minut.
-- **Om en källa fallerar vid en senare uppdatering** under dagen behålls dagens data, och källan försöks igen efter 30 minuter.
-- **Anrop:** antalet anrop sedan start syns som `api_calls` i `/api/health`, och status per källa under `sources`.
-- **API-nycklar** loggas aldrig och syns aldrig i felmeddelanden.
-
-## Lagring av data
-
-Allt som hämtas från källorna sparas på värden i katalogen `./data` bredvid
-`docker-compose.yaml`. Katalogen monteras som volym till `/data` i containern och skapas automatiskt.
-
-| Fil                        | Innehåll |
-|----------------------------|----------|
-| `data/visitvarmland.json`  | Rådata från Visit Värmland (evenemang och kommuner). |
-| `data/ticketmaster.json`   | Rådata från Ticketmaster (evenemang i Värmland). |
-| `data/ccc.json`            | Karlstad CCC:s kalendersida. |
-| `data/scala.json`          | Scalateaterns föreställningslistor. |
-| `data/shl.json`            | Lagets hemmamatcher från SHL. |
-| `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
-| `data/karlstadloppis.json` | Startsidan hos Karlstad Loppis. |
-| `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |
-| `data/sbf.json`            | Kommande bilsporttävlingar från SBF:s kalender. |
-| `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
-| `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
-
-- **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
-  äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
-- **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
-  en krasch inte lämnar en trasig fil.
-- **Om en hämtning misslyckas** behålls data från samma dag, men aldrig data från före den senaste morgonkörningen.
-- Eftersom rådata sparas kan en ny version av appen tolka om den utan att hämta allt på nytt.
-- Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
-  och sätt dem i `.env`.
-- Vill du lägga datan någon annanstans sätter du `VARMLANDSINFO_DATA`, till exempel `/srv/varmlandsinfo`.
-- Radera en fil för att tvinga fram en ny hämtning av den källan vid nästa start.
-
-### Städning av gammal data
-
-Ingen gammal data sparas efter morgonkörningen (`DAILY_REFRESH_TIME`). Regeln är att data som hämtats före den senaste
-morgonkörningen varken används eller sparas. Efter morgonkörningen, och när appen startar, städar appen bort:
-
-- **Källdata från före morgonkörningen**, från källor som inte kunde hämtas trots nya försök. Evenemangen tas bort
-  ur appen och filen raderas. Källan visar ett fel och försöks igen var 30:e minut.
-- **Data från avstängda källor**, till exempel Ticketmaster när API-nyckeln tagits bort.
-- **Inaktuella AI-svar** i `chat_cache.json`, alltså svar som inte gäller dagens datum, aktuell evenemangsdata och modell.
-- **Chattsamtal** från före morgonkörningen (bara efter själva morgonkörningen, inte vid omstart).
-- **Kvarglömda temporära filer** (`*.json.tmp`) från en avbruten skrivning.
-
-Andra filer i datakatalogen rörs inte. Loggen visar vad som städades.
-
-## AI-chatt med Ollama
-
-1. Installera [Ollama](https://ollama.com) och hämta en modell, till exempel:
-   ```bash
-   ollama pull llama3.1:8b
-   ```
-   Modeller som är bra på svenska ger bättre svar, till exempel `qwen2.5:7b`, `gemma3:12b` eller `llama3.1:8b`.
-2. Ange adressen i `.env`:
-   - Ollama på samma maskin som Docker: `OLLAMA_URL=http://host.docker.internal:11434`
-   - Ollama på en annan dator i nätverket: `OLLAMA_URL=http://<ip-adress>:11434`
-
-   Basadressen räcker, men en fullständig endpoint som `http://<ip-adress>:11434/v1/chat/completions`
-   fungerar också.
-3. Om Ollama körs på en annan dator måste den lyssna på nätverket och inte bara på `localhost`.
-   Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö.
-4. Starta om: `docker compose up -d`. Sidan *Fråga AI* visar vilken modell som används och
-   varnar om Ollama inte går att nå eller om modellen saknas.
-
-**Säkerhet och avgränsning:** AI:n svarar bara på frågor om evenemangen i appen.
-- **En spärr innan AI:n kopplas in** kontrollerar varje AI-fråga mot evenemangen i appen, innan SearXNG eller Ollama
-  anropas. Frågor som inte rör dem stoppas med ett fast svar.
-  - *Godkänd:* frågan nämner ett evenemang, en plats eller en arrangör som finns i appen ("Hur många besökare har
-    Arvikamarten årligen?"). Godkänd är också en fråga om evenemang i allmänhet (typ, barn och familj, eller ord som
-    evenemang, aktiviteter och tips) som inte nämner något namn som saknas i appen.
-  - *Stoppad:* frågan nämner ett namn som inte finns bland appens evenemang, platser, arrangörer och kommuner
-    ("Hur många besökare har Liseberg en helg under högsäsong?", "Vad händer i Göteborg?"). Stoppad är också en
-    fråga som inte rör evenemang alls ("Skriv en dikt", "Hur blir vädret i morgon?").
-  - Namn med flera ord ("Håkan Hellström") måste stå tillsammans i samma evenemang.
-  - Följdfrågor ("och på söndag då?") godkänns om samtalet redan gäller evenemang i appen.
-- Frågor om annat, som dikter, kod eller allmänna kunskapsfrågor, får ett fast svar som bestäms av servern.
-  Modellen markerar sådana frågor, och servern ersätter markören innan något visas.
-- Uppenbara försök att ändra AI:ns uppdrag ("ignorera dina instruktioner …") stoppas direkt, utan att modellen
-  tillfrågas.
-- Evenemangstexterna från källorna skickas som avgränsad data och kan inte ge modellen nya instruktioner.
-- Frågor får vara högst 1000 tecken.
-
-**Flera samtidiga användare:** varje webbläsarflik har ett eget samtal (session). Servern äger historiken.
-- Fliken får ett slumpat sessions-id av servern och sparar det i `sessionStorage`. Klienten skickar bara sin nya
-  fråga, så historiken kan inte förfalskas.
-- Samtalet finns kvar när sidan laddas om. En ny flik ger ett nytt samtal, och *Nytt samtal* rensar samtalet på
-  servern.
-- Samtal som inte används på 2 timmar tas bort. Samtalen finns bara i minnet och försvinner vid omstart.
-- Varje samtal ställer en fråga i taget. Frågor till AI:n är begränsade till 5 per 30 minuter och samtal och 20
-  per 30 minuter och IP-adress (rullande fönster). Meddelandet säger hur länge man behöver vänta. Enkla sökfrågor,
-  sparade svar och stoppade frågor räknas inte.
-- Högst 2 frågor körs samtidigt mot Ollama. Övriga väntar i en rättvis kö (först till kvarn, högst 10 i kö), och
-  den som väntar ser sin plats i kön. Enkla sökfrågor och sparade svar går förbi kön.
-- Sparade AI-svar delas mellan alla användare.
-
-**Direktsökning eller AI:** alla frågor behöver inte AI. Frågor som bara letar efter evenemang, som
-"När spelar Färjestad nästa gång?", "Vad händer idag?" eller "Vilka konserter finns i Karlstad i oktober?",
-besvaras direkt av appen: den söker bland evenemangen och listar träffarna i datumordning, med nästa tillfälle
-först för när-frågor. Det går på ett ögonblick och fungerar även utan Ollama. AI:n används när frågan kräver en
-bedömning, till exempel rekommendationer, jämförelser, personliga önskemål ("min son", "vi") eller långa frågor.
-
-**Rekommendationer:** komplexa frågor fungerar, till exempel "Vilka aktiviteter skulle passa för min 8 år gamla
-son i Karlstad nu till helgen?". Ålder och ord som son, dotter och familj tolkas som barn, så barn- och
-familjeevenemang prioriteras. AI:n väljer ut 3–5 förslag och motiverar varför de passar.
-
-### Webbsökning via SearXNG (valfritt)
-
-AI:n kan komplettera svaren med information från webben via en egen [SearXNG](https://docs.searxng.org/)-instans,
-till exempel mer om en artist, en plats eller ett evenemang i Värmland som saknas i källorna.
-
-1. Kör SearXNG, till exempel med [searxng-docker](https://github.com/searxng/searxng-docker).
-2. Slå på JSON-svar i SearXNG:s `settings.yml` och starta om SearXNG:
-   ```yaml
-   search:
-     formats:
-       - html
-       - json
-   ```
-   Har du SearXNG:s `limiter` påslagen kan den stoppa appens anrop. Stäng av den eller släpp igenom appens adress.
-3. Ange adressen i `.env`, till exempel `SEARXNG_URL=http://<ip-adress>:8888` (eller `http://searxng:8080` om
-   SearXNG körs i samma compose-projekt), och starta om: `docker compose up -d`.
-
-Så fungerar webbsökningen:
-- **Bara AI-frågor om ett visst evenemang, en plats eller en arrangör i appen** söker på webben. Allmänna frågor
-  ("Vad passar min son i helgen?"), frågor som stoppas av spärren, direktsökningar och sparade svar gör det aldrig.
-- **Sökorden** är frågan, med "Värmland" tillagt om ingen kommun nämns.
-- **Träffarna** (titel, länk och utdrag, högst `SEARXNG_RESULTS`) skickas till modellen som ett avgränsat block som
-  räknas som data, inte instruktioner. Evenemangen i appen går före webben, och webbuppgifter anges som
-  "enligt webben" med länk.
-- **Under svaret** visas träffarna i listan *Från webben*.
-- **Svarar inte SearXNG** inom 8 sekunder svarar AI:n utan webben, och felet loggas.
-- **Avgränsningen gäller som förut:** AI:n svarar bara på frågor om evenemang och aktiviteter i Värmland.
-- **Integritet:** med webbsökning påslagen skickas frågan som sökord via SearXNG till sökmotorer på webben.
-
-**Så fungerar det:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den
-tidsuttryck (idag, i helgen, nästa vecka, 3 oktober, i oktober …), kommuner, evenemangstyper och
-sökord. Utifrån det väljer den ut de mest relevanta evenemangen (högst `CHAT_MAX_EVENTS`) och
-skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget.
-
-## API
-
-| Metod | Sökväg             | Beskrivning |
-|-------|--------------------|-------------|
-| GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
-| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. **Bara lokalt.** |
-| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. **Bara lokalt.** |
-| GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
-| GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
-| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, För många frågor till AI:n (5 per 30 minuter och session, 20 per 30 minuter och IP-adress) ger en händelse `{"type": "error"}` i svaret. |
-| GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
-| DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
-
-### Åtkomst till API:t
-
-API:t är till för appens eget gränssnitt. Det som gränssnittet hämtar (`/api/events` och `/api/chat*`) kan alltid
-hämtas av den som når appen, även med ett skript. Resten är begränsat:
-
-- **Ingen API-dokumentation:** FastAPI:s `/docs`, `/redoc` och `/openapi.json` är avstängda.
-- **Bara lokalt:** `/api/health` och `/api/refresh` svarar bara på anrop direkt från samma dator eller det lokala
-  nätverket (localhost och privata adresser som 192.168.x.x, 10.x.x.x och 172.16–31.x.x). Övriga får 403. Dockers
-  healthcheck anropar `/api/health` inifrån containern och fungerar som vanligt.
-- **Omvänd proxy:** appen har ingen proxykonfiguration, det hanteras utanför appen. Anrop som kommer via en omvänd
-  proxy (med huvudena `Forwarded`, `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP` eller `True-Client-IP`)
-  räknas aldrig som lokala. Allt som når appen via proxyn nekas alltså till `/api/health` och `/api/refresh`. En
-  proxy som inte sätter något av huvudena (t.ex. ren TCP-vidarebefordran) ser ut som ett lokalt anrop. Blockera
-  då gärna `/api/health` och `/api/refresh` i proxyn.
-- **Fråga AI:** högst 5 frågor till AI:n per 30 minuter och session och 20 per 30 minuter och IP-adress, så att
-  ingen kan belasta Ollama genom att öppna nya flikar eller börja nya samtal. Frågor som besvaras utan AI (sökfrågor, sparade svar, stoppade frågor)
-  räknas inte. När anropet kommer från en proxy i det lokala nätverket gäller spärren adressen
-  som proxyn lagt till sist i `X-Forwarded-For`.
-
-## Versioner och releaser
-
-Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i menyn
-(som länk till releasen på GitHub), i `/api/health` och överst i loggen när containern startar:
-
-```
-$ docker logs varmlandsinfo
-... INFO ============================================================
-... INFO   Värmlandsinfo v0.11.0
-... INFO   Release: https://github.com/tubalainen/varmlandsinfo/releases/tag/v0.11.0
-... INFO   Källkod: https://github.com/tubalainen/varmlandsinfo
-```
-
-Ändringar listas i [CHANGELOG.md](CHANGELOG.md), och releaserna finns under
-[Releases](https://github.com/tubalainen/varmlandsinfo/releases).
-
-- Ändringar committas direkt på `main`, kopplade till issues. Ingen image publiceras då.
-- En release görs på begäran och kan innehålla flera ändringar. Då skapas en GitHub-release och
-  imagen `ghcr.io/tubalainen/varmlandsinfo:X.Y.Z` (samt `X.Y` och `latest`) för `linux/amd64` och `linux/arm64`.
-
-Hela arbetsflödet beskrivs i [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Paketet på ghcr.io blir privat första gången det publiceras. Gör det publikt under
-*GitHub → Packages → varmlandsinfo → Package settings → Change visibility*,
-eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
-
-## Projektstruktur
-
-```
-app/
-  main.py          FastAPI-server, API och schemaläggning
-  events.py        Hämtning, lagring och sammanslagning av alla källor
-  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, greatevent, karlstadloppis, loppisar,
-                   motorsport: SBF och Svemo)
-  merge.py         Sammanslagning av samma evenemang från flera källor
-  common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)
-  chat.py          AI-chatt: urval av evenemang, kö och anrop till Ollama
-  chat_cache.py    Sparade AI-svar
-  sessions.py      Samtal (sessioner) i Fråga AI
-  websearch.py     Webbsökning via SearXNG för Fråga AI
-  categories.py    Klassificering och beskrivning av evenemangstyper
-  access.py        Åtkomst till API:t: bara lokalt och spärren per IP i Fråga AI
-  version.py       Versionsnummer
-  static/          Webbgränssnittet (HTML/CSS/JS)
-  static/icons/    Appens ikon (SVG och PNG i flera storlekar)
-tests/             Tester (pytest)
-tools/             Kontrastkontroll i ljust och mörkt läge, och skärmdumparna till README
-docs/screenshots/  Skärmdumparna i README
-.github/workflows/ CI, Docker-publicering och releaser
-Dockerfile
-docker-entrypoint.sh  Ger /data rätt ägare och startar appen som PUID:PGID
-docker-compose.yaml
-.env.example
-LICENSE               MIT-licensen
-data/                 Sparad data (skapas vid körning, ingår inte i git)
-```
-
-## Cookies och lagring
-
-Appen använder inga cookies, och servern sätter inga. Sidan laddar inga externa skript, typsnitt eller spårning.
-Tre små värden sparas i besökarens webbläsare:
-
-| Lagring | Nyckel | Innehåll | Hur länge |
-|---|---|---|---|
-| `localStorage` | `route` | Om besökaren senast tittade på listan eller kalendern | Tills webbläsardatan rensas |
-| `localStorage` | `sidebar` | Om menyn är ihopfälld eller utfälld | Tills webbläsardatan rensas |
-| `sessionStorage` | `chat-session` | Samtalets slumpmässiga id i Fråga AI | Tills fliken stängs |
-
-Samtalen i Fråga AI (frågor och svar) sparas bara i serverns minne. De tas bort efter 2 timmar utan aktivitet och
-vid omstart.
-
-Evenemangens bilder hämtas direkt från källornas bildservrar, till exempel Visit Värmlands. De servrarna ser därför
-besökarens IP-adress och kan i princip sätta egna cookies, även om de flesta webbläsare blockerar sådana
-tredjepartscookies.
+Ändringar per version: [CHANGELOG.md](CHANGELOG.md). Arbetsflöde: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licens och ansvar
 
-Värmlandsinfo är öppen källkod under [MIT-licensen](LICENSE). Du får använda, kopiera, ändra och dela koden fritt,
-så länge licenstexten följer med.
-
-**Källornas innehåll:** appen gör inga anspråk på innehållet från källorna. Texter, bilder och uppgifter om
-evenemangen tillhör respektive källa och upphovsperson (Visit Värmland, Ticketmaster, Karlstad CCC, Scalateatern,
-SHL, Great Event, Karlstad Loppis, loppisar.com, Svensk Bilsport och Svemo). Appen visar ett urval och länkar till
-källan för varje evenemang. Kontrollera alltid tider och andra uppgifter hos arrangören eller källan.
-
-**Inget ansvar:** appen levereras i befintligt skick, utan garantier av något slag. Inget som helst ansvar tas för
-appens funktion, för att uppgifterna stämmer eller är aktuella, för AI-chattens svar eller för följderna av att
-använda appen. Se licensen för den fullständiga texten.
+- **Licens:** öppen källkod under [MIT-licensen](LICENSE). Du får använda, kopiera, ändra och dela koden fritt, så
+  länge licenstexten följer med.
+- **Källornas innehåll:** appen gör inga anspråk på innehållet från källorna. Texter, bilder och uppgifter om
+  evenemangen tillhör respektive källa och upphovsperson. Appen visar ett urval och länkar till källan för varje
+  evenemang. Kontrollera alltid tider och andra uppgifter hos arrangören eller källan.
+- **Inget ansvar:** appen levereras i befintligt skick, utan garantier av något slag. Inget som helst ansvar tas för
+  appens funktion, för att uppgifterna stämmer eller är aktuella, för AI-chattens svar eller för följderna av att
+  använda appen.
 
 ## Framtagen med Claude Code
 
 Värmlandsinfo är framtagen med hjälp av [Claude Code](https://claude.com/claude-code), Anthropics AI-assistent för
 programmering. Idéer, krav och beslut kommer från projektets ägare. Claude Code har skrivit det mesta av koden,
-testerna och dokumentationen, och arbetar efter issues på GitHub, kör testerna och följer upp CI och releaser.
-Arbetssättet och projektets minne mellan sessionerna finns i [CLAUDE.md](CLAUDE.md).
+testerna och dokumentationen. Arbetssättet finns i [CLAUDE.md](CLAUDE.md).
 
-Claude används bara för att utveckla appen. AI-chatten i appen använder en egen Ollama-server, och inga frågor
-skickas till Claude eller någon annan AI-tjänst i molnet.
+Claude används bara för att utveckla appen. Fråga AI använder din egen Ollama, och inga frågor skickas till Claude
+eller någon annan AI-tjänst i molnet.

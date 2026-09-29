@@ -57,6 +57,13 @@ class SessionStore:
     def __len__(self) -> int:
         return len(self._sessions)
 
+    def expire(self) -> int:
+        """Tar bort samtal som inte använts på `ttl` sekunder. Returnerar antalet."""
+        with self._lock:
+            before = len(self._sessions)
+            self._expire(self.clock())
+            return before - len(self._sessions)
+
     def _expire(self, now: float) -> None:
         for sid in [sid for sid, s in self._sessions.items() if now - s.last_seen > self.ttl and not s.is_busy(now)]:
             del self._sessions[sid]

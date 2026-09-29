@@ -128,3 +128,46 @@ def test_cleanup_prunes_everything(monkeypatch, tmp_path):
     monkeypatch.setitem(events.state, "updated", TODAY)
     main.cleanup(datetime(2026, 9, 25, 5, 3, tzinfo=TZ), conversations=True)
     assert c.presets == {} and len(sessions.store) == 0
+
+
+def test_cleanup_after_each_fetch_removes_stale_data(monkeypatch, tmp_path):
+    """Efter varje hämtning (inte bara morgonkörningen) rensas utgångna samtal, IP-adresser som inte längre räknas
+    i spärren, bilder utan evenemang och halvfärdiga bildfiler (#62)."""
+    import access
+    import images
+    use_tmp_data(tmp_path, monkeypatch)
+    clock = [0.0]
+    store = sessions.SessionStore(ttl=100, clock=lambda: clock[0])
+    old, _ = store.get_or_create(None)
+    monkeypatch.setattr(sessions, "store", store)
+    limiter = access.IpLimiter(window=60, clock=lambda: clock[0])
+    limiter.allow("81.230.12.4")
+    monkeypatch.setattr(access, "chat_limiter", limiter)
+    proxy = images.ImageProxy(tmp_path / "images")
+    (tmp_path / "images").mkdir()
+    for name in ("a" * 32, "b" * 32 + ".tmp"):
+        (tmp_path / "images" / name).write_bytes(b"x")
+    monkeypatch.setattr(main, "image_proxy", proxy)
+
+    clock[0] = 50
+    fresh, _ = store.get_or_create(None)
+    main.cleanup(datetime(2026, 9, 25, 12, 0, tzinfo=TZ))                # t.ex. efter en extra uppdatering
+    assert len(limiter) == 1 and len(store) == 2                         # inget har hunnit bli inaktuellt
+    assert list((tmp_path / "images").iterdir()) == []                   # bilder utan evenemang och .tmp-filer
+
+    clock[0] = 120
+    main.cleanup(datetime(2026, 9, 25, 12, 30, tzinfo=TZ))
+    assert len(limiter) == 0                                             # IP-adressen räknas inte längre
+    assert store.get(old.id) is None and store.get(fresh.id) is not None  # bara det utgångna samtalet
+
+
+def test_manual_refresh_cleans_up(monkeypatch):
+    calls = []
+    async def refresh():
+        return None
+    monkeypatch.setattr(events, "manual_refresh", refresh)
+    monkeypatch.setattr(main, "cleanup", lambda now, conversations=False: calls.append(now))
+    monkeypatch.setattr(main.access, "is_local", lambda r: True)
+    from fastapi.testclient import TestClient
+    TestClient(main.app).post("/api/refresh")
+    assert len(calls) == 1
