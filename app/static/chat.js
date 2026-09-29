@@ -1,6 +1,6 @@
 "use strict";
 
-// Fråga AI: egen sida med förslagskort, snabbval och strömmade svar från Ollama.
+// Fråga AI: egen sida med förslagskort och strömmade svar från Ollama.
 (() => {
   const log = $("#chat-log"), form = $("#chat-form"), input = $("#chat-input"), welcome = $("#chat-welcome");
   const sendBtn = form.querySelector(".send");
@@ -242,10 +242,7 @@
       $("#suggestions").replaceChildren(...p.suggestions.map((s) =>
         el("button", { type: "button", class: "suggestion", onclick: () => ask(s.q) },
           el("span", { class: "top" }, el("strong", {}, s.title), el("span", { class: "tag" }, s.tag)),
-          el("span", { class: "text" }, s.q))));
-      $("#quick").replaceChildren(el("span", { class: "label" }, "Snabbval:"), ...p.quick.map((x) =>
-        el("button", { type: "button", onclick: () => ask(x.q) }, icon("tag"), x.label)));
-    } catch { /* förslagen är inte nödvändiga för att chatta */ }
+          el("span", { class: "text" }, s.q))));    } catch { /* förslagen är inte nödvändiga för att chatta */ }
   }
   loadPresets();
 

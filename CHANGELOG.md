@@ -13,6 +13,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   morgonkörning. Försöken var 30:e minut efter en misslyckad hämtning är borttagna, och morgonkörningens två nya
   försök görs med 15 minuters mellanrum i stället för 5 (#76).
 
+### Borttaget
+- Snabbvalen ovanför inmatningsfältet i Fråga AI är borttagna. Förslagskorten finns kvar (#77).
+
 ## [0.26.0] - 2026-09-29
 
 ### Ändrat

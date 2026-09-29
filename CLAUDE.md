@@ -180,7 +180,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Release bara när användaren ber om det. Rena dokumentationsändringar (t.ex. README) committas utan release.
 - Fråga AI: bara frågor om evenemang som finns i appen. Allt annat stoppas **innan** AI eller webb anropas
   (exempel: Arvikamarten ok, Liseberg nej). Nya källor och kategorier ska också fungera i Fråga AI:
-  `CATEGORY_WORDS`, `EVENT_WORDS`, `QUICK` och ord i spärren.
+  `CATEGORY_WORDS`, `EVENT_WORDS` och ord i spärren.
+- Fråga AI har inga snabbval (borttagna i #77). Förslagskorten (`SUGGESTIONS`) finns kvar.
 - Integritet: texterna i appen ska vara sanna om vart frågor skickas (lokal Ollama, och SearXNG när den är på).
 - Ingen gammal data efter morgonkörningen.
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).

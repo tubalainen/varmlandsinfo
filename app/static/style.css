@@ -315,13 +315,6 @@ dialog::backdrop { background: rgba(2, 6, 23, .6); }
 @keyframes blink { 50% { opacity: 0; } }
 
 .composer { border-top: 1px solid var(--line); padding-top: 12px; }
-.quick { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; align-items: center; scrollbar-width: thin; }
-.quick .label { font-size: .8rem; font-weight: 600; color: var(--muted); white-space: nowrap; margin-right: 2px; }
-.quick button { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px; border-radius: 999px;
-                border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: .8rem;
-                cursor: pointer; white-space: nowrap; }
-.quick button:hover { border-color: var(--accent); }
-.quick .ico { width: 14px; height: 14px; color: var(--muted); }
 .chat-form { display: flex; gap: 8px; align-items: flex-end; background: var(--card); border: 1px solid var(--line);
              border-radius: 14px; padding: 8px 8px 8px 14px; box-shadow: var(--shadow); }
 .chat-form:focus-within { border-color: var(--accent); }

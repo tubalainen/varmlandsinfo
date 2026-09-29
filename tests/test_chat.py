@@ -200,11 +200,11 @@ def test_scope_follow_up_uses_the_conversation():
     assert not chat.scope_check("och sen?", evs, THU, context="Skriv en dikt")["ok"]
 
 
-def test_shl_quick_question():
+def test_shl_question():
     events = [{**ev("Färjestad BK - HV71", "2026-09-30", cat="Sport, motion och hälsa"),
                "categories": [{"title": "Sport, motion och hälsa"}, {"title": "SHL"}]},
               ev("Innebandy: IBK Karlstad - Falun", "2026-09-30", cat="Sport, motion och hälsa")]
-    q = next(p["q"] for p in chat.QUICK if p["label"] == "SHL")
+    q = "Vilka SHL-matcher spelas den här månaden?"
     assert find_categories(q) == {"SHL"}
     assert chat.classify(q) == "search"
     assert chat.scope_check(q, events, THU)["ok"]
@@ -212,11 +212,11 @@ def test_shl_quick_question():
     assert [s["title"] for s in sources] == ["Färjestad BK - HV71"]
 
 
-def test_bandy_quick_question():
+def test_bandy_question():
     events = [{**ev("IF Boltic - Djurgårdens IF", "2026-09-30", cat="Sport, motion och hälsa"),
                "categories": [{"title": "Sport, motion och hälsa"}, {"title": "Bandy"}]},
               ev("Innebandy: Damer", "2026-09-30", cat="Sport, motion och hälsa")]
-    q = next(p["q"] for p in chat.QUICK if p["label"] == "Bandy")
+    q = "Vilka bandymatcher spelas framöver?"
     assert find_categories(q) == {"Bandy"}
     assert "Bandy" not in find_categories("Några innebandymatcher?")
     assert chat.classify(q) == "search"

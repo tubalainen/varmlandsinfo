@@ -104,31 +104,17 @@ SUGGESTIONS = [
     {"title": "Teater & humor", "tag": "Scen", "q": "Vilka föreställningar går på Scalateatern och Karlstad CCC framöver?"},
     {"title": "Gratis", "tag": "Gratis", "q": "Vilka gratisevenemang finns i Värmland i helgen?"},
 ]
-QUICK = [
-    {"label": "Idag", "q": "Vad händer idag?"},
-    {"label": "I helgen", "q": "Vad händer i helgen?"},
-    {"label": "Nästa vecka", "q": "Vad händer nästa vecka?"},
-    {"label": "Gratis", "q": "Vilka gratisevenemang finns i helgen?"},
-    {"label": "Barn", "q": "Vilka barnaktiviteter finns i helgen?"},
-    {"label": "Musik", "q": "Vilka konserter finns nästa vecka?"},
-    {"label": "Sport", "q": "Vilka sportevenemang finns i helgen?"},
-    {"label": "SHL", "q": "Vilka SHL-matcher spelas den här månaden?"},
-    {"label": "Bandy", "q": "Vilka bandymatcher spelas framöver?"},
-    {"label": "Motorsport", "q": "Vilka motorsporttävlingar finns den här månaden?"},
-    {"label": "Karlstad", "q": "Vad händer i Karlstad i helgen?"},
-    {"label": "Arvika", "q": "Vad händer i Arvika den här månaden?"},
-]
 
 cache: AnswerCache | None = None   # sätts vid start i main.py
 
 
 def presets() -> dict:
-    return {"suggestions": SUGGESTIONS, "quick": QUICK}
+    return {"suggestions": SUGGESTIONS}
 
 
 def is_preset(question: str) -> bool:
     key = normalize_question(question)
-    return any(normalize_question(p["q"]) == key for p in SUGGESTIONS + QUICK)
+    return any(normalize_question(p["q"]) == key for p in SUGGESTIONS)
 
 WEEKDAYS = ["måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag"]
 MONTHS = ["januari", "februari", "mars", "april", "maj", "juni", "juli",

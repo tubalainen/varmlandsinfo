@@ -52,7 +52,7 @@ används i första hand och kompletteras med regler:
 
 ## Fråga AI
 
-Ställ frågor på vanlig svenska, med förslagskort och snabbval. Enkla sökfrågor besvaras direkt av appen, och frågor
+Ställ frågor på vanlig svenska, med förslagskort. Enkla sökfrågor besvaras direkt av appen, och frågor
 som kräver en bedömning av din egen Ollama. Se [Fråga AI](fraga-ai.md).
 
 ## Besöksstatistik (valfri)
