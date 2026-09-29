@@ -242,7 +242,8 @@
       $("#suggestions").replaceChildren(...p.suggestions.map((s) =>
         el("button", { type: "button", class: "suggestion", onclick: () => ask(s.q) },
           el("span", { class: "top" }, el("strong", {}, s.title), el("span", { class: "tag" }, s.tag)),
-          el("span", { class: "text" }, s.q))));    } catch { /* förslagen är inte nödvändiga för att chatta */ }
+          el("span", { class: "text" }, s.q))));
+    } catch { /* förslagen är inte nödvändiga för att chatta */ }
   }
   loadPresets();
 
