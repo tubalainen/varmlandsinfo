@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Sidan Om applikationen visar licensen (MIT), att appen inte gör anspråk på källornas innehåll, att inget ansvar
+  tas för appens funktion och att appen är framtagen med hjälp av Claude Code (#55)
+
 ### Dokumentation
 - MIT-licens (`LICENSE`), och README beskriver licensen, att appen inte gör anspråk på källornas innehåll, att
   inget ansvar tas för appens funktion och att appen är framtagen med hjälp av Claude Code (#54)
