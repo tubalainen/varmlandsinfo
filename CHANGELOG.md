@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Arkitekturbilden visar 13 källor (med Säffle och Kil), och hänvisningarna till koden pekar på dagens rader (#80).
+
 ## [0.28.1] - 2026-09-29
 
 ### Rättat

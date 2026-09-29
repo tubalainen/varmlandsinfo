@@ -88,11 +88,11 @@ Läs detta först i en ny session. Senaste releasen är **v0.28.1**. Allt är pu
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
-  Kommunerna (#79, v0.28.0) och bara kommuner i filtret Kommun (#81, v0.28.1).
-- **Öppet:** [#80](https://github.com/tubalainen/varmlandsinfo/issues/80) arkitekturbilden ska säga "Källorna (13 st)".
-  Användaren vill göra det senare. Issuen beskriver exakt vad som ska ändras och hur Archify-felet med `origin` undviks.
-- **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster och Svenska kyrkan (kräver nycklar som
-  användaren i så fall registrerar), handboll via Profixio (`lx/SHF`). Fråga användaren innan något av dem påbörjas.
+  Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1) och arkitekturbilden med 13 källor och
+  aktuella kodhänvisningar (#80, efter v0.28.1, ingen release).
+- **Öppet:** inga issues.
+- **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
+  registrerar) och handboll via Profixio (`lx/SHF`). Fråga användaren innan något av dem påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
   "Medis stora scen" utan Medis i titeln kommer inte med. Gäller alla platser och fanns före #79.
 
@@ -116,8 +116,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   (`KIL_RULES` och `CHILD_RE` ur titeln). Samma titel (och plats) blir ett evenemang med flera tillfällen. Karlstad,
   Hammarö, Sunne (Sagolika Sunne) och Grums visar Visit Värmlands data.
 - **Analys av källor som saknas** (2026-09-29): möjliga nästa steg är Tickster (Event Dump API, en fil per dygn,
-  kräver nyckel), Svenska kyrkans CalendarAPI (kräver nyckel) och handboll i Profixio (`lx/SHF`, samma upplägg som
-  bandy). Avfärdade: Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
+  kräver nyckel) och handboll i Profixio (`lx/SHF`, samma upplägg som bandy). Avfärdade: Svenska kyrkan
+  (användarens beslut), Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
   (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
   Storfors (fritext) och Karlstads universitet (mest för studenter).
 - **Kommuner** (`kommuner.py`, #81): filtret Kommun har bara `KOMMUNER` (Värmlands 16 + Karlskoga och Degerfors, som
