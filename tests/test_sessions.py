@@ -5,6 +5,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+import access
 import chat
 import events
 import main
@@ -158,6 +159,7 @@ def test_full_queue_gives_message(monkeypatch):
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setattr(sessions, "store", SessionStore())
+    monkeypatch.setattr(access, "chat_limiter", access.IpLimiter())
     monkeypatch.setattr(chat, "cache", None)
     monkeypatch.setattr(events, "current_events", lambda: [])
     return TestClient(main.app)

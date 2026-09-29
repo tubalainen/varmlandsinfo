@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- Begränsad åtkomst till API:t: FastAPI:s `/docs`, `/redoc` och `/openapi.json` är avstängda, `/api/health` och
+  `/api/refresh` svarar bara inom det lokala nätverket (aldrig via omvänd proxy), och Fråga AI har en spärr på
+  20 frågor per minut och IP-adress utöver spärren per session (#56)
+
 ## [0.19.1] - 2026-09-29
 
 ### Ändrat

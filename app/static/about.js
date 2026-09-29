@@ -71,7 +71,7 @@
         el("p", {}, "Webbsökning (valfritt): med en egen SearXNG-server kan AI:n komplettera svaren med information från webben, till exempel om en artist eller en plats. Frågan skickas då som sökord via SearXNG till sökmotorer på webben. Webbträffarna visas under svaret, och evenemangen i appen går alltid före. Det söks bara på webben när frågan gäller ett visst evenemang, en plats eller en arrangör i appen, aldrig för enkla sökfrågor och sparade svar."),
         el("p", {}, "AI:n svarar bara på frågor om evenemangen i appen och ger personliga rekommendationer, till exempel utifrån barns ålder. En spärr kontrollerar varje fråga innan AI:n och webbsökningen kopplas in. Frågor om något som inte finns i appen, till exempel ett nöjesfält i en annan stad, och frågor som inte rör evenemang alls får ett fast svar. Försök att ändra AI:ns uppdrag stoppas också."),
         el("p", {}, "Alla frågor behöver inte AI. Frågor som bara söker evenemang (när, var, vilka, vad händer …) besvaras direkt med en sökning bland evenemangen, sorterad efter datum. Det går snabbt och fungerar även utan Ollama. AI:n används när frågan kräver en bedömning: rekommendationer, jämförelser eller personliga önskemål som ålder och intressen."),
-        el("p", {}, "Flera kan använda Fråga AI samtidigt. Varje flik har ett eget samtal som sparas på servern och finns kvar om sidan laddas om. Nytt samtal börjar om. Den lokala AI-modellen svarar på två frågor åt gången, och övriga ställs i kö. Du ser då din plats i kön."),
+        el("p", {}, "Flera kan använda Fråga AI samtidigt. Varje flik har ett eget samtal som sparas på servern och finns kvar om sidan laddas om. Nytt samtal börjar om. Den lokala AI-modellen svarar på två frågor åt gången, och övriga ställs i kö. Du ser då din plats i kön. För att ingen ska kunna belasta AI:n får varje samtal ställa högst 10 frågor per minut och varje adress högst 20."),
         el("p", {}, "Svaren sparas. Ställs samma fråga samma dag och evenemangen inte har ändrats, visas det sparade svaret direkt utan en ny förfrågan till AI:n. Alla fördefinierade frågor sparas, liksom de 10 senaste egna frågorna."),
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}. Webbsökning: ${chat.websearch ? "på" : "av"}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 
@@ -83,6 +83,8 @@
           sources.flatMap((g) => g.members).flatMap((x, i, all) => [i ? (i === all.length - 1 ? " och " : ", ") : "",
             x.homepage ? el("a", { href: x.homepage, target: "_blank", rel: "noopener" }, x.title) : x.title]),
           "). Appen visar ett urval och länkar till källan för varje evenemang. Kontrollera alltid tider och andra uppgifter hos arrangören eller källan."),
+        el("p", {}, el("strong", {}, "API:t: "),
+          "API:t är till för appens eget gränssnitt och har ingen öppen dokumentation. Status och manuell uppdatering (/api/health och /api/refresh) svarar bara inom det lokala nätverket, aldrig via internet eller en omvänd proxy."),
         el("p", {}, el("strong", {}, "Inget ansvar: "),
           "appen levereras i befintligt skick, utan garantier av något slag. Inget som helst ansvar tas för appens funktion, för att uppgifterna stämmer eller är aktuella, för AI-chattens svar eller för följderna av att använda appen.")),
 

@@ -67,7 +67,7 @@ aktuella när något ändras.
   AI-svar (`/data/chat_cache.json`). `app/sessions.py`: samtal i Fråga AI (en session per flik, historiken på
   servern, bara i minnet, så appen ska köras som en process). `app/websearch.py`: valfri webbsökning via SearXNG
   för AI-frågor
-- `app/main.py`: FastAPI-rutter och schemaläggning
+- `app/main.py`: FastAPI-rutter och schemaläggning. `app/access.py`: vad som bara får anropas lokalt och spärren per IP
 - `app/static/`: gränssnittet. `app.js` sköter navigering (`#/lista`, `#/kalender`, `#/fraga`, `#/om`), filter
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
@@ -107,6 +107,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - **Städning** (`events.purge_old`, `main.cleanup`): efter morgonkörningen (05:00) och vid start tas data från före
   morgonkörningen bort, liksom avstängda källors filer, inaktuella AI-svar och gårdagens chattsamtal. En källa som
   fallerar på morgonen får två nya försök (5 min) innan dess data tas bort.
+- **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
+  (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: `chat_limiter`, 20 frågor per minut
+  och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer från en lokal adress).
+  Gränssnittet får aldrig börja använda `/api/health` eller `/api/refresh`, eftersom de nekas utifrån.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
   byggs av appens källor). Nya källor ska läggas till i listan över källor i README.
@@ -124,6 +128,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).
 - Motorsport: både bil- (SBF) och MC-sport (Svemo), publika tävlingar och prova på-dagar, Värmland + Karlskoga.
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
+- Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
+  appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
 - Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna
   paraplykategorier som "Evenemang" ska inte visas som egna filter.
 

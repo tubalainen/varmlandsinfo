@@ -326,13 +326,31 @@ skickar dem som underlag. Modellen instrueras att bara svara utifrån underlaget
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. |
-| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. |
-| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. |
+| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. **Bara lokalt.** |
+| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt och svarar när det är klart. **Bara lokalt.** |
 | GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
-| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, 429 vid för många frågor. |
+| POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår, 429 vid för många frågor (10 per minut och session, 20 per minut och IP-adress). |
 | GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
 | DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
+
+### Åtkomst till API:t
+
+API:t är till för appens eget gränssnitt. Det som gränssnittet hämtar (`/api/events` och `/api/chat*`) kan alltid
+hämtas av den som når appen, även med ett skript. Resten är begränsat:
+
+- **Ingen API-dokumentation:** FastAPI:s `/docs`, `/redoc` och `/openapi.json` är avstängda.
+- **Bara lokalt:** `/api/health` och `/api/refresh` svarar bara på anrop direkt från samma dator eller det lokala
+  nätverket (localhost och privata adresser som 192.168.x.x, 10.x.x.x och 172.16–31.x.x). Övriga får 403. Dockers
+  healthcheck anropar `/api/health` inifrån containern och fungerar som vanligt.
+- **Omvänd proxy:** appen har ingen proxykonfiguration, det hanteras utanför appen. Anrop som kommer via en omvänd
+  proxy (med huvudena `Forwarded`, `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP` eller `True-Client-IP`)
+  räknas aldrig som lokala. Allt som når appen via proxyn nekas alltså till `/api/health` och `/api/refresh`. En
+  proxy som inte sätter något av huvudena (t.ex. ren TCP-vidarebefordran) ser ut som ett lokalt anrop. Blockera
+  då gärna `/api/health` och `/api/refresh` i proxyn.
+- **Fråga AI:** högst 10 frågor per minut och session och 20 per minut och IP-adress, så att ingen kan belasta
+  Ollama genom att byta session. När anropet kommer från en proxy i det lokala nätverket gäller spärren adressen
+  som proxyn lagt till sist i `X-Forwarded-For`.
 
 ## Versioner och releaser
 
@@ -375,6 +393,7 @@ app/
   sessions.py      Samtal (sessioner) i Fråga AI
   websearch.py     Webbsökning via SearXNG för Fråga AI
   categories.py    Klassificering och beskrivning av evenemangstyper
+  access.py        Åtkomst till API:t: bara lokalt och spärren per IP i Fråga AI
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
   static/icons/    Appens ikon (SVG och PNG i flera storlekar)

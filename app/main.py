@@ -9,11 +9,12 @@ from contextlib import aclosing, asynccontextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, Header, Request
+from fastapi import Depends, FastAPI, Header, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+import access
 import chat
 import events
 import sessions
@@ -161,7 +162,9 @@ async def lifespan(_: FastAPI):
     task.cancel()
 
 
-app = FastAPI(title="Värmlandsinfo", version=__version__, lifespan=lifespan)
+# Ingen automatisk API-dokumentation (/docs, /redoc, /openapi.json): API:t är till för appens eget gränssnitt
+app = FastAPI(title="Värmlandsinfo", version=__version__, lifespan=lifespan, docs_url=None, redoc_url=None,
+              openapi_url=None)
 
 
 def status() -> dict:
@@ -186,12 +189,12 @@ async def get_events():
     return {**status(), "today": events.today().isoformat(), "events": events.current_events()}
 
 
-@app.get("/api/health")
+@app.get("/api/health", dependencies=[Depends(access.require_local)])
 async def health():
     return {"ok": True, **status()}
 
 
-@app.post("/api/refresh")
+@app.post("/api/refresh", dependencies=[Depends(access.require_local)])
 async def refresh():
     message = await events.manual_refresh()
     return {**status(), "message": message}
@@ -214,9 +217,13 @@ async def chat_status():
 
 
 @app.post("/api/chat")
-async def chat_endpoint(req: ChatRequest, session_id: str | None = SessionHeader):
+async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | None = SessionHeader):
     """Ny fråga i ett samtal. Samtalet (sessionen) och dess historik finns på servern, klienten skickar
     bara frågan och sitt sessions-id. Okänt eller utgånget id ger ett nytt samtal."""
+    # Spärren per IP-adress gäller även den som skapar nya sessioner för att komma runt spärren per session
+    if not access.chat_limiter.allow(access.client_ip(request)):
+        return JSONResponse({"error": "Många frågor har ställts från din adress på kort tid. "
+                                      "Vänta en minut och försök igen."}, status_code=429)
     session, created = sessions.store.get_or_create(session_id)
     problem = sessions.store.begin(session)
     if problem == "busy":
