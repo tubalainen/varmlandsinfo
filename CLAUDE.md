@@ -94,12 +94,18 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Träffar och caféer, Böcker och litteratur) från titeln, och från ingressen bara när källan saknar egen typ. Reglerna
   gäller inte loppisar och motorsport. *Övrigt* blir kvar bara när inget annat passar (Gratis räknas inte).
   Kategorifiltren står i bokstavsordning. Nya ordregler: pröva först mot sparad data så att de inte träffar fel.
+  *SHL* (#68) sätts av källan SHL. Kategorier i `categories.SOURCE_ONLY` följer med vid sammanslagning (`merge._absorb`),
+  eftersom Visit Värmland och Ticketmaster har högre prioritet och annars skulle ta bort dem.
 - **Ordning i listan och kalendern** (`multiDay` i `app.js`): under varje dag står evenemang som bara äger rum en dag
   före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte
   som ett tillfälle över flera dagar), sedan tid och titel.
 - **Sammanslagning** (`merge.py`): samma dag (varje dag i perioder ≤ 7 dagar), samma kommun och liknande titlar, eller
   `same_race` för motorsport med olika titlar. "loppis" och "konsert" m.fl. räknas inte som gemensamma ord.
-- **Fråga AI** (`chat.py`):
+- **Beskrivningen** i korten (`descriptionBlock` i `app.js`, #67): stycken av källans rader (en lång rad som avslutar en
+  mening blir ett eget stycke, korta rader hålls ihop), långa textmassor delas vid meningsgränser, webb- och
+  e-postadresser blir länkar, och ingressen döljs när beskrivningen är utfälld om beskrivningen börjar med den.
+- **Fråga AI** (`chat.py`), kan döljas helt med `CHAT_ENABLED=false` (#69: menyvalet och `chat.js` tas bort ur
+  `index.html`, sidan Om hoppar över AI-texterna, `/api/chat*` ger 404):
   1. `classify`: enkla sökfrågor besvaras direkt av `search_answer`, utan AI.
   2. `scope_check`: spärr före AI och webb. Frågan stoppas om den nämner ett namn med versal som inte finns bland
      appens evenemang, platser, arrangörer eller kommuner, eller om den inte rör evenemang. Webben söks bara när
@@ -199,5 +205,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`
   i en `until`-loop tills CI, Publicera Docker-image och Release är klara.
+- **Bandy (analys 2026-09-29):** IF Boltic (tidigare BS BolticGöta) spelar Bandyallsvenskan 2026/27, inte Elitserien, och
+  finns inte hos Visit Värmland. Bandyförbundets matcher finns i Profixio: API:t kräver nyckel (elitserien.se har en
+  egen proxy för Elitserien), men de publika sidorna `profixio.com/app/lx/competition/leagueid<id>?t=schedule` är
+  serverrenderade (Allsvenskan herr 2026/27: `leagueid28502`, hemmaplan Tingvalla Isstadion). Klubbens SportAdmin-sida
+  `ifboltic.com/match/?ID=521641` listar också kommande matcher (även ungdom och träningsmatcher).
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
 
