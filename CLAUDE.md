@@ -55,6 +55,10 @@ aktuella när något ändras.
   sedan bara serierna med lag från Värmland.
   Svemo TA har 13 000+ historiska tävlingar: bläddra aldrig igenom hela listan, bara sista sidorna bakåt.
   Hämta inte oftare än nödvändigt, varken i appen eller under utveckling. Testa mot sparad data (se Lärdomar).
+- **Var VÄLDIGT snäll mot källorna** (användarens beslut, #76): källorna uppdateras sällan, så hellre vänta till nästa
+  hämtning än riskera att bli spärrad. Högst ett nytt försök per anrop (429 och 5xx, aldrig tidigare än
+  `Retry-After`, aldrig om källan ber om mer än 60 s), 401/403 pausar källan till nästa morgonkörning, och nya
+  försök görs bara vid morgonkörningen (2 st, 15 min emellan). Lägg aldrig till tätare försök.
 - Nycklar (t.ex. `TICKETMASTER_API_KEY`) får aldrig loggas eller synas i felmeddelanden. httpx-loggningen
   är därför avstängd.
 
@@ -135,8 +139,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - **Städning** (`main.cleanup`, `events.purge_old`): körs efter varje hämtning från källorna (även `POST /api/refresh`)
   och vid start, aldrig oftare (användarens beslut). Rensar källdata från före morgonkörningen (05:00) och från
   avstängda källor, inaktuella AI-svar, bilder utan evenemang och `.tmp`-filer, utgångna samtal, IP-adresser i
-  spärren och, efter morgonkörningen, alla chattsamtal. En källa som fallerar på morgonen får två nya försök (5 min)
-  innan dess data tas bort. Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
+  spärren och, efter morgonkörningen, alla chattsamtal. En källa som fallerar på morgonen får två nya försök (15 min)
+  innan dess data tas bort. Inga nya försök under resten av dygnet (#76). Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
   Ny lagrad data ska rensas där när den blir inaktuell, och läggas till i tabellen i `docs/data-och-integritet.md`.
 - **Besöksstatistik** (#66, `visits.py`, `besoksinfo.py`, `geoip.py`): av som standard, på med `BESOKSINFO_PASSWORD`.
   `GET /` räknas (inte robotar, `HeadlessChrome` eller prefetch). Unika per dygn: sha256 av dygnets salt + IP +

@@ -6,6 +6,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Mycket försiktiga nya försök mot källorna, så att appen aldrig riskerar att bli spärrad: vid 429 och serverfel
+  (5xx) högst ett nytt försök, aldrig tidigare än källan ber om (`Retry-After`) och aldrig om den ber om mer än 60
+  sekunder. Serverfel väntar 60 sekunder i stället för 5. En källa som nekar åtkomst (401/403) pausas till nästa
+  morgonkörning. Försöken var 30:e minut efter en misslyckad hämtning är borttagna, och morgonkörningens två nya
+  försök görs med 15 minuters mellanrum i stället för 5 (#76).
+
 ## [0.26.0] - 2026-09-29
 
 ### Ändrat

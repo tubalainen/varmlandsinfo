@@ -122,3 +122,36 @@ def test_cache_headers():
     assert "immutable" in client.get(f"/static/style.css?v={__version__}").headers["cache-control"]
     assert client.get("/static/style.css").headers["cache-control"] == "no-cache"
     assert client.get("/api/health").headers["cache-control"] == "no-store"
+
+
+def test_refresh_pauses_sources_that_deny_access(monkeypatch):
+    """401/403 kan betyda att appen är spärrad: källan hämtas inte igen förrän vid morgonkörningen (#76)."""
+    import asyncio
+    from common import AccessDenied
+
+    class Denied:
+        key, title, homepage = "fake", "Fejk", "https://x"
+        calls = 0
+
+        async def fetch(self, client, previous):
+            Denied.calls += 1
+            if Denied.calls == 1:
+                raise AccessDenied("Fejk nekade åtkomst (HTTP 403). Källan pausas till nästa morgonkörning.")
+            return {"events": []}
+
+        def normalize(self, payload):
+            return []
+
+    info = {"title": "Fejk", "group": "Fejk", "homepage": "https://x", "enabled": True, "config_error": None,
+            "count": 0, "updated": None, "error": None, "paused": False}
+    monkeypatch.setattr(events, "SOURCES", [Denied()])
+    monkeypatch.setitem(events.state, "sources", {"fake": info})
+    monkeypatch.setattr(events, "save_cache", lambda *a: None)
+    monkeypatch.setattr(events, "rebuild", lambda: None)
+
+    asyncio.run(events._refresh(None))
+    assert info["paused"] and "pausas" in info["error"] and Denied.calls == 1
+    asyncio.run(events._refresh(None))                       # manuell eller schemalagd uppdatering: hoppas över
+    assert Denied.calls == 1
+    asyncio.run(events._refresh(None, include_paused=True))  # morgonkörningen: ett försök
+    assert Denied.calls == 2 and not info["paused"] and info["error"] is None

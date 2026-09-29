@@ -50,18 +50,68 @@ def test_get_json_pauses_when_quota_low(monkeypatch):
     assert slept == [60]
 
 
-def test_get_json_gives_up(monkeypatch):
-    async def fake_sleep(s):
-        pass
-
-    monkeypatch.setattr(common.asyncio, "sleep", fake_sleep)
-    client, calls = client_with([httpx.Response(429) for _ in range(common.MAX_RETRIES + 1)])
+def fails(coro):
     try:
-        run(common.get_json(client, "https://api.test/events", "Test"))
-        assert False, "borde ha gett upp"
-    except common.SourceError:
-        pass
-    assert len(calls) == common.MAX_RETRIES + 1
+        run(coro)
+    except common.SourceError as exc:
+        return exc
+    raise AssertionError("inget fel")
+
+
+def test_429_gets_at_most_one_retry(monkeypatch):
+    """Var snäll mot källorna (#76): högst ett nytt försök, och aldrig tidigare än källan ber om."""
+    slept = []
+
+    async def fake_sleep(s):
+        slept.append(s)
+    monkeypatch.setattr(common.asyncio, "sleep", fake_sleep)
+
+    client, calls = client_with([httpx.Response(429), httpx.Response(429)])        # utan Retry-After: 60 s
+    exc = fails(common.get_json(client, "https://api.test/events", "Test"))
+    assert len(calls) == 2 and slept == [common.RATE_LIMIT_WAIT] and "Nytt försök vid nästa hämtning" in str(exc)
+
+    slept.clear()
+    client, calls = client_with([httpx.Response(429, headers={"retry-after": "3600"}), httpx.Response(200, json={})])
+    fails(common.get_json(client, "https://api.test/events", "Test"))
+    assert len(calls) == 1 and slept == []                                           # ber om en timme: ge upp nu
+
+    slept.clear()
+    client, calls = client_with([httpx.Response(429, headers={"retry-after": "i morgon"}), httpx.Response(200, json={})])
+    fails(common.get_json(client, "https://api.test/events", "Test"))
+    assert len(calls) == 1 and slept == []                                           # okänt värde: ge upp
+
+    slept.clear()                                                                    # även webbsidor (HTML)
+    client, calls = client_with([httpx.Response(429, headers={"retry-after": "20"}), httpx.Response(200, text="ok")])
+    assert run(common.get_text(client, "https://x.test/sida", "Test")) == "ok" and slept == [20]
+
+
+def test_retry_after_as_date():
+    from email.utils import format_datetime
+    from datetime import timezone
+    later = format_datetime(datetime.now(timezone.utc) + timedelta(seconds=30), usegmt=True)
+    wait = common.retry_after(httpx.Response(503, headers={"retry-after": later}), 5)
+    assert 25 <= wait <= 31
+    assert common.retry_after(httpx.Response(503), 5) == 5
+
+
+def test_server_error_respects_retry_after(monkeypatch):
+    slept = []
+
+    async def fake_sleep(s):
+        slept.append(s)
+    monkeypatch.setattr(common.asyncio, "sleep", fake_sleep)
+    client, calls = client_with([httpx.Response(503, headers={"retry-after": "300"}), httpx.Response(200, text="ok")])
+    assert "HTTP 503" in str(fails(common.get_text(client, "https://x.test/sida", "Test")))
+    assert len(calls) == 1 and slept == []
+
+
+def test_access_denied_pauses_the_source(monkeypatch):
+    client, calls = client_with([httpx.Response(403), httpx.Response(200, text="ok")])
+    exc = fails(common.get_text(client, "https://x.test/sida", "Test"))
+    assert isinstance(exc, common.AccessDenied) and common.PAUSED in str(exc) and len(calls) == 1
+    client, _ = client_with([httpx.Response(401)])
+    exc = fails(common.get_json(client, "https://api.test/events?apikey=HEMLIG", "Test"))
+    assert isinstance(exc, common.AccessDenied) and "API-nyckeln" in str(exc) and "HEMLIG" not in str(exc)
 
 
 def test_manual_refresh_is_throttled(monkeypatch):

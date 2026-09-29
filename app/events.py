@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 
-from common import TZ, USER_AGENT, log, now_iso, stats, today
+from common import TZ, USER_AGENT, AccessDenied, log, now_iso, stats, today
 from merge import merge
 from sources import SOURCES
 from version import __version__
@@ -23,10 +23,12 @@ state: dict = {
     "error": None,            # sammanfattning av fel i senaste hämtningen
     "refreshing": False,
     "storage_error": None,
-    # per källa: {"title", "enabled", "count", "updated", "error"}
+    # per källa: {"title", "enabled", "count", "updated", "error", "paused"}
+    # paused: källan nekade åtkomst (401/403) och hämtas inte igen förrän vid nästa morgonkörning (#76)
     # group: namnet som visas i gränssnittet. Källor med samma grupp (t.ex. Loppisar) visas som en källa.
     "sources": {s.key: {"title": s.title, "group": getattr(s, "group", s.title), "homepage": s.homepage, "enabled": s.config_error() is None,
-                        "config_error": s.config_error(), "count": 0, "updated": None, "error": None}
+                        "config_error": s.config_error(), "count": 0, "updated": None, "error": None,
+                        "paused": False}
                 for s in SOURCES},
 }
 _payloads: dict[str, dict] = {}
@@ -122,7 +124,7 @@ def stale_sources(is_stale) -> list[str]:
             if state["sources"][s.key]["enabled"] and is_stale(state["sources"][s.key]["updated"])]
 
 
-async def _refresh(keys: list[str] | None) -> None:
+async def _refresh(keys: list[str] | None, include_paused: bool = False) -> None:
     state["refreshing"] = True
     calls_before = stats["api_calls"]
     try:
@@ -132,16 +134,20 @@ async def _refresh(keys: list[str] | None) -> None:
                 info = state["sources"][s.key]
                 if not info["enabled"] or (keys is not None and s.key not in keys):
                     continue
+                if info["paused"] and not include_paused:
+                    log.info("%s är pausad (nekade åtkomst) och hämtas vid nästa morgonkörning", s.title)
+                    continue
                 try:
                     payload = await s.fetch(client, _payloads.get(s.key))
                     updated = now_iso()
                     _payloads[s.key] = payload
-                    info.update(updated=updated, error=None)
+                    info.update(updated=updated, error=None, paused=False)
                     await asyncio.to_thread(save_cache, s.key, payload, updated)
                 except Exception as exc:
                     # Senast hämtade (eller sparade) data för källan ligger kvar
                     log.warning("Hämtning från %s misslyckades: %s", s.title, exc)
                     info["error"] = str(exc)
+                    info["paused"] = isinstance(exc, AccessDenied)
         rebuild()
         errors = [f"{v['title']}: {v['error']}" for v in state["sources"].values() if v["enabled"] and v["error"]]
         state["error"] = "; ".join(errors) or None
@@ -156,11 +162,12 @@ async def _refresh(keys: list[str] | None) -> None:
         state["refreshing"] = False
 
 
-async def refresh(keys: list[str] | None = None) -> None:
-    """Hämtar angivna källor (alla om None), eller väntar in en hämtning som redan pågår."""
+async def refresh(keys: list[str] | None = None, include_paused: bool = False) -> None:
+    """Hämtar angivna källor (alla om None), eller väntar in en hämtning som redan pågår. Pausade källor
+    (nekade åtkomst) hämtas bara med `include_paused` (morgonkörningen)."""
     global _refresh_task
     if _refresh_task is None or _refresh_task.done():
-        _refresh_task = asyncio.create_task(_refresh(keys))
+        _refresh_task = asyncio.create_task(_refresh(keys, include_paused))
     # shield: en klient som kopplar ner ska inte avbryta hämtningen
     await asyncio.shield(_refresh_task)
 

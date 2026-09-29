@@ -31,9 +31,9 @@ from version import RELEASE_URL, REPO_URL, __version__
 
 DAILY_REFRESH_TIME = os.getenv("DAILY_REFRESH_TIME", "05:00")
 MIN_REFRESH_MINUTES = 30
-RETRY_AFTER_FAILURE = timedelta(minutes=30)
-MORNING_RETRIES = 2                          # nya försök vid morgonkörningen innan gammal data tas bort …
-MORNING_RETRY_DELAY = timedelta(minutes=5)   # … med så här lång paus
+# Var snäll mot källorna (#76): nya försök görs bara vid morgonkörningen, aldrig under resten av dygnet.
+MORNING_RETRIES = 2                           # nya försök vid morgonkörningen innan gammal data tas bort …
+MORNING_RETRY_DELAY = timedelta(minutes=15)   # … med så här lång paus
 STATIC_DIR = Path(__file__).parent / "static"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -95,7 +95,8 @@ def next_run(now: datetime) -> datetime:
 
 
 def failed_sources() -> list[str]:
-    return [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"]]
+    """Källor som fallerade och får ett nytt försök. Pausade källor (nekade åtkomst) får inga nya försök."""
+    return [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"] and not v.get("paused")]
 
 
 def cleanup(now: datetime, conversations: bool = False) -> None:
@@ -123,8 +124,9 @@ async def update_geoip() -> None:
 
 
 async def morning_run(keys: list[str] | None = None) -> None:
-    """Morgonkörningen: hämtar allt, gör nya försök med källor som fallerar och städar sedan bort gammal data."""
-    await events.refresh(keys)
+    """Morgonkörningen: hämtar allt (även pausade källor, en gång), gör nya försök med källor som fallerar och
+    städar sedan bort gammal data."""
+    await events.refresh(keys, include_paused=True)
     for attempt in range(1, MORNING_RETRIES + 1):
         failed = failed_sources()
         if not failed:
@@ -153,19 +155,13 @@ async def scheduler() -> None:
         now = datetime.now(TZ)
         target = next_run(now)
         daily = target == _daily_at(target)
-        failed = failed_sources()
-        retry = bool(failed) and now + RETRY_AFTER_FAILURE < target
-        if retry:
-            # Misslyckad hämtning: försök igen om en stund med bara de källor som fallerade
-            target, daily = now + RETRY_AFTER_FAILURE, False
         schedule["next_refresh"] = target.isoformat(timespec="minutes")
-        log.info("Nästa schemalagda uppdatering: %s%s", schedule["next_refresh"],
-                 f" (nytt försök: {', '.join(failed)})" if retry else "")
+        log.info("Nästa schemalagda uppdatering: %s", schedule["next_refresh"])
         await asyncio.sleep(max(1, (target - datetime.now(TZ)).total_seconds()))
         if daily:
             await morning_run()
         else:
-            await events.refresh(failed if retry else None)
+            await events.refresh()          # REFRESH_MINUTES: alla källor utom pausade, inga nya försök
             cleanup(datetime.now(TZ))
 
 

@@ -1,11 +1,12 @@
 """Gemensamma hjälpfunktioner för evenemangskällorna."""
 
 import asyncio
+import email.utils
 import html
 import logging
 import os
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -17,8 +18,11 @@ from version import __version__
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
 USER_AGENT = f"varmlandsinfo/{__version__} (+https://github.com/tubalainen/varmlandsinfo)"
 RATE_LIMIT_LOW = 5   # pausa när så här få anrop återstår i kvoten
-MAX_RETRIES = 4
-SERVER_ERROR_RETRY_DELAY = 5    # sekunder före det enda nya försöket vid ett serverfel (HTTP 5xx)
+# Nya försök är mycket försiktiga (#76), så att appen aldrig riskerar att bli spärrad av en källa:
+# högst ett nytt försök per anrop, bara vid 429 och 5xx, och aldrig tidigare än källan ber om (Retry-After).
+SERVER_ERROR_RETRY_DELAY = 60   # sekunder före det nya försöket vid ett serverfel (HTTP 5xx) utan Retry-After
+RATE_LIMIT_WAIT = 60            # sekunder före det nya försöket vid 429 utan Retry-After
+MAX_RETRY_WAIT = 60             # ber källan om längre väntan görs inget nytt försök förrän nästa hämtning
 
 log = logging.getLogger("varmlandsinfo")
 
@@ -83,58 +87,84 @@ class SourceError(RuntimeError):
     """Fel från en källa. Meddelandet innehåller aldrig frågesträngen (där API-nycklar kan finnas)."""
 
 
+class AccessDenied(SourceError):
+    """HTTP 401/403: nyckeln är fel eller appen är spärrad. Källan pausas till nästa morgonkörning (events)."""
+
+
+PAUSED = "Källan pausas till nästa morgonkörning."
+
+
+def retry_after(r: httpx.Response, default: float) -> float | None:
+    """Sekunder enligt Retry-After (sekunder eller datum). `default` utan huvud, None om det inte går att tolka."""
+    value = (r.headers.get("retry-after") or "").strip()
+    if not value:
+        return default
+    if value.isdigit():
+        return float(value)
+    try:
+        when = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if when.tzinfo is None:
+        return None
+    return max(0.0, (when - datetime.now(timezone.utc)).total_seconds())
+
+
 async def _request(send, unreachable: str, where: str) -> httpx.Response:
-    """Ett anrop till en källa. Serverfel (HTTP 5xx) är ofta tillfälliga, så då görs ett nytt försök efter en kort
-    paus. `where` (källa och sökväg, aldrig frågesträngen) används i loggen, `unreachable` i felmeddelandet."""
+    """Ett anrop till en källa, med högst ett nytt försök: vid 429 och serverfel (5xx), och bara om källan inte ber
+    om längre väntan än MAX_RETRY_WAIT. `where` (källa och sökväg, aldrig frågesträngen) används i loggen,
+    `unreachable` i felmeddelandet."""
     for attempt in range(2):
         try:
             r = await send()
         except httpx.HTTPError as exc:
             raise SourceError(f"Kunde inte nå {unreachable}: {type(exc).__name__}") from None
         stats["api_calls"] += 1
-        if r.status_code < 500 or attempt:
+        if attempt or not (r.status_code == 429 or r.status_code >= 500):
             return r
-        log.warning("Serverfel (HTTP %s) från %s, försöker igen om %ss", r.status_code, where, SERVER_ERROR_RETRY_DELAY)
-        await asyncio.sleep(SERVER_ERROR_RETRY_DELAY)
+        wait = retry_after(r, RATE_LIMIT_WAIT if r.status_code == 429 else SERVER_ERROR_RETRY_DELAY)
+        if wait is None or wait > MAX_RETRY_WAIT:
+            log.warning("HTTP %s från %s. Källan ber appen vänta längre än %ss, så inget nytt försök förrän nästa "
+                        "hämtning", r.status_code, where, MAX_RETRY_WAIT)
+            return r
+        if r.status_code >= 500:
+            wait = max(wait, SERVER_ERROR_RETRY_DELAY)
+        log.warning("HTTP %s från %s, ett nytt försök om %ss", r.status_code, where, round(wait))
+        await asyncio.sleep(wait)
     return r
+
+
+def _check(r: httpx.Response, source: str, where: str, key_hint: bool = False) -> None:
+    """Felet för ett misslyckat svar. 401/403 pausar källan, 429 väntar till nästa hämtning."""
+    if r.status_code in (401, 403):
+        hint = ", kontrollera API-nyckeln" if key_hint else ""
+        raise AccessDenied(f"{source} nekade åtkomst (HTTP {r.status_code}){hint}. {PAUSED}")
+    if r.status_code == 429:
+        raise SourceError(f"{source} ber appen vänta (HTTP 429 Too Many Requests). Nytt försök vid nästa hämtning.")
+    if r.status_code >= 400:
+        raise SourceError(f"{where} svarade HTTP {r.status_code}")
 
 
 async def get_json(client: httpx.AsyncClient, url: str, source: str, **params) -> dict:
     """GET som respekterar källans rate limit och aldrig läcker frågesträngen i felmeddelanden."""
     where = f"{source} ({urlsplit(url).path})"
-    for attempt in range(MAX_RETRIES + 1):
-        r = await _request(lambda: client.get(url, params=params), where, where)
-        if r.status_code == 429:
-            if attempt == MAX_RETRIES:
-                break
-            try:
-                wait = min(int(r.headers.get("retry-after", 60)), 120)
-            except ValueError:
-                wait = 60
-            log.warning("Rate limit (429) från %s, väntar %ss", source, wait)
-            await asyncio.sleep(wait)
-            continue
-        if r.status_code in (401, 403):
-            raise SourceError(f"{source} nekade åtkomst (HTTP {r.status_code}), kontrollera API-nyckeln")
-        if r.status_code >= 400:
-            raise SourceError(f"{where} svarade HTTP {r.status_code}")
-        remaining = r.headers.get("x-ratelimit-remaining") or r.headers.get("rate-limit-available")
-        if remaining is not None and remaining.isdigit() and int(remaining) < RATE_LIMIT_LOW:
-            log.info("Bara %s anrop kvar i kvoten hos %s, pausar 60s", remaining, source)
-            await asyncio.sleep(60)
-        try:
-            return r.json()
-        except ValueError:
-            raise SourceError(f"{where} svarade inte med JSON") from None
-    raise SourceError(f"{source} svarar fortsatt 429 (Too Many Requests)")
+    r = await _request(lambda: client.get(url, params=params), where, where)
+    _check(r, source, where, key_hint=True)
+    remaining = r.headers.get("x-ratelimit-remaining") or r.headers.get("rate-limit-available")
+    if remaining is not None and remaining.isdigit() and int(remaining) < RATE_LIMIT_LOW:
+        log.info("Bara %s anrop kvar i kvoten hos %s, pausar 60s", remaining, source)
+        await asyncio.sleep(60)
+    try:
+        return r.json()
+    except ValueError:
+        raise SourceError(f"{where} svarade inte med JSON") from None
 
 
 async def get_text(client: httpx.AsyncClient, url: str, source: str, headers: dict | None = None) -> str:
     """GET av en HTML-sida (för källor utan API)."""
     r = await _request(lambda: client.get(url, headers={"Accept": "text/html", **(headers or {})}, follow_redirects=True),
                        source, f"{source} ({urlsplit(url).path})")
-    if r.status_code >= 400:
-        raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
+    _check(r, source, f"{source} ({urlsplit(url).path})")
     return r.text
 
 
@@ -142,8 +172,7 @@ async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str
     """POST av ett formulär (t.ex. en ASP.NET-postback för att byta sida i en lista)."""
     r = await _request(lambda: client.post(url, data=data, headers={"Accept": "text/html"}, follow_redirects=True),
                        source, f"{source} ({urlsplit(url).path})")
-    if r.status_code >= 400:
-        raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
+    _check(r, source, f"{source} ({urlsplit(url).path})")
     return r.text
 
 
@@ -151,8 +180,7 @@ async def post_json(client: httpx.AsyncClient, url: str, data: dict, source: str
     """POST med JSON (t.ex. när en sida laddar fler rader med ett Livewire-anrop, som i webbläsaren)."""
     r = await _request(lambda: client.post(url, json=data, headers={"Accept": "application/json", **(headers or {})}),
                        source, f"{source} ({urlsplit(url).path})")
-    if r.status_code >= 400:
-        raise SourceError(f"{source} ({urlsplit(url).path}) svarade HTTP {r.status_code}")
+    _check(r, source, f"{source} ({urlsplit(url).path})")
     try:
         return r.json()
     except ValueError:

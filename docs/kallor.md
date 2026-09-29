@@ -63,14 +63,23 @@ Skydden gäller alla källor:
 - **Vid start** används sparad data, och bara källor vars data är inaktuell hämtas.
 - **`POST /api/refresh`** hämtar inte om datan är yngre än 5 minuter.
 - **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
-- **Om en källa svarar `429 Too Many Requests`** väntar appen enligt `Retry-After`. Är kvoten nästan
-  slut pausar hämtningen.
-- **Om en källa svarar med ett serverfel (HTTP 500–599)** görs ett nytt försök efter 5 sekunder, eftersom sådana fel
-  ofta är tillfälliga. Misslyckas även det visas felet för källan. Andra fel (t.ex. 404) försöker appen inte igen.
-- **Om en källa fallerar vid morgonkörningen** görs två nya försök med 5 minuters mellanrum. Lyckas inte
-  de heller tas källans gamla data bort (se [Städning](data-och-integritet.md#städning-av-inaktuell-data)), och källan
-  försöks igen var 30:e minut.
-- **Om en källa fallerar vid en senare uppdatering** under dagen behålls dagens data, och källan försöks igen efter
-  30 minuter.
+- **Appen är mycket försiktig med nya försök**, så att den aldrig riskerar att bli spärrad av en källa (#76).
+  Källorna uppdateras sällan, så det är bättre att vänta till nästa hämtning än att försöka igen och igen:
+  - **`429 Too Many Requests`:** högst ett nytt försök, och aldrig tidigare än källan ber om (`Retry-After`, i
+    sekunder eller som datum, annars 60 sekunder). Ber källan om mer än 60 sekunder, eller går värdet inte att tolka,
+    görs inget nytt försök förrän vid nästa hämtning. Är kvoten nästan slut pausar hämtningen.
+  - **Serverfel (HTTP 500–599):** ett nytt försök efter 60 sekunder (eller efter `Retry-After` om den anges och är
+    högst 60 sekunder). Misslyckas även det visas felet för källan.
+  - **`401`/`403` (nekad åtkomst):** kan betyda att nyckeln är fel eller att appen är spärrad. Källan **pausas till
+    nästa morgonkörning**: den hoppas över vid `POST /api/refresh` och `REFRESH_MINUTES`, och vid morgonkörningen
+    provas den en gång, utan nya försök.
+  - **Andra fel** (t.ex. 404 eller nätverksfel) ger inga nya försök.
+- **Om en källa fallerar vid morgonkörningen** görs två nya försök med 15 minuters mellanrum (05.15 och 05.30).
+  Lyckas inte de heller tas källans gamla data bort (se [Städning](data-och-integritet.md#städning-av-inaktuell-data)),
+  och källan hämtas igen först vid nästa morgonkörning (eller vid `POST /api/refresh`).
+- **Om en källa fallerar vid en senare uppdatering** under dagen behålls dagens data, och inga nya försök görs förrän
+  vid nästa hämtning.
+- **Totalt:** en källa som är nere hela dygnet hämtas högst 3 gånger per dygn (morgonkörningen), och en som nekar
+  åtkomst högst 1 gång.
 - **Anrop:** antalet anrop sedan start syns som `api_calls` i `/api/health`, och status per källa under `sources`.
 - **API-nycklar** loggas aldrig och syns aldrig i felmeddelanden.

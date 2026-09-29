@@ -99,13 +99,14 @@ def test_clear_sessions_keeps_the_one_answering():
 def test_morning_run_retries_then_cleans_up(monkeypatch, tmp_path):
     calls = []
 
-    async def fake_refresh(keys=None):
-        calls.append(keys)
-        # Scalateatern svarar först på tredje försöket, CCC aldrig
+    async def fake_refresh(keys=None, include_paused=False):
+        calls.append((keys, include_paused))
+        # Scalateatern svarar först på tredje försöket, CCC aldrig, och SBF nekar åtkomst (pausas, inga nya försök)
         for key, info in events.state["sources"].items():
             if keys is None or key in keys:
-                ok = key != "ccc" and not (key == "scala" and len(calls) < 3)
+                ok = key not in ("ccc", "sbf") and not (key == "scala" and len(calls) < 3)
                 info["error"] = None if ok else "fel"
+                info["paused"] = key == "sbf"
 
     cleaned = []
     monkeypatch.setattr(main, "MORNING_RETRY_DELAY", main.timedelta(0))
@@ -113,7 +114,7 @@ def test_morning_run_retries_then_cleans_up(monkeypatch, tmp_path):
     monkeypatch.setattr(main, "cleanup", lambda now, conversations=False: cleaned.append(conversations))
     use_tmp_data(tmp_path, monkeypatch)
     asyncio.run(main.morning_run())
-    assert calls == [None, ["ccc", "scala"], ["ccc", "scala"]]
+    assert calls == [(None, True), (["ccc", "scala"], False), (["ccc", "scala"], False)]
     assert cleaned == [True]                                               # städning och rensade samtal efteråt
 
 
