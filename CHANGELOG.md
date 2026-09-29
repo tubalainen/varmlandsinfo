@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-09-29
+
 ### Ändrat
 - Sidan Om applikationen visar licensen (MIT), att appen inte gör anspråk på källornas innehåll, att inget ansvar
   tas för appens funktion och att appen är framtagen med hjälp av Claude Code (#55)
@@ -261,7 +263,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.1...HEAD
+[0.19.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.17.0...v0.18.0
