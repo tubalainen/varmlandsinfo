@@ -46,6 +46,14 @@ def tm_event(**kw):
     return ev
 
 
+def test_ticketmaster_summary_cut_at_word():
+    info = "Ord " * 100
+    e = ticketmaster.normalize_event(tm_event(info=info, priceRanges=[]))
+    assert e["summary"].endswith("Ord …")
+    assert len(e["summary"]) <= 302
+    assert e["description"] == info
+
+
 def test_ticketmaster_normalize():
     e = ticketmaster.normalize_event(tm_event())
     assert e["id"] == "tm-Z1"

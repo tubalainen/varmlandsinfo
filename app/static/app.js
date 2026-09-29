@@ -29,6 +29,68 @@ function el(tag, attrs = {}, ...children) {
 const ext = (href, label, cls = "btn btn-sm", ico = "external") =>
   el("a", { class: cls, href, target: "_blank", rel: "noopener" }, icon(ico), label);
 
+// ---------------------------------------------------------------- beskrivningar
+
+// Förkortningar som slutar med punkt men inte avslutar en mening ("t.ex. Anna", "Tel. 054").
+const ABBREV = /(?:^|\s)(?:t\.ex|bl\.a|m\.fl|m\.m|o\.s\.v|s\.k|d\.v\.s|ca|kl|tel|st|dr|nr|osv|dvs|resp|inkl|exkl|ev|jfr|mfl)\.$/i;
+const LINK_RE = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+|[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,})/gi;
+
+/** Delar en lång text utan radbrytningar i meningar och grupperar dem i lagom långa stycken. */
+function sentenceParagraphs(text, target = 260) {
+  const sentences = [];
+  for (const part of text.split(/(?<=[.!?…])\s+(?=["”»(]?[A-ZÅÄÖÉÜ])/)) {
+    const prev = sentences.at(-1);
+    if (prev && ABBREV.test(prev)) sentences[sentences.length - 1] = `${prev} ${part}`;
+    else sentences.push(part);
+  }
+  const paras = [];
+  let cur = "";
+  for (const s of sentences) {
+    cur = cur ? `${cur} ${s}` : s;
+    if (cur.length >= target) { paras.push(cur); cur = ""; }
+  }
+  if (cur) {
+    // En kort rest hänger med i stycket före.
+    if (paras.length && cur.length < 80) paras[paras.length - 1] += ` ${cur}`;
+    else paras.push(cur);
+  }
+  return paras;
+}
+
+/** Text med klickbara webb- och e-postadresser. */
+function linkify(text) {
+  const out = [];
+  let last = 0;
+  for (const m of text.matchAll(LINK_RE)) {
+    const raw = m[0].replace(/[.,;:!?)\]»”"']+$/, "");
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const href = raw.includes("@") && !raw.includes("/") ? `mailto:${raw}`
+      : raw.startsWith("www.") ? `https://${raw}` : raw;
+    out.push(el("a", { href, target: "_blank", rel: "noopener" }, raw));
+    last = m.index + raw.length;
+  }
+  out.push(text.slice(last));
+  return out;
+}
+
+/** Beskrivningen som stycken: befintliga stycken behålls och långa textmassor delas vid meningsgränser. */
+function descriptionBlock(text) {
+  const blocks = [];
+  for (const block of text.trim().split(/\n\s*\n/)) {
+    const lines = block.split("\n");
+    if (lines.length > 1 && lines.every((l) => l.length <= 400)) blocks.push(block);
+    else for (const line of lines) blocks.push(...(line.length > 400 ? sentenceParagraphs(line.trim()) : [line]));
+  }
+  return el("div", { class: "desc" }, blocks.filter((b) => b.trim()).map((b) => el("p", {}, linkify(b.trim()))));
+}
+
+/** Sant när beskrivningen börjar med ingressen, som då kan döljas när beskrivningen är utfälld. */
+function summaryRepeated(e) {
+  const norm = (s) => (s || "").replace(/\s+/g, " ").replace(/\s*…$/, "").trim();
+  const summary = norm(e.summary);
+  return summary.length >= 40 && norm(e.description).startsWith(summary);
+}
+
 function dayLabel(iso) {
   const diff = Math.round((parseDate(iso) - parseDate(state.today)) / 86400000);
   const text = fmtDay.format(parseDate(iso));
@@ -381,13 +443,13 @@ function card(e, o, occ, expand) {
         el("span", { class: "src" }, icon("layers"), e.sources.map((x) => x.name).join(", "))),
       el("div", { class: "badges" }, cats.map((c) => el("span", { class: "badge", style: `--c:${c.color}`, title: c.description }, `${c.icon} ${c.title}`))),
       el("p", { class: "typedesc" }, cats.map((c) => c.description).join(" ")),
-      e.summary ? el("p", { class: "summary" }, e.summary) : null,
+      e.summary ? el("p", { class: summaryRepeated(e) ? "summary repeated" : "summary" }, e.summary) : null,
       !expand && others.length ? el("div", { class: "dates" }, el("small", { class: "muted" }, "Fler tillfällen:"),
         others.slice(0, 12).map((x) => el("span", {}, fmtShort.format(parseDate(x.date_start)) + (x.time_start ? " " + x.time_start : ""))),
         others.length > 12 ? el("small", { class: "muted" }, `+${others.length - 12} till`) : null) : null,
       e.description || e.images.length > 1 ? el("details", {},
         el("summary", {}, "Beskrivning och bilder"),
-        e.description ? el("p", { class: "desc" }, e.description) : null,
+        e.description ? descriptionBlock(e.description) : null,
         e.place?.address ? el("p", { class: "muted" }, "Adress: " + e.place.address) : null,
         el("div", { class: "thumbs" }, e.images.map((i) => el("img", { src: i.small, alt: i.alt, loading: "lazy", onclick: () => openImage(i) })))) : null,
       el("div", { class: "links" },

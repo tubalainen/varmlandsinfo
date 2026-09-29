@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Beskrivningen under "Beskrivning och bilder" är lättare att läsa: långa textmassor delas i stycken vid
+  meningsgränser, med behaglig radlängd och radavstånd. Webb- och e-postadresser blir länkar, och sammanfattningen
+  upprepas inte när beskrivningen är utfälld. Ticketmasters sammanfattning klipps vid ett ordslut (#67).
+
 ## [0.23.0] - 2026-09-29
 
 ### Tillagt

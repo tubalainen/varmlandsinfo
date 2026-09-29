@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import httpx
 
-from common import category, finalize, get_json, https_url
+from common import category, finalize, get_json, https_url, strip_html
 
 API_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 API_KEY = os.getenv("TICKETMASTER_API_KEY", "").strip()
@@ -151,7 +151,7 @@ def normalize_event(ev: dict) -> dict | None:
             if name and name.lower() != "undefined" and name not in genres:
                 genres.append(name)
     info = ev.get("info") or ev.get("pleaseNote") or ""
-    summary = info[:300] if info else (f"{', '.join(genres)} på {venue.get('name')}." if genres else "")
+    summary = strip_html(info, 300) if info else (f"{', '.join(genres)} på {venue.get('name')}." if genres else "")
     prices = ev.get("priceRanges") or []
     if prices and prices[0].get("min") is not None:
         p = prices[0]

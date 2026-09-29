@@ -9,7 +9,9 @@
   till exempel utställningar och återkommande evenemang. Inom varje grupp sorteras de på tid och titel. Samma
   ordning gäller i kalendern.
 - **Kort per evenemang:** tid, plats (med länk till Google Maps), arrangör, typ, sammanfattning, längre beskrivning,
-  bilder (klicka för att förstora) och länkar till evenemanget hos källan, biljetter och webbplats.
+  bilder (klicka för att förstora) och länkar till evenemanget hos källan, biljetter och webbplats. Den längre
+  beskrivningen visas i stycken: långa texter utan radbrytningar delas vid meningsgränser, webb- och e-postadresser
+  blir länkar, och sammanfattningen döljs när beskrivningen är utfälld om beskrivningen börjar med samma text.
 - **Återkommande evenemang** visas en gång, på första datumet, med övriga datum i kortet. Med reglaget
   *Ett kort per datum* visas de i stället som ett eget kort på varje datum.
 - **Kalender:** en månad med en vecka per rad (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka

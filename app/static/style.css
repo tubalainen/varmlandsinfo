@@ -206,7 +206,12 @@ body.cal-mode .list-only { display: none; }
 .dates span { border: 1px solid var(--line); background: var(--surface-2); border-radius: 6px; padding: 0 7px; font-size: .78rem; }
 details { margin-top: 8px; font-size: .9rem; }
 details summary { cursor: pointer; color: var(--accent-text); font-weight: 600; }
-details .desc { white-space: pre-line; }
+details .desc { max-width: 72ch; margin: 10px 0 4px; line-height: 1.6; }
+details .desc p { margin: 0 0 .75em; white-space: pre-line; overflow-wrap: anywhere; }
+details .desc p:last-child { margin-bottom: 0; }
+details .desc a { color: var(--accent-text); }
+/* Ingressen upprepas överst i beskrivningen: visa den bara en gång när beskrivningen är utfälld. */
+.card:has(details[open]) .summary.repeated { display: none; }
 .thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .thumbs img { width: 72px; height: 54px; object-fit: cover; border-radius: 6px; cursor: zoom-in; }
 .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
