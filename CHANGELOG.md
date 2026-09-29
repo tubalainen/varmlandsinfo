@@ -15,6 +15,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   eller Ticketmaster, och snabbvalet SHL i Fråga AI (#68).
 
 ### Ändrat
+- Bandy och innebandy hålls isär: sökrutan hittar inte innebandy när man söker på bandy, och i Fråga AI ger sökord
+  som inte finns i något evenemang svaret "inga evenemang" i stället för alla evenemang. "här" räknas inte längre
+  som sökord (#71).
 - Beskrivningen under "Beskrivning och bilder" är lättare att läsa: långa textmassor delas i stycken vid
   meningsgränser, med behaglig radlängd och radavstånd. Webb- och e-postadresser blir länkar, och sammanfattningen
   upprepas inte när beskrivningen är utfälld. Ticketmasters sammanfattning klipps vid ett ordslut (#67).

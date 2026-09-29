@@ -10,7 +10,8 @@ sidan försvinner, sidan Om beskriver inte AI-chatten och API:t för chatten (`/
 
 Alla frågor behöver inte AI. Frågor som bara letar efter evenemang, som "När spelar Färjestad nästa gång?",
 "Vad händer idag?" eller "Vilka konserter finns i Karlstad i oktober?", besvaras direkt av appen: den söker bland
-evenemangen och listar träffarna i datumordning, med nästa tillfälle först för när-frågor. Det går på ett ögonblick
+evenemangen och listar träffarna i datumordning, med nästa tillfälle först för när-frågor. Finns sökorden inte i
+något evenemang blir svaret att inga evenemang matchar (en fråga om innebandy ger alltså aldrig bandy eller annat). Det går på ett ögonblick
 och fungerar även utan Ollama.
 
 AI:n används när frågan kräver en bedömning, till exempel rekommendationer, jämförelser, personliga önskemål
