@@ -591,6 +591,15 @@
         "Fråga AI: 5 AI-frågor per 30 min och samtal",
         "20 per 30 min och IP-adress"
       ]
+    },
+    {
+      "dot": "amber",
+      "title": "Besöksstatistik (valfri)",
+      "items": [
+        "/besoksinfo med lösenordet BESOKSINFO_PASSWORD",
+        "FastAPI-appen räknar besöken och sparar dem i /data",
+        "Plats via DB-IP:s geodatabas, hämtas en gång i månaden"
+      ]
     }
   ],
   "boundaries": [

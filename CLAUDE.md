@@ -68,7 +68,8 @@ aktuella när något ändras.
   servern, bara i minnet, så appen ska köras som en process). `app/websearch.py`: valfri webbsökning via SearXNG
   för AI-frågor
 - `app/main.py`: FastAPI-rutter, schemaläggning och städning (`cleanup`). `app/access.py`: vad som bara får anropas
-  lokalt och spärren per IP. `app/images.py`: bilderna via appen (`/img/<nyckel>`)
+  lokalt och spärren per IP. `app/images.py`: bilderna via appen (`/img/<nyckel>`). `app/visits.py`,
+  `app/besoksinfo.py` och `app/geoip.py`: besöksstatistiken och den dolda sidan `/besoksinfo`
 - `app/static/`: gränssnittet. `app.js` sköter navigering (`#/lista`, `#/kalender`, `#/fraga`, `#/om`), filter
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
@@ -122,6 +123,15 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   spärren och, efter morgonkörningen, alla chattsamtal. En källa som fallerar på morgonen får två nya försök (5 min)
   innan dess data tas bort. Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
   Ny lagrad data ska rensas där när den blir inaktuell, och läggas till i tabellen i `docs/data-och-integritet.md`.
+- **Besöksstatistik** (#66, `visits.py`, `besoksinfo.py`, `geoip.py`): av som standard, på med `BESOKSINFO_PASSWORD`.
+  `GET /` räknas (inte robotar, `HeadlessChrome` eller prefetch). Unika per dygn: sha256 av dygnets salt + IP +
+  User-Agent. `data/besoksinfo.json`: `days` (dagens besökare med IP, plats, enhet, webbläsare, OS, hänvisning) och
+  `daily` (summerat). `cleanup` summerar dygn som är slut (IP-adresserna och saltet tas bort) och rensar dagar äldre än
+  13 månader. Sparas högst en gång i minuten och vid avslut. `/besoksinfo`: HTTP Basic (valfritt användarnamn),
+  `login_limiter` 10 fel per 15 min och IP, `noindex`, `no-store`, egen CSP, ingen JavaScript. Plats: DB-IP City Lite
+  (`data/geoip/dbip-city-lite.mmdb`, hämtas vid start och efter morgonkörningen om den saknas eller är äldre än 32
+  dagar, cirka 60 MB), kräver länken till DB-IP på sidan. Kontrastkontrollen tar med sidan när `BESOKSINFO_PASSWORD`
+  finns i miljön. Sidan Om beskriver statistiken när den är på (`visit_stats` i `/api/events`).
 - **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`) och `sessionStorage` (`chat-session`).
   Beskrivs i `docs/data-och-integritet.md` och på sidan Om (Cookies och lagring). Nya värden ska läggas till där.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
@@ -162,6 +172,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - All lagrad data ska rensas när den blir inaktuell, men bara i samband med hämtningarna från källorna (och vid
   start). Ingen återkommande städning utöver det.
 - Bilderna visas via appen, så att källorna aldrig ser besökarna.
+- Besöksstatistik: bara med lösenord (`BESOKSINFO_PASSWORD`, av som standard), inga cookies, unika per dygn. Fulla
+  IP-adresser bara för innevarande dygn (rensas när dygnet är slut), summerad statistik i 13 månader. Plats via en
+  lokal geodatabas, aldrig via en extern tjänst.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
 - Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna

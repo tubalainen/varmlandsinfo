@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Besöksstatistik på den dolda sidan `/besoksinfo`, skyddad med lösenordet `BESOKSINFO_PASSWORD` (av som standard):
+  unika besökare per dygn utan cookies, sidvisningar, land och ort (DB-IP:s fria databas, uppslagen lokalt), enhet,
+  webbläsare, operativsystem och hänvisning, samt dagens besökare med IP-adress. IP-adresserna tas bort när dygnet är
+  slut, och den summerade statistiken sparas i 13 månader (#66)
+
 ### Dokumentation
 - Arkitekturbild skapad med Archify i README och i `docs/arkitektur.md`, med diagrammets källa och ett interaktivt
   diagram i `docs/arkitektur/` (#63)

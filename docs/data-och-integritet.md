@@ -19,6 +19,8 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 | `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 | `data/images/`             | Evenemangens bilder, hämtade första gången någon visade dem. |
+| `data/besoksinfo.json`     | Besöksstatistiken, när den är påslagen (se nedan). |
+| `data/geoip/`              | DB-IP:s geodatabas för besöksstatistiken, när den är påslagen. |
 
 - **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
   äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
@@ -45,6 +47,9 @@ Regeln är att data som hämtats före den senaste morgonkörningen (`DAILY_REFR
 | Bilder (`data/images/`) | När de inte längre hör till något evenemang, liksom halvfärdiga filer från en avbruten hämtning. |
 | Chattsamtal (bara i minnet) | Samtal som inte använts på 2 timmar, och alla samtal efter morgonkörningen. Vid omstart försvinner alla. |
 | IP-adresser i spärren för Fråga AI (bara i minnet) | Adresser vars senaste AI-fråga är äldre än 30 minuter. Vid omstart försvinner alla. |
+| Besöksstatistikens besökare med IP-adresser (`besoksinfo.json`) | Dygn som är slut: de summeras och IP-adresserna tas bort. |
+| Besöksstatistikens summerade dagar | Dagar äldre än 13 månader. |
+| IP-adresser i spärren för inloggningen till `/besoksinfo` (bara i minnet) | Adresser vars senaste felaktiga försök är äldre än 15 minuter. |
 | Temporära filer (`*.json.tmp`) | Kvarglömda filer från en avbruten skrivning. |
 
 Andra filer i datakatalogen rörs inte. Loggen visar vad som städades.
@@ -68,6 +73,26 @@ Evenemangens bilder visas via appen, så att källornas bildservrar aldrig ser b
   inte av vad servern påstår. SVG och annat innehåll stoppas.
 - **Webbläsaren** får bara visa bilder från appen själv (`Content-Security-Policy: img-src 'self' data:`), och
   länkar till källorna skickar inte med att besökaren kommer från appen (`referrer`).
+
+## Besöksstatistik
+
+Besöksstatistiken är avstängd som standard. Den slås på med ett lösenord i `BESOKSINFO_PASSWORD` och visas på den dolda
+sidan `/besoksinfo`, som skyddas av lösenordet (webbläsarens inloggningsruta) och inte länkas från appen. Efter 10
+felaktiga lösenord på 15 minuter spärras IP-adressen en stund.
+
+- **Vad som räknas:** sidvisningar av appen. Kända robotar och sidan `/besoksinfo` räknas inte.
+- **Unika besökare** räknas per dygn utan cookies: en hash av IP-adress och webbläsare med ett slumpvärde som byts varje
+  dygn. Samma person räknas en gång per dygn, men kan inte följas mellan dygnen.
+- **Dagens besökare** sparas med IP-adress, tid, antal visningar, plats (land, region och ort), enhet, webbläsare,
+  operativsystem och hänvisning (bara domänen på webbplatsen besökaren kom från). När dygnet är slut summeras det vid
+  nästa städning, och IP-adresserna och slumpvärdet tas bort.
+- **Summerad statistik per dag** (antal visningar och unika, samt fördelningen på land, ort, enhet, webbläsare,
+  operativsystem och hänvisning, utan IP-adresser) sparas i 13 månader.
+- **Plats** slås upp lokalt i DB-IP:s fria databas *IP to City Lite* ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
+  [DB-IP](https://db-ip.com)). Databasen hämtas från db-ip.com när den saknas och sedan en gång i månaden. Inga uppgifter
+  om besökarna skickas ut.
+- **Bakom en omvänd proxy** används adressen som proxyn lagt till sist i `X-Forwarded-For` (se [API](api.md#åtkomst-till-apit)).
+- Webbserverns åtkomstlogg är fortfarande avstängd. Statistiken finns bara i `data/besoksinfo.json`.
 
 ## Cookies och lagring hos besökaren
 

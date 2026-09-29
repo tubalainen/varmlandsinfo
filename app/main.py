@@ -1,11 +1,14 @@
 """Värmlandsinfo – samlar evenemang i Värmland och visar dem i ett webbgränssnitt."""
 
 import asyncio
+import base64
+import binascii
 import logging
 import math
 import os
 import json
 import re
+import secrets
 from contextlib import aclosing, asynccontextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
@@ -16,10 +19,13 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import access
+import besoksinfo
 import chat
 import events
+import geoip
 import images
 import sessions
+import visits
 from common import TZ, stats
 from version import RELEASE_URL, REPO_URL, __version__
 
@@ -103,8 +109,17 @@ def cleanup(now: datetime, conversations: bool = False) -> None:
         log.info("Rensade %d bilder som inte hör till något evenemang", n)
     sessions.store.expire()
     access.chat_limiter.prune()
+    login_limiter.prune()
+    if visits.store and any(n := visits.store.cleanup(events.today())):
+        log.info("Besöksstatistik: summerade %d dygn (IP-adresserna togs bort) och rensade %d gamla dagar", *n)
     if conversations and (n := sessions.store.clear()):
         log.info("Rensade %d chattsamtal", n)
+
+
+async def update_geoip() -> None:
+    """Hämtar DB-IP:s geodatabas till besöksstatistiken när den saknas eller är äldre än en månad."""
+    if visits.store and visits.store.geo:
+        await visits.store.geo.ensure(events.today())
 
 
 async def morning_run(keys: list[str] | None = None) -> None:
@@ -119,6 +134,7 @@ async def morning_run(keys: list[str] | None = None) -> None:
         await asyncio.sleep(MORNING_RETRY_DELAY.total_seconds())
         await events.refresh(failed)
     cleanup(datetime.now(TZ), conversations=True)
+    await update_geoip()
 
 
 async def scheduler() -> None:
@@ -132,6 +148,7 @@ async def scheduler() -> None:
     else:
         log.info("Sparad data är aktuell, ingen hämtning vid start")
         cleanup(now)
+        await update_geoip()
     while True:
         now = datetime.now(TZ)
         target = next_run(now)
@@ -165,9 +182,16 @@ async def lifespan(_: FastAPI):
         log.info(line)
     chat.cache = chat.AnswerCache(events.DATA_DIR / "chat_cache.json")
     chat.cache.load()
+    if visits.enabled():
+        visits.store = visits.VisitStats(events.DATA_DIR / "besoksinfo.json",
+                                         geo=geoip.GeoIP(events.DATA_DIR / "geoip" / "dbip-city-lite.mmdb"))
+        visits.store.load()
+        log.info("  Besöksstatistik: på (/besoksinfo)")
     task = asyncio.create_task(scheduler())
     yield
     task.cancel()
+    if visits.store:
+        visits.store.save()
 
 
 # Ingen automatisk API-dokumentation (/docs, /redoc, /openapi.json): API:t är till för appens eget gränssnitt
@@ -189,6 +213,7 @@ def status() -> dict:
         "sources": s["sources"],
         "storage": {"dir": str(events.DATA_DIR), "error": s["storage_error"]},
         "chat": chat.chat_config(),
+        "visit_stats": visits.enabled(),
     }
 
 
@@ -346,10 +371,56 @@ INDEX_HTML = _render_index()
 
 
 @app.get("/")
-async def index():
+async def index(request: Request):
+    if visits.store and request.method == "GET" and "prefetch" not in request.headers.get("sec-purpose", ""):
+        visits.store.record(access.client_ip(request), request.headers.get("user-agent", ""),
+                            request.headers.get("referer"), request.headers.get("host"), datetime.now(TZ))
     # Bilder bara från appen själv: webbläsaren ska aldrig hämta något från källorna
     return HTMLResponse(INDEX_HTML, headers={"Cache-Control": "no-cache",
                                              "Content-Security-Policy": "img-src 'self' data:"})
+
+
+# ---------------------------------------------------------------- besöksstatistik (dold sida)
+
+login_limiter = access.IpLimiter(limit=10, window=15 * 60)    # felaktiga lösenord per IP-adress
+PRIVATE_HEADERS = {"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow", "Referrer-Policy": "no-referrer",
+                   "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"}
+
+
+def _password_ok(authorization: str | None) -> bool | None:
+    """True/False för ett angivet lösenord (HTTP Basic, valfritt användarnamn), None om inget angavs."""
+    scheme, _, value = (authorization or "").partition(" ")
+    if scheme.lower() != "basic" or not value:
+        return None
+    try:
+        _, _, password = base64.b64decode(value, validate=True).decode("utf-8").partition(":")
+    except (binascii.Error, UnicodeDecodeError):
+        return False
+    return secrets.compare_digest(password.encode(), visits.PASSWORD.encode())
+
+
+@app.get("/besoksinfo", include_in_schema=False)
+async def besoksinfo_page(request: Request):
+    """Besöksstatistiken. Bara när BESOKSINFO_PASSWORD är satt, och bara med lösenordet."""
+    if not visits.store:
+        return Response(status_code=404)
+    ip = access.client_ip(request)
+    if wait := login_limiter.wait(ip):
+        return Response(f"För många felaktiga försök. Försök igen om {_minutes(wait)}.", status_code=429,
+                        media_type="text/plain; charset=utf-8", headers=PRIVATE_HEADERS)
+    ok = _password_ok(request.headers.get("authorization"))
+    if not ok:
+        if ok is False:
+            login_limiter.allow(ip)                             # räknar det felaktiga försöket
+            log.warning("Felaktigt lösenord till /besoksinfo")
+        return Response("Lösenord krävs.", status_code=401, media_type="text/plain; charset=utf-8",
+                        headers={**PRIVATE_HEADERS, "WWW-Authenticate": 'Basic realm="Besoksinfo", charset="UTF-8"'})
+    # Perioden tolkas först här, så att inget svar avslöjar sidan innan lösenordet är kontrollerat
+    dagar = request.query_params.get("dagar", "")
+    period = int(dagar) if dagar.isdigit() and int(dagar) in besoksinfo.PERIODS else 30
+    report = visits.store.report(events.today(), period)
+    return HTMLResponse(besoksinfo.render(report, period, bool(visits.store.geo and visits.store.geo.available())),
+                        headers=PRIVATE_HEADERS)
 
 
 @app.get("/favicon.ico", include_in_schema=False)

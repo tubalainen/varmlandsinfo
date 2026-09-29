@@ -19,6 +19,9 @@ app/
   sessions.py      Samtal (sessioner) i Fråga AI
   websearch.py     Webbsökning via SearXNG för Fråga AI
   access.py        Åtkomst till API:t: bara lokalt och spärren per IP i Fråga AI
+  visits.py        Besöksstatistiken (räkning, städning och underlag)
+  besoksinfo.py    Den dolda sidan /besoksinfo
+  geoip.py         Land och ort via DB-IP:s fria geodatabas
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
   static/icons/    Appens ikon (SVG och PNG i flera storlekar)

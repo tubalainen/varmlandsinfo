@@ -5,6 +5,7 @@ API:t är till för appens eget gränssnitt.
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
 | GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. Bildadresserna pekar på appen (`/img/…`). |
+| GET   | `/besoksinfo`      | Besöksstatistiken (HTML). Bara när `BESOKSINFO_PASSWORD` är satt (annars 404), och bara med lösenordet (HTTP Basic, annars 401). Efter 10 felaktiga försök på 15 minuter 429. Se [Besöksstatistik](data-och-integritet.md#besöksstatistik). |
 | GET   | `/img/<nyckel>`    | En evenemangsbild via appen. Bara bilder som finns i appens evenemang, annars 404. Se [Bilder via appen](data-och-integritet.md#bilder-via-appen). |
 | GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. **Bara lokalt.** |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt, städar bort inaktuell data och svarar när det är klart. Hämtar inte om datan är yngre än 5 minuter. **Bara lokalt.** |

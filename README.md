@@ -31,7 +31,9 @@ Klicka på bilden för den interaktiva, animerade översikten, eller ändra
 - **Lista och kalender** dag för dag, med filter på kategori, kommun, källa och datum.
 - **Fråga AI:** sökfrågor besvaras direkt, och frågor som kräver en bedömning besvaras av din egen Ollama.
   Valfri webbsökning via SearXNG.
-- **Integritet:** inga cookies eller spårning, bilderna visas via appen, AI:n körs lokalt och inaktuell data
+- **Besöksstatistik (valfri):** unika besökare, varifrån de kommer, enheter och hänvisningar på en dold,
+  lösenordsskyddad sida.
+- **Integritet:** inga cookies eller spårningsskript, bilderna visas via appen, AI:n körs lokalt och inaktuell data
   rensas bort.
 - **Ljust och mörkt läge**, fungerar på mobil.
 
@@ -56,6 +58,7 @@ De viktigaste inställningarna i `.env`:
 | `OLLAMA_URL` | Adress till din Ollama, t.ex. `http://host.docker.internal:11434`. Tom = Fråga AI svarar bara på sökfrågor. |
 | `SEARXNG_URL` | Adress till SearXNG för webbsökning i Fråga AI. Tom = av. |
 | `TICKETMASTER_API_KEY` | API-nyckel för Ticketmaster. Tom = källan är av. |
+| `BESOKSINFO_PASSWORD` | Lösenord till besöksstatistiken på `/besoksinfo`. Tom = ingen statistik. |
 | `VARMLANDSINFO_PORT` | Port på värden (standard `7799`). |
 
 Alla inställningar och hur Ollama och SearXNG sätts upp står i [Installation](docs/installation.md).

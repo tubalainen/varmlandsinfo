@@ -1,6 +1,7 @@
 // Kontrastkontroll av webbgränssnittet i ljust och mörkt läge (WCAG AA).
 //
 // Kör mot en körande app:   node tools/contrast-check.mjs [http://localhost:8080]
+// Med BESOKSINFO_PASSWORD i miljön kontrolleras även den dolda sidan /besoksinfo.
 // Kräver Playwright (npm i -D playwright). Avslutas med felkod 1 om något textelement har för låg kontrast.
 // Skärmdumpar sparas i tools/screenshots/ (ingår inte i git).
 
@@ -107,11 +108,11 @@ const browser = await chromium.launch({ args: ["--ignore-certificate-errors"] })
 let total = 0;
 for (const scheme of ["light", "dark"]) {
   const page = await browser.newPage({ colorScheme: scheme, ignoreHTTPSErrors: true, viewport: { width: 1280, height: 900 } });
-  const run = async (name, prepare) => {
-    await prepare(page);
-    await page.waitForTimeout(400);
-    const { checked, failures } = await page.evaluate(audit);
-    await page.screenshot({ path: `${OUT}${scheme}-${name}.png` });
+  const run = async (name, prepare, pg = page) => {
+    await prepare(pg);
+    await pg.waitForTimeout(400);
+    const { checked, failures } = await pg.evaluate(audit);
+    await pg.screenshot({ path: `${OUT}${scheme}-${name}.png`, fullPage: pg !== page });
     total += failures.length;
     console.log(`${scheme.padEnd(5)} ${name.padEnd(9)} ${checked} textelement, ${failures.length} med för låg kontrast`);
     for (const f of failures) console.log(`   ${f.ratio}:1 (krav ${f.need}:1)  ${f.where}  "${f.text}"  ${f.fg} på ${f.bg}`);
@@ -137,6 +138,13 @@ for (const scheme of ["light", "dark"]) {
     await p.click("#nav-open"); await p.waitForTimeout(300);
   });
   await page.close();
+  if (process.env.BESOKSINFO_PASSWORD) {
+    const ctx = await browser.newContext({ colorScheme: scheme, viewport: { width: 1280, height: 900 }, ignoreHTTPSErrors: true,
+                                           httpCredentials: { username: "admin", password: process.env.BESOKSINFO_PASSWORD } });
+    const stats = await ctx.newPage();
+    await run("besoksinfo", async (p) => { await p.goto(`${BASE}/besoksinfo`); await p.waitForSelector(".tiles"); }, stats);
+    await ctx.close();
+  }
 }
 await browser.close();
 console.log(total ? `\n${total} problem hittades.` : "\nInga kontrastproblem.");

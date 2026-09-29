@@ -57,6 +57,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `SEARXNG_URL`        | *(tom)*            | Adress till SearXNG för AI:ns webbsökning. Tom betyder att webbsökningen är avstängd. |
 | `SEARXNG_RESULTS`    | `5`                | Max antal webbträffar per fråga (1–20). |
 | `SEARXNG_LANGUAGE`   | `sv`               | Språk för webbsökningen. |
+| `BESOKSINFO_PASSWORD` | *(tom)*           | Lösenord till besöksstatistiken på `/besoksinfo`. Tom betyder att statistiken är avstängd och inga besök räknas. |
 | `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
 | `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
 | `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
@@ -100,3 +101,14 @@ AI:n kan komplettera svaren med information från webben via en egen [SearXNG](h
    SearXNG körs i samma compose-projekt), och starta om: `docker compose up -d`.
 
 När webben används beskrivs i [Fråga AI](fraga-ai.md#webbsökning).
+
+## Besöksstatistik (valfritt)
+
+1. Sätt ett lösenord i `.env`, till exempel `BESOKSINFO_PASSWORD=ett-långt-lösenord`, och starta om:
+   `docker compose up -d`.
+2. Öppna `http://<värd>:7799/besoksinfo`. Webbläsaren frågar efter lösenordet (användarnamnet spelar ingen roll).
+3. Nås appen utifrån ska det ske med HTTPS, till exempel via din omvända proxy, så att lösenordet inte skickas i klartext.
+
+Första gången hämtar appen DB-IP:s fria geodatabas (cirka 60 MB, uppackad cirka 130 MB i `data/geoip/`) för att visa
+land och ort. Den uppdateras en gång i månaden. Vad som räknas och sparas står i
+[Data och integritet](data-och-integritet.md#besöksstatistik).

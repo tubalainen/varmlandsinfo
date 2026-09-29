@@ -49,6 +49,17 @@ används i första hand och kompletteras med regler:
 Ställ frågor på vanlig svenska, med förslagskort och snabbval. Enkla sökfrågor besvaras direkt av appen, och frågor
 som kräver en bedömning av din egen Ollama. Se [Fråga AI](fraga-ai.md).
 
+## Besöksstatistik (valfri)
+
+Med ett lösenord i `BESOKSINFO_PASSWORD` visar den dolda sidan `/besoksinfo`:
+
+- unika besökare och sidvisningar i dag och för en vald period (7, 30 eller 90 dagar eller ett år), med ett diagram per
+  dag (per månad för ett år) och en tabell
+- de vanligaste länderna, orterna, enheterna, webbläsarna, operativsystemen och hänvisningarna
+- dagens besökare med IP-adress, tid, antal visningar, plats, enhet, webbläsare och hänvisning
+
+Hur statistiken räknas och hur länge den sparas står i [Data och integritet](data-och-integritet.md#besöksstatistik).
+
 ## Gränssnittet
 
 - **Meny:** Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status. Varje vy har en egen adress

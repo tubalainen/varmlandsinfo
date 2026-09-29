@@ -83,7 +83,9 @@
           el("li", {}, el("strong", {}, "chat-session"), " (sessionStorage): samtalets slumpmässiga id i Fråga AI. Det försvinner när fliken stängs.")),
         el("p", {}, "Samtalen i Fråga AI (frågor och svar) sparas bara i serverns minne. Samtal som inte använts på 2 timmar tas bort vid nästa hämtning från källorna, och alla samtal tas bort efter morgonkörningen och när appen startas om. Spärren för Fråga AI minns din IP-adress i minnet tills din senaste fråga till AI:n är 30 minuter gammal, och glömmer den vid nästa hämtning därefter. Webbserverns åtkomstlogg är avstängd, så besökarnas IP-adresser sparas inte i loggen."),
         el("p", {}, "Evenemangens bilder visas via appen. Servern hämtar dem från källorna och sparar dem, så din webbläsare kontaktar aldrig källornas bildservrar och de ser inte din IP-adress. Bilder som inte längre hör till något evenemang tas bort vid nästa hämtning från källorna."),
-        el("p", {}, "Länkar till källorna skickar inte med att du kommer från Värmlandsinfo. Klickar du på en länk besöker du förstås källans webbplats, med de villkor som gäller där.")),
+        el("p", {}, "Länkar till källorna skickar inte med att du kommer från Värmlandsinfo. Klickar du på en länk besöker du förstås källans webbplats, med de villkor som gäller där."),
+        m.visit_stats ? el("p", {}, el("strong", {}, "Besöksstatistik: "),
+          "den här installationen räknar besök på servern, utan cookies. Unika besökare räknas per dygn med en hash av IP-adress och webbläsare som inte kan följas mellan dygnen. Dagens besök sparas med IP-adress, ungefärlig plats (land och ort, som slås upp lokalt), enhet, webbläsare och vilken webbplats du kom från. När dygnet är slut summeras det och IP-adresserna tas bort. Den summerade statistiken sparas i 13 månader. Bara den som driftar appen kan se statistiken.") : null),
 
       section("shield", "Licens och ansvar",
         el("p", {}, "Värmlandsinfo är öppen källkod under ", el("a", { href: `${REPO}/blob/main/LICENSE`, target: "_blank", rel: "noopener" }, "MIT-licensen"),
