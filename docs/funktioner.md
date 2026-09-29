@@ -43,6 +43,8 @@ används i första hand och kompletteras med regler:
 - **Motorsport:** tävlingar som folkrace, rally, rallycross, crosskart, karting, motocross, enduro och speedway har
   en egen kategori. Visit Värmlands kategori *Motor* heter *Motorträffar* i appen och gäller bil- och MC-träffar,
   veteranfordon och fordonsutställningar.
+- **SHL:** Färjestads hemmamatcher från källan SHL har en egen kategori (utöver *Sport, motion och hälsa*). Kategorin
+  följer med när samma match också finns hos Visit Värmland eller Ticketmaster.
 - **Gratis:** evenemang med fri entré. Ett evenemang räknas bara som gratis om källan anger fri entré eller pris 0
   och inget pris över 0 finns.
 

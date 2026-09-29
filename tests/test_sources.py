@@ -21,6 +21,8 @@ def shl_game(**kw):
 def test_shl_normalize():
     e = shl.normalize_game(shl_game())
     assert e["id"] == "shl-abc123"
+    assert [c["title"] for c in e["categories"]] == ["Sport, motion och hälsa", "SHL"]
+    assert e["categories"][1]["icon"] == "🏒"
     assert e["title"] == "Färjestad BK - Rögle BK"
     assert e["next"] == {"date_start": FUTURE, "date_end": FUTURE, "time_start": "19:00", "time_end": None}
     assert e["municipality"] == "Karlstad"
@@ -106,6 +108,7 @@ def test_merge_shl_into_visit_varmland():
     assert fbk["source"] == "Visit Värmland"
     assert [s["name"] for s in fbk["sources"]] == ["Visit Värmland", "SHL"]
     assert fbk["next"]["time_start"] == "19:00"     # tiden kommer från SHL
+    assert [c["title"] for c in fbk["categories"]] == ["Sport, motion och hälsa", "SHL"]   # snabbfiltret SHL följer med
     assert merged[1]["title"] == "Färjestad BK - HV71"
 
 

@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Snabbfiltret SHL: Färjestads hemmamatcher får en egen kategori, även när matchen också finns hos Visit Värmland
+  eller Ticketmaster, och snabbvalet SHL i Fråga AI (#68).
+
 ### Ändrat
 - Beskrivningen under "Beskrivning och bilder" är lättare att läsa: långa textmassor delas i stycken vid
   meningsgränser, med behaglig radlängd och radavstånd. Webb- och e-postadresser blir länkar, och sammanfattningen

@@ -5,6 +5,7 @@ import os
 
 import httpx
 
+from categories import SHL as SHL_CATEGORY
 from common import category, finalize, get_json
 
 API_BASE = "https://www.shl.se/api/sports-v2"
@@ -71,7 +72,7 @@ def normalize_game(g: dict) -> dict | None:
         "title": f"{home_name} - {away_name}",
         "summary": summary,
         "description": "",
-        "categories": [category("Sport, motion och hälsa")],
+        "categories": [category("Sport, motion och hälsa"), category(SHL_CATEGORY)],
         "municipality": TEAM_MUNICIPALITY,
         "place": {"title": venue, "address": "", "lat": None, "lon": None} if venue else None,
         "organizer": home_name,

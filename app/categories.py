@@ -35,6 +35,10 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🛍️", "color": "#ea580c",
         "description": "Marknader, mässor, auktioner och försäljning.",
     },
+    "SHL": {
+        "icon": "🏒", "color": "#1d4ed8",
+        "description": "Hemmamatcher i SHL, herrarnas högsta serie i ishockey (Färjestad BK i Löfbergs Arena).",
+    },
     "Motorsport": {
         "icon": "🏁", "color": "#dc2626",
         "description": "Folkrace, rally, rallycross, crosskart, karting, motocross, enduro, speedway och annan motorsport.",
@@ -90,6 +94,12 @@ DEFAULT = {"icon": "📌", "color": "#6b7280", "description": "Evenemang i Värm
 
 def describe_category(title: str | None) -> dict:
     return dict(CATEGORIES.get(title or "", DEFAULT))
+
+
+SHL = "SHL"
+# Kategorier som bara en källa sätter och som följer med när evenemanget slås ihop med samma evenemang från en
+# annan källa (Visit Värmland och Ticketmaster listar också Färjestads matcher)
+SOURCE_ONLY = (SHL,)
 
 
 # ---------------------------------------------------------------- loppisar

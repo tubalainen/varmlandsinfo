@@ -4,6 +4,8 @@ import re
 import unicodedata
 from datetime import date, timedelta
 
+from categories import SOURCE_ONLY
+
 SIMILARITY = 0.6   # andel gemensamma ord i titlarna för att räknas som samma evenemang
 # Vanliga ord som inte säger vilket evenemang det är ("Z loppis" ska inte bli samma som "Loppis i Oleby")
 STOP = {"och", "med", "i", "på", "the", "and", "live", "tour", "turné", "konsert", "presenterar", "feat",
@@ -54,6 +56,8 @@ def _absorb(primary: dict, other: dict) -> None:
     for key in ("booking_link", "website_link", "summary", "description", "place", "organizer"):
         if not primary.get(key) and other.get(key):
             primary[key] = other[key]
+    have = {c["title"] for c in primary["categories"]}
+    primary["categories"] += [c for c in other["categories"] if c["title"] in SOURCE_ONLY and c["title"] not in have]
     if not primary["images"] and other["images"]:
         primary["images"] = other["images"]
     # Tid från en källa som har den, för tillfällen samma dag
