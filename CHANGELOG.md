@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.25.1] - 2026-09-29
+
 ### Rättat
 - Bandy: källan gav 0 matcher (och filtret Bandy saknades) när Profixio svarade på svenska, vilket det gör från en
   server i Sverige. Tolkningen klarar nu både svenska och engelska, källan begär svenska, och matcher som inte går att
@@ -350,7 +352,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.1...HEAD
+[0.25.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.25.0...v0.25.1
 [0.25.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.22.0...v0.23.0
