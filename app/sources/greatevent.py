@@ -112,7 +112,7 @@ def _text(fragment: str | None) -> str:
 
 
 def _guess_type(title: str, text: str) -> str:
-    best, score = "Övriga evenemang", 0
+    best, score = "Övrigt", 0
     for name, pattern in TYPES:
         s = 3 * len(re.findall(pattern, title, re.I)) + len(re.findall(pattern, text, re.I))
         if s > score:

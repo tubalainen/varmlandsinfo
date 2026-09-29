@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from categories import describe_category, split_loppis, split_motorsport
+from categories import describe_category, refine, split_loppis, split_motorsport
 from version import __version__
 
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
@@ -161,8 +161,8 @@ def finalize(event: dict) -> dict | None:
         o.setdefault("time_end", None)
     event["occasions"] = occ
     event["next"] = occ[0]
-    event["categories"] = split_motorsport(
-        split_loppis(event.get("categories") or [], event.get("title") or "", event.get("summary") or ""),
-        event.get("title") or "", event.get("summary") or "")
+    title, summary = event.get("title") or "", event.get("summary") or ""
+    event["categories"] = refine(
+        split_motorsport(split_loppis(event.get("categories") or [], title, summary), title, summary), title, summary)
     event.setdefault("sources", [{"name": event["source"], "url": event.get("url")}])
     return event

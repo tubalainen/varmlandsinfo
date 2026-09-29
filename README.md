@@ -8,7 +8,7 @@ med en **AI-chatt** (via Ollama) där du kan ställa frågor om evenemangen.
 Evenemangen hämtas från flera källor och slås ihop. Samma evenemang från flera källor visas en gång,
 med länkar till alla källor.
 
-![Evenemangslistan med filter, kategorier (bland annat Gratis, Loppis och Motorsport) och källornas status](docs/screenshots/lista.jpg)
+![Evenemangslistan med filter, kategorier i bokstavsordning och källornas status](docs/screenshots/lista.jpg)
 
 | Kalendern (mörkt läge) | Fråga AI |
 |------------------------|----------|
@@ -46,8 +46,17 @@ hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 
 ## Funktioner
 
-- **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …).
-- **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen.
+- **Evenemangslista:** alla kommande och pågående evenemang, grupperade per dag (Idag, Imorgon …). Under varje
+  dag står först evenemangen som bara äger rum en dag och sedan de som har flera datum, t.ex. utställningar och
+  återkommande evenemang. Samma ordning gäller i kalendern.
+- **Evenemangstyp:** kategori med ikon, färg och en kort beskrivning av typen. Kategorifiltren står i
+  bokstavsordning.
+- **Kategorier:** källornas kategorier kompletteras med ordregler i titeln, och i ingressen när källan inte angett
+  någon egen typ. *Film* (bio, filmkvällar), *Spel och quiz* (bingo, quiz, korsord, brädspel, tipspromenader),
+  *Träffar och caféer* (caféträffar, handarbete, språkcafé), *Böcker och litteratur* (bokcirklar, författarbesök,
+  sagostunder) och *Musik* (konserter, gospel, körer) fångas så även när källan bara har en allmän kategori.
+  Visit Värmlands allmänna kategorier *Evenemang* och *Övriga evenemang* blir *Övrigt*, som bara visas när
+  ingen annan kategori passar.
 - **Detaljer:** sammanfattning, längre beskrivning, plats (med länk till Google Maps) och arrangör.
 - **Länkar:** till evenemanget hos källan, samt biljett- och webbplatslänk när sådana finns.
 - **Bilder:** från evenemanget (klicka för att förstora).
@@ -61,13 +70,13 @@ hittas, visas felet i menyn, på sidan *Om applikationen* och i `/api/health`.
 - **Modernt gränssnitt:** en sidomeny med Evenemang, Kalender, Fråga AI och Om applikationen samt källornas status.
   Varje vy har en egen adress (`#/lista`, `#/kalender`, `#/fraga`, `#/om`). På datorn kan menyn fällas ihop
   till en smal list med ikoner. På mobil fälls menyn ut.
-- **Loppis:** loppisar, loppmarknader och second hand har en egen kategori, *Loppis*, direkt efter *Gratis*. Ett
+- **Loppis:** loppisar, loppmarknader och second hand har en egen kategori, *Loppis*. Ett
   evenemang räknas som loppis om titeln nämner det, eller om det är en marknad vars ingress nämner loppis. En
   loppis behåller marknadskategorin (*Marknad, mässa och auktion*) bara om texten också nämner marknad, mässa
   eller auktion.
 - **Motorsport:** tävlingar som folkrace, rally, rallycross, crosskart, karting, motocross, enduro och speedway har
-  en egen kategori, *Motorsport*, direkt efter *Loppis*. Visit Värmlands kategori *Motor* gäller nu motorträffar,
-  veteranfordon och fordonsutställningar.
+  en egen kategori, *Motorsport*. Visit Värmlands kategori *Motor* heter *Motorträffar* i appen och gäller
+  bil- och MC-träffar, veteranfordon och fordonsutställningar.
 - **Gratis:** evenemang med fri entré får kategorin *Gratis* och kan filtreras fram. Ett evenemang räknas
   bara som gratis om källan anger fri entré eller pris 0 och inget pris över 0 finns.
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.

@@ -51,23 +51,35 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🧭", "color": "#0d9488",
         "description": "Guidade turer och visningar av platser, byggnader och natur.",
     },
-    "Motor": {
+    "Motorträffar": {
         "icon": "🏎️", "color": "#475569",
-        "description": "Motorträffar, veteranfordon och fordonsutställningar.",
+        "description": "Bil- och MC-träffar, veteranfordon och fordonsutställningar.",
     },
     "På vatten": {
         "icon": "🛶", "color": "#0284c7",
         "description": "Aktiviteter och evenemang på sjöar och älvar.",
     },
+    "Film": {
+        "icon": "🎬", "color": "#4f46e5",
+        "description": "Bio, filmvisningar och filmkvällar.",
+    },
+    "Spel och quiz": {
+        "icon": "🎲", "color": "#65a30d",
+        "description": "Bingo, quiz, korsord, brädspel och spelkvällar.",
+    },
+    "Träffar och caféer": {
+        "icon": "☕", "color": "#a16207",
+        "description": "Caféträffar, fika, handarbete, språkcafé och andra öppna träffar.",
+    },
+    "Böcker och litteratur": {
+        "icon": "📚", "color": "#9333ea",
+        "description": "Bokcirklar, författarbesök, sagostunder och läsning.",
+    },
     "Gratis": {
         "icon": "🆓", "color": "#0e9f6e",
         "description": "Fri entré – evenemanget kostar ingenting.",
     },
-    "Evenemang": {
-        "icon": "📅", "color": "#64748b",
-        "description": "Allmänna evenemang och festligheter.",
-    },
-    "Övriga evenemang": {
+    "Övrigt": {
         "icon": "✨", "color": "#6b7280",
         "description": "Evenemang som inte passar in i någon annan kategori.",
     },
@@ -84,8 +96,13 @@ def describe_category(title: str | None) -> dict:
 
 MARKET = "Marknad, mässa och auktion"
 LOPPIS = "Loppis"
-# Visit Värmlands namn på marknadskategorin, där loppisar ingår
-SOURCE_NAMES = {"Marknad, mässa, auktion och loppis": MARKET}
+OTHER = "Övrigt"
+MOTOR_MEET = "Motorträffar"
+FREE = "Gratis"
+# Källornas namn -> appens: Visit Värmlands marknadskategori (där loppisar ingår), paraplyetiketterna
+# Evenemang och Övriga evenemang (som inte säger något) och Motor (förväxlas lätt med Motorsport)
+SOURCE_NAMES = {"Marknad, mässa, auktion och loppis": MARKET, "Evenemang": OTHER, "Övriga evenemang": OTHER,
+                "Motor": MOTOR_MEET}
 LOPPIS_RE = re.compile(r"loppis|loppmarknad|second[ -]?hand", re.I)
 MARKET_RE = re.compile(r"(?<!lopp)marknad|mässa|mässan|auktion", re.I)
 
@@ -114,7 +131,6 @@ def split_loppis(categories: list[dict], title: str, summary: str) -> list[dict]
 
 # ---------------------------------------------------------------- motorsport
 
-MOTOR = "Motor"
 MOTORSPORT = "Motorsport"
 MOTORSPORT_RE = re.compile(
     r"folkrace|rallycross|crosskart|\brally|\bsprinten\b|karting|gokart|go-kart|motocross|enduro|speedway"
@@ -124,12 +140,53 @@ MEET_RE = re.compile(r"träff|utställning|mässa|veteran|kortege|cruising|motor
 
 
 def split_motorsport(categories: list[dict], title: str, summary: str) -> list[dict]:
-    """Tävlingar får kategorin Motorsport. "Motor" behålls för motorträffar och fordonsutställningar."""
+    """Tävlingar får kategorin Motorsport. Motorträffar behålls bara för träffar och fordonsutställningar."""
     titles = [c["title"] for c in categories]
     if MOTORSPORT not in titles and not MOTORSPORT_RE.search(title or ""):
         return categories
     text = f"{title} {summary or ''}"
-    result = [c for c in categories if c["title"] != MOTOR or MEET_RE.search(text)]
+    result = [c for c in categories if SOURCE_NAMES.get(c["title"], c["title"]) != MOTOR_MEET or MEET_RE.search(text)]
     if MOTORSPORT not in titles:
         result.insert(0, {"title": MOTORSPORT, **describe_category(MOTORSPORT)})
     return result
+
+
+# ---------------------------------------------------------------- ordregler
+
+# Kategorier ur titeln (och ingressen när källan inte angett någon egen kategori). Mest för Visit Värmlands
+# evenemang som bara har paraplyetiketterna, t.ex. bio, caféträffar, bokcirklar och bingo.
+KEYWORD_RULES = [
+    ("Musik", re.compile(
+        r"konsert|gospel|\bjazz|\bkör(en|er|erna|sång)?\b|\bsånger (i|om|för|från|till|av|med)\b|allsång|visafton"
+        r"|trubadur|orkester|symfoni|\bopera\b|livemusik|live music|musikafton|musikkväll", re.I)),
+    ("Film", re.compile(r"\bbio\b|\bbion\b|biograf|\bfilm(en|er|erna)?\b|filmkväll|filmvisning|filmklubb|matiné", re.I)),
+    ("Spel och quiz", re.compile(
+        r"bingo|quiz|korsord|melodikryss|brädspel|sällskapsspel|spelkväll|spelkafé|rollspel|tipspromenad", re.I)),
+    ("Träffar och caféer", re.compile(
+        r"caf[eé]|kafé|fika\b|frukost|träffpunkt|\bhäng\b|queerhäng|pratcafé|it-hjälp|handarbet|stickcafé"
+        r"|stickträff", re.I)),
+    ("Böcker och litteratur", re.compile(
+        r"\bbok(cirkel|släpp|prat|caf[eé]|tips|klubb|samtal|en|ens)?\b|bokprat|bokfrukost|\bböcker|litteratur"
+        r"|författar|läsklubb|läscirkel|läscafé|sagostund|godnattsaga|shared reading|läsa, lyssna|poesi", re.I)),
+]
+
+
+def refine(categories: list[dict], title: str, summary: str) -> list[dict]:
+    """Källornas namn blir appens, ordregler lägger till kategorier, och Övrigt blir kvar bara när inget annat passar."""
+    titles = []
+    for c in categories:
+        t = SOURCE_NAMES.get(c["title"], c["title"])
+        if t not in titles:
+            titles.append(t)
+    vague = all(t in (OTHER, FREE) for t in titles)
+    # Loppisar och motorsport har egna källor och regler (loppisar.com har t.ex. "… restaurang & cafe" som namn)
+    rules = [] if LOPPIS in titles or MOTORSPORT in titles else KEYWORD_RULES
+    for name, pattern in rules:
+        if name not in titles and (pattern.search(title or "") or (vague and pattern.search(summary or ""))):
+            titles.append(name)
+    if any(t not in (OTHER, FREE) for t in titles):
+        titles = [t for t in titles if t != OTHER]
+    elif OTHER not in titles:
+        titles.insert(0, OTHER)
+    by_title = {c["title"]: c for c in categories}
+    return [by_title[t] if t in by_title else {"title": t, **describe_category(t)} for t in titles]

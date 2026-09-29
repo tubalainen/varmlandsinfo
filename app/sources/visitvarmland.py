@@ -76,7 +76,7 @@ def normalize_event(ev: dict, municipalities: dict[int, str]) -> dict | None:
         occasions.append(occ)
 
     categories = [category(c.get("title")) for c in ev.get("categories") or [] if c.get("title")] \
-        or [category("Övriga evenemang")]
+        or [category("Övrigt")]
     if price_is_free(ev.get("prices")):
         categories.append(category("Gratis"))
 

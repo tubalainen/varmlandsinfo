@@ -6,6 +6,17 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Nya kategorier ur ordregler i titel och ingress: Film, Spel och quiz, Träffar och caféer samt Böcker och
+  litteratur. Konserter som saknar kategorin Musik (t.ex. gospel och körer) får den. Fråga AI känner igen de nya
+  kategorierna (#53)
+
+### Ändrat
+- Under varje dag visas evenemang som bara äger rum en dag först, före utställningar och andra evenemang med flera
+  datum. Gäller både listan och kalendern (#52)
+- Tydligare kategorifilter i bokstavsordning: Visit Värmlands Evenemang och Övriga evenemang blir Övrigt, som bara
+  visas när ingen annan kategori passar, och Motor heter Motorträffar så att den inte förväxlas med Motorsport (#53)
+
 ## [0.18.1] - 2026-09-27
 
 ### Rättat

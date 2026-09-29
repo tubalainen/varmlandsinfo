@@ -116,7 +116,7 @@ def test_loppis_is_split_out_of_the_market_category():
         ["Loppis", "Marknad, mässa och auktion"]                      # båda
     assert titles_after(cats(vv), "Stor barnloppis i Munkfors", "Allt för barn") == ["Loppis"]
     assert titles_after(cats(vv, "Gratis"), "Loppis och skördebord") == ["Loppis", "Gratis"]
-    assert titles_after(cats("Övriga evenemang"), "Nördloppis på Ritz") == ["Loppis", "Övriga evenemang"]
+    assert titles_after(cats("Övriga evenemang"), "Nördloppis på Ritz") == ["Loppis", "Övrigt"]
     assert titles_after(cats("Musik"), "Konsert", "Efteråt finns en loppis i foajén") == ["Musik"]   # bara ingressen räcker inte
     assert titles_after(cats("Mat och dryck"), "Second hand-mässa") == \
         ["Loppis", "Mat och dryck"]

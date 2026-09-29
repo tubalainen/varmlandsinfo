@@ -14,7 +14,7 @@ TAGS = {
     "konsert": "Musik",
     "teater": "Teater och underhållning",
     "show": "Teater och underhållning",
-    "ovrigt": "Övriga evenemang",
+    "ovrigt": "Övrigt",
 }
 
 
@@ -87,7 +87,7 @@ def normalize_item(item: dict) -> dict | None:
         "title": item["title"],
         "summary": item.get("text") or "",
         "description": item.get("text") or "",
-        "categories": [category(TAGS.get(item.get("tag"), "Övriga evenemang"))],
+        "categories": [category(TAGS.get(item.get("tag"), "Övrigt"))],
         "municipality": "Karlstad",
         "place": {"title": "Karlstad CCC", "address": "", "lat": None, "lon": None},
         "organizer": None,

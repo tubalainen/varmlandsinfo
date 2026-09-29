@@ -38,9 +38,9 @@ SEGMENTS = {
     "music": "Musik", "musik": "Musik",
     "sports": "Sport, motion och hälsa", "sport": "Sport, motion och hälsa",
     "arts & theatre": "Teater och underhållning", "konst & teater": "Teater och underhållning",
-    "kultur & teater": "Teater och underhållning", "film": "Teater och underhållning",
+    "kultur & teater": "Teater och underhållning", "film": "Film",
     "family": "Barn", "familj": "Barn",
-    "miscellaneous": "Övriga evenemang", "övrigt": "Övriga evenemang",
+    "miscellaneous": "Övrigt", "övrigt": "Övrigt",
 }
 GENRES = {"dance": "Dans", "dans": "Dans", "children's theatre": "Barn", "comedy": "Teater och underhållning"}
 
@@ -128,7 +128,7 @@ def _categories(ev: dict) -> list[dict]:
         title = GENRES.get(genre) or SEGMENTS.get(segment)
         if title and title not in titles:
             titles.append(title)
-    return [category(t) for t in titles or ["Övriga evenemang"]]
+    return [category(t) for t in titles or ["Övrigt"]]
 
 
 def normalize_event(ev: dict) -> dict | None:

@@ -85,9 +85,16 @@ aktuella när något ändras.
 utanför området. motorsportivarmland.nu undersöktes som rallykälla (#51) men är en nyhetssajt utan strukturerad
 kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   sidbyte med postback (`__VIEWSTATE` + `__EVENTTARGET` från knappen med title "Next/Previous/Last Page").
-- **Kategorier** (`categories.py`, regler i `common.finalize`): `split_loppis` bryter ut *Loppis* ur Visit Värmlands
-  marknadskategori (som heter "Marknad, mässa och auktion"), och `split_motorsport` ger tävlingar *Motorsport*, medan
-  *Motor* bara gäller motorträffar och fordonsutställningar. Egna filter står först: Gratis, Loppis, Motorsport.
+- **Kategorier** (`categories.py`, regler i `common.finalize`): `SOURCE_NAMES` byter källornas namn (Visit Värmlands
+  *Evenemang* och *Övriga evenemang* blir *Övrigt*, *Motor* blir *Motorträffar*). `split_loppis` bryter ut *Loppis* ur
+  marknadskategorin, och `split_motorsport` ger tävlingar *Motorsport*, medan *Motorträffar* bara gäller träffar och
+  fordonsutställningar. Sist lägger `refine` till kategorier ur ordregler (`KEYWORD_RULES`: Musik, Film, Spel och quiz,
+  Träffar och caféer, Böcker och litteratur) från titeln, och från ingressen bara när källan saknar egen typ. Reglerna
+  gäller inte loppisar och motorsport. *Övrigt* blir kvar bara när inget annat passar (Gratis räknas inte).
+  Kategorifiltren står i bokstavsordning. Nya ordregler: pröva först mot sparad data så att de inte träffar fel.
+- **Ordning i listan och kalendern** (`multiDay` i `app.js`): under varje dag står evenemang som bara äger rum en dag
+  före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte
+  som ett tillfälle över flera dagar), sedan tid och titel.
 - **Sammanslagning** (`merge.py`): samma dag (varje dag i perioder ≤ 7 dagar), samma kommun och liknande titlar, eller
   `same_race` för motorsport med olika titlar. "loppis" och "konsert" m.fl. räknas inte som gemensamma ord.
 - **Fråga AI** (`chat.py`):
@@ -114,6 +121,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).
 - Motorsport: både bil- (SBF) och MC-sport (Svemo), publika tävlingar och prova på-dagar, Värmland + Karlskoga.
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
+- Kategorifiltren ska vara begripliga och stå i strikt bokstavsordning (inga egna filter först). Allmänna
+  paraplykategorier som "Evenemang" ska inte visas som egna filter.
 
 ## Lärdomar i utvecklingsmiljön (Claudes molnmiljö)
 

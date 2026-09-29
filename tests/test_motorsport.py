@@ -187,7 +187,7 @@ def test_duplicates_with_visit_varmland_are_merged():
 def test_chat_understands_motorsport():
     assert chat.find_categories("Finns det något folkrace i helgen?") == {"Motorsport"}
     assert chat.find_categories("Vilka rallyn går i oktober?") == {"Motorsport"}
-    assert chat.find_categories("Finns det någon motorträff?") == {"Motor"}
+    assert chat.find_categories("Finns det någon motorträff?") == {"Motorträffar"}
     assert chat.classify("När är nästa folkrace?") == "search"
     evs = [{"title": "NGK MASTERS", "summary": "Folkrace på Kalvholmens Motorstadion.", "description": "",
             "organizer": "Karlstads Motor-club Bil", "place": {"title": "Kalvholmens Motorstadion"},

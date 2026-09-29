@@ -252,10 +252,8 @@ function buildFilters() {
     const x = counts.get(c.title) || { ...c, n: 0 };
     x.n++; counts.set(c.title, x);
   }
-  // Gratis först, sedan efter antal
-  const FIRST = ["Gratis", "Loppis", "Motorsport"];   // egna filter först, sedan efter antal
-  const order = (c) => (FIRST.includes(c.title) ? FIRST.indexOf(c.title) - 1e9 : -c.n);
-  $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => order(a) - order(b)).map((c) =>
+  // I bokstavsordning (Övrigt hamnar sist)
+  $("#cats").replaceChildren(...[...counts.values()].sort((a, b) => a.title.localeCompare(b.title, "sv")).map((c) =>
     el("button", {
       class: "chip", type: "button", title: c.description, style: `--c:${c.color}`,
       "aria-pressed": state.cats.has(c.title) ? "true" : "false",
@@ -290,6 +288,10 @@ function render() {
   $("#calendar").hidden = !cal;
   cal ? renderCalendar() : renderList();
 }
+
+/** 1 om evenemanget äger rum mer än en dag (utställningar, återkommande evenemang, tillfällen över flera dagar).
+ *  Endagsevenemang visas först under varje dag. */
+const multiDay = (e) => (e.occasions.some((o) => o.date_start !== e.occasions[0].date_start || o.date_end !== o.date_start) ? 1 : 0);
 
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const plusDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
@@ -329,7 +331,8 @@ function renderList() {
   items.sort((a, b) => {
     const da = a.o.date_start < from ? from : a.o.date_start;
     const db = b.o.date_start < from ? from : b.o.date_start;
-    return da.localeCompare(db) || (a.o.time_start || "").localeCompare(b.o.time_start || "") || a.e.title.localeCompare(b.e.title, "sv");
+    return da.localeCompare(db) || multiDay(a.e) - multiDay(b.e)
+      || (a.o.time_start || "").localeCompare(b.o.time_start || "") || a.e.title.localeCompare(b.e.title, "sv");
   });
 
   const nEvents = new Set(items.map((i) => i.e.id)).size;

@@ -38,7 +38,8 @@ function eventsByDay(start, end) {
     }
   }
   for (const list of map.values()) {
-    list.sort((a, b) => (a.o.time_start || "99").localeCompare(b.o.time_start || "99") || a.e.title.localeCompare(b.e.title, "sv"));
+    list.sort((a, b) => multiDay(a.e) - multiDay(b.e)
+      || (a.o.time_start || "99").localeCompare(b.o.time_start || "99") || a.e.title.localeCompare(b.e.title, "sv"));
   }
   return map;
 }
