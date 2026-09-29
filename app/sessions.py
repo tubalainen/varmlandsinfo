@@ -40,6 +40,16 @@ class Session:
         """Historiken som skickas till modellen: bara roll och text."""
         return [{"role": m["role"], "content": m["content"]} for m in self.history]
 
+    def previous_sources(self, answers: int = 2) -> list[dict]:
+        """Evenemangen i samtalets senaste svar (de senaste först), för följdfrågor ("Vilken tid börjar den?")."""
+        found = []
+        for m in [m for m in self.history if m["role"] == "assistant"][-answers:][::-1]:
+            sources = m.get("sources") or []
+            # De som svaret tog upp (länkade), annars hela underlaget
+            mentioned = [s for s in sources if s.get("url") and s["url"] in m["content"]]
+            found.extend(mentioned or sources)
+        return found
+
     def view(self) -> list[dict]:
         """Historiken för att visa samtalet igen i webbläsaren."""
         return [dict(m) for m in self.history]

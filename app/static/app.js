@@ -149,6 +149,8 @@ function navigate() {
   const r = currentRoute();
   // Startsidan utan adress får den valda vyns adress, så att bakåtknappen blir rätt
   if (!ROUTES[location.hash.replace(/^#\/?/, "")]) history.replaceState(null, "", `#/${r}`);
+  // Lämnar man Fråga AI rensas samtalet (sammanhanget för följdfrågor)
+  if (r !== "fraga") window.chatView?.leave();
   state.route = r;
   if (r === "lista" || r === "kalender") store("route", r);
   for (const id of ["view-events", "view-chat", "view-about"]) $(`#${id}`).hidden = ROUTES[r].view !== id;

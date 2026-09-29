@@ -115,7 +115,12 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
      appens evenemang, platser, arrangörer eller kommuner, eller om den inte rör evenemang. Webben söks bara när
      frågan nämner ett evenemang, en plats eller en arrangör i appen.
   3. Kön till Ollama (högst 2 samtidigt), sessioner per flik och sparade svar (`chat_cache.py`).
-  4. Valfri SearXNG (`websearch.py`, `SEARXNG_URL`).
+  4. Följdfrågor (#73): `Session.previous_sources` (evenemangen som de 2 senaste svaren länkade) blir `pinned`
+     först i AI:ns urval. `refers_back` (den, dit, efter det, "matchen" utan egen kommun/datum …, men inte "finns det"
+     eller "den här veckan") gör en sökfråga i ett samtal till en AI-fråga. Utan Ollama visas förra svarets
+     evenemang (`FOLLOWUP_NOTE`). `chatView.leave()` i `chat.js` (anropas av `navigate`) och Nytt samtal avbryter
+     pågående fråga och tar bort samtalet på servern.
+  5. Valfri SearXNG (`websearch.py`, `SEARXNG_URL`).
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
   (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: spärrarna gäller bara frågor som går
   till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per 30 minuter och session och
@@ -177,6 +182,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).
 - Motorsport: både bil- (SBF) och MC-sport (Svemo), publika tävlingar och prova på-dagar, Värmland + Karlskoga.
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
+- Fråga AI har sammanhang i samtalet för följdfrågor. Det rensas bara när man trycker Nytt samtal eller lämnar sidan
+  Fråga AI (omladdning av sidan behåller det).
 - Fråga AI: högst 5 frågor till AI:n per 30 minuter och samtal och 20 per 30 minuter och IP-adress. Frågor som
   besvaras utan AI (sökfrågor, sparade svar, stoppade frågor) ska aldrig begränsas.
 - All lagrad data ska rensas när den blir inaktuell, men bara i samband med hämtningarna från källorna (och vid

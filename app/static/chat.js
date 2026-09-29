@@ -4,7 +4,7 @@
 (() => {
   const log = $("#chat-log"), form = $("#chat-form"), input = $("#chat-input"), welcome = $("#chat-welcome");
   const sendBtn = form.querySelector(".send");
-  let busy = false, statusLoaded = false;
+  let busy = false, statusLoaded = false, controller = null;
 
   // ---- enkel och säker markdown-rendering (bygger DOM-noder, aldrig innerHTML)
   const safeUrl = (u) => /^https?:\/\//i.test(u) ? u : null;
@@ -113,12 +113,14 @@
       el("div", { class: "thinking" }, el("span", { class: "dots" }, el("span"), el("span"), el("span")), status));
     msg.append(body);
     let answer = "", sources = [], web = [], meta = {}, expired = false;
+    const ctrl = controller = new AbortController();
 
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...sessionHeaders() },
         body: JSON.stringify({ question }),
+        signal: ctrl.signal,
       });
       if (!r.ok) {
         let error = `HTTP ${r.status}`;
@@ -160,18 +162,35 @@
         }
       }
     } catch (e) {
+      if (ctrl.signal.aborted) return;   // samtalet rensades (Nytt samtal eller en annan sida)
       msg.classList.add("error");
       answer += (answer ? "\n\n" : "") + "⚠️ " + e.message;
       renderMarkdown(body, answer);
     } finally {
-      body.classList.remove("typing");
-      if (expired) note(msg, "info", "Det tidigare samtalet hade gått ut, så frågan besvarades som ett nytt samtal.");
-      decorate(msg, meta, sources, web);
+      if (controller === ctrl) controller = null;
+      if (!ctrl.signal.aborted) {
+        body.classList.remove("typing");
+        if (expired) note(msg, "info", "Det tidigare samtalet hade gått ut, så frågan besvarades som ett nytt samtal.");
+        decorate(msg, meta, sources, web);
+      }
       busy = false;
       sendBtn.disabled = false;
       log.scrollTop = log.scrollHeight;
       input.focus();
     }
+  }
+
+  // Samtalet (sammanhanget för följdfrågor) rensas med Nytt samtal och när man lämnar sidan Fråga AI:
+  // en pågående fråga avbryts, historiken tas bort på servern och fliken glömmer samtalets id.
+  function reset() {
+    controller?.abort();
+    if (sessionId) {
+      fetch("/api/chat/session", { method: "DELETE", headers: sessionHeaders(), keepalive: true }).catch(() => {});
+    }
+    setSession(null);
+    log.querySelectorAll(".msg").forEach((n) => n.remove());
+    welcome.hidden = false;
+    $("#chat-clear").hidden = true;
   }
 
   // Visar samtalet igen efter omladdning av sidan
@@ -189,7 +208,9 @@
       }
     } catch { /* samtalet kunde inte hämtas, börja om */ }
   }
-  restore();
+  // Omladdning av sidan Fråga AI behåller samtalet. Startar appen på en annan sida rensas ett kvarglömt samtal
+  // av navigate() (leave).
+  if (currentRoute() === "fraga") restore();
 
   function autosize() {
     input.style.height = "auto";
@@ -233,20 +254,16 @@
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
   });
-  $("#chat-clear").addEventListener("click", () => {
-    if (busy) return;
-    if (sessionId) fetch("/api/chat/session", { method: "DELETE", headers: sessionHeaders() }).catch(() => {});
-    setSession(null);
-    log.querySelectorAll(".msg").forEach((n) => n.remove());
-    welcome.hidden = false;
-    $("#chat-clear").hidden = true;
-    input.focus();
-  });
+  $("#chat-clear").addEventListener("click", () => { reset(); input.focus(); });
 
   window.chatView = {
     show() {
       if (!statusLoaded) loadStatus();
       setTimeout(() => input.focus(), 50);
+    },
+    // Anropas när man går till en annan sida i appen
+    leave() {
+      if (busy || sessionId || log.querySelector(".msg")) reset();
     },
   };
 })();

@@ -322,7 +322,7 @@ def _stem(w: str) -> str:
 # ---------------------------------------------------------------- urval av evenemang
 
 def select_events(question: str, events: list[dict], today: date, limit: int = CHAT_MAX_EVENTS,
-                  context: str = "", strict: bool = False) -> dict:
+                  context: str = "", strict: bool = False, pinned: list[dict] | None = None) -> dict:
     """Väljer ut de evenemang som är mest relevanta för frågan.
 
     Med `strict` (direktsökning) krävs efterfrågad evenemangstyp. Annars får AI:n hela urvalet
@@ -347,8 +347,13 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
         lo, hi = date_range[0].isoformat(), date_range[1].isoformat()
         return [o for o in e["occasions"] if o["date_end"] >= lo and o["date_start"] <= hi]
 
+    # Evenemangen i samtalets tidigare svar (följdfrågor) står först i AI:ns urval, oavsett filter
+    pinned = (pinned or [])[:limit]
+    skip = {id(e) for e in pinned}
     candidates = []
     for e in events:
+        if id(e) in skip:
+            continue
         occ = in_range(e)
         if not occ:
             continue
@@ -389,8 +394,9 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
     if kws and any(s for s, _, _ in scored) and not (cats or munis or date_range or who["kids"]):
         scored = [x for x in scored if x[0] > 0]
     scored.sort(key=lambda x: (-x[0], x[2][0]["date_start"], x[2][0]["time_start"] or ""))
-    chosen = scored[:limit]
+    chosen = scored[:limit - len(pinned)]
     chosen.sort(key=lambda x: (x[2][0]["date_start"], x[2][0]["time_start"] or ""))
+    chosen = [(0, e, e["occasions"]) for e in pinned] + chosen
 
     return {
         "date_range": date_range,
@@ -399,7 +405,8 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
         "audience": who,
         "keywords": kws,
         "ranked": scored,              # alla träffar, bäst först (för sökläget)
-        "total_matches": len(scored),
+        "total_matches": len(scored) + len(pinned),
+        "pinned": len(pinned),
         "events": [(e, occ) for _, e, occ in chosen],
     }
 
@@ -415,6 +422,49 @@ COMPLEX_RE = re.compile(
     r"|varför|hur|planera\w*|intressant\w*|roligast\w*|mysig\w*|romantisk\w*|dejt\w*|sammanfatta\w*|berätta"
     r"|beskriv\w*|värt|prioriter\w*|min|mitt|mina|vi|oss|vår|våra|jag|mig|son|sonen|dotter|dottern)\b", re.I)
 MAX_SEARCH_QUESTION = 120   # längre frågor är sällan rena sökningar
+
+
+# ---------------------------------------------------------------- följdfrågor
+
+# En följdfråga som syftar tillbaka på förra svaret ("Vilken tid börjar den?", "Hur tar jag mig dit?", "Var ligger
+# arenan?") kan inte besvaras med en ny sökning. Den går till AI:n med samtalet och förra svarets evenemang.
+PRONOUN_RE = re.compile(
+    r"(?<![\wåäö])(den|det|dem|dom|denna|detta|dessa|där|dit|därifrån|dess|deras|samma|första|sista|tredje"
+    r"|sådan|sådana|efter det|före det|innan dess)(?![\wåäö])", re.I)
+# Bestämd form av det förra svaret handlade om. Räknas bara när frågan saknar egen kommun, eget datum och egna namn.
+DEFINITE_RE = re.compile(
+    r"(?<![\wåäö])(matchen|matcherna|arenan|konserten|konserterna|föreställningen|föreställningarna|evenemanget"
+    r"|evenemangen|utställningen|loppisen|tävlingen|tävlingarna|spelningen|showen|festivalen|marknaden|biljetterna"
+    r"|biljetten|stället|platsen|lokalen|arrangören|filmen|visningen|artisten|bandet|laget|lagen)(?![\wåäö])", re.I)
+# "det" och "den" som inte syftar på något: "finns det", "det är", "den här veckan"
+NOT_REFERRING_RE = re.compile(
+    r"\b(finns|fanns|är|blir|blev|går|gick|händer|hände|sker|kommer)\s+det\b"
+    r"|\bdet\s+(finns|fanns|är|blir|går|händer|sker)\b"
+    r"|\b(den|det|denna|detta|dessa)(\s+här)?\s+(vecka|veckan|veckorna|månad|månaden|helg|helgen|dag|dagen|kväll"
+    r"|kvällen|år|året|säsong|säsongen)\b", re.I)
+
+
+def refers_back(question: str, events: list[dict], today: date) -> bool:
+    """Sant när frågan syftar på ett tidigare svar och inte kan förstås som en egen sökning."""
+    q = NOT_REFERRING_RE.sub(" ", question or "")
+    if PRONOUN_RE.search(q):
+        return True
+    if DEFINITE_RE.search(q):
+        municipalities = sorted({e["municipality"] for e in events if e.get("municipality")})
+        return not (parse_date_range(q, today) or find_municipalities(q, municipalities) or _names(question))
+    return False
+
+
+def previous_events(previous_sources: list[dict] | None, events: list[dict], limit: int = 12) -> list[dict]:
+    """Evenemangen i samtalets senaste svar (källorna som visades), i samma ordning. Passerade tas inte med."""
+    by_key = {(e["title"], e.get("url")): e for e in events}
+    found, seen = [], set()
+    for s in previous_sources or []:
+        e = by_key.get((s.get("title"), s.get("url")))
+        if e is not None and id(e) not in seen:
+            seen.add(id(e))
+            found.append(e)
+    return found[:limit]
 
 
 # ---------------------------------------------------------------- avgränsning (innan AI:n kopplas in)
@@ -561,8 +611,12 @@ def _where(e: dict) -> str:
     return ", ".join(x for x in [(e.get("place") or {}).get("title"), e.get("municipality")] if x)
 
 
-def search_answer(question: str, events: list[dict], today: date, context: str = "") -> tuple[str, list[dict]]:
-    """Svar direkt från appen: evenemangen som matchar frågan, sorterade på datum."""
+def search_answer(question: str, events: list[dict], today: date, context: str = "",
+                  followup: bool = False) -> tuple[str, list[dict]]:
+    """Svar direkt från appen: evenemangen som matchar frågan, sorterade på datum.
+
+    `followup`: `events` är förra svarets evenemang och frågan syftar på dem. Sökorden behöver då inte finnas i
+    evenemangen ("Vilken tid börjar den?"), och finns inga andra villkor visas alla."""
     sel = select_events(question, events, today, limit=10_000, context=context, strict=True)
     ranked = sel["ranked"]
     # Ord som redan gav en evenemangstyp ("barnaktiviteter" → Barn) ska inte också krävas som sökord
@@ -570,8 +624,9 @@ def search_answer(question: str, events: list[dict], today: date, context: str =
     kws = [k for k in sel["keywords"] if k not in typed]
     if kws and not any(sc > 0 for sc, _, _ in ranked):
         # Sökorden finns inte i något evenemang: inga träffar, i stället för allt som matchar övriga filter
-        # ("När spelas innebandy i Karlstad?" ska inte svara med bandy eller annat i Karlstad)
-        ranked = []
+        # ("När spelas innebandy i Karlstad?" ska inte svara med bandy eller annat i Karlstad).
+        # En följdfråga gäller förra svarets evenemang, som då visas igen.
+        ranked = ranked if followup else []
     elif kws:
         def title_hits(x):
             return sum(word_hit(k, x[1]["title"].lower()) for k in kws)
@@ -684,6 +739,9 @@ def build_system_prompt(selection: dict, today: date, total_events: int, web: li
         "- Ange datum, tid och plats för varje förslag och länka det i markdown-format: [Titel](länk).",
         "- Passar inget i datan, säg det ärligt och föreslå närliggande alternativ ur datan eller hur frågan kan formuleras om.",
         "- Svara på samma språk som frågan (normalt svenska), kortfattat och tydligt.",
+        "- Följdfrågor syftar ofta på tidigare frågor och svar i samtalet (\"den\", \"där\", \"matchen\", \"det första "
+        "förslaget\"). Använd samtalet för att förstå vad som avses och svara direkt på just det, utan nya förslag om "
+        "inte användaren ber om det.",
         "",
         f"Databasen innehåller totalt {total_events} aktuella evenemang.",
     ]
@@ -702,6 +760,8 @@ def build_system_prompt(selection: dict, today: date, total_events: int, web: li
         ages = ", ".join(f"{a} år" for a in who.get("ages") or [])
         parts.append("Frågan gäller aktiviteter för barn" + (f" ({ages})" if ages else "")
                      + ". Barn- och familjeevenemang står först i urvalet. Bedöm lämpligheten för åldern.")
+    if selection.get("pinned"):
+        parts.append(f"De {selection['pinned']} första evenemangen nedan är de som samtalets tidigare svar handlade om.")
     shown = len(selection["events"])
     parts.append(f"{selection['total_matches']} evenemang matchar urvalet, {shown} visas nedan"
                  + (" (de mest relevanta)." if selection["total_matches"] > shown else "."))
@@ -753,8 +813,13 @@ def prune_cache(today: date, data_version: str | None) -> int:
     return cache.prune(cache_context(today, data_version)) if cache else 0
 
 
+FOLLOWUP_NOTE = ("Frågan verkar gälla förra svaret. Den kräver AI för att besvaras, men AI-chatten är inte "
+                 "konfigurerad, så här är evenemangen från förra svaret igen.\n\n")
+
+
 async def chat_stream(messages: list[dict], events: list[dict], today: date,
-                      data_version: str | None = None, admit=None) -> AsyncIterator[str]:
+                      data_version: str | None = None, admit=None,
+                      previous_sources: list[dict] | None = None) -> AsyncIterator[str]:
     """Strömmar svaret som NDJSON: sources, delta …, done eller error.
 
     Sökfrågor besvaras direkt av appen (search_answer) utan AI. Övriga frågor går till Ollama.
@@ -762,7 +827,10 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
     modellen är desamma. Annars ställs frågan till Ollama och svaret sparas.
 
     `admit` anropas först när frågan ska till AI:n (före webbsökning och kö) och returnerar ett felmeddelande
-    om spärrarna för frågor per minut säger nej."""
+    om spärrarna för frågor per minut säger nej.
+
+    `previous_sources` är evenemangen i samtalets senaste svar. En följdfråga som syftar på dem ("Vilken tid börjar
+    den?") besvaras av AI:n med dem först i underlaget, i stället för med en ny sökning utan sammanhang."""
     history = [
         {"role": m["role"], "content": str(m.get("content", ""))[:4000]}
         for m in messages if m.get("role") in ("user", "assistant") and m.get("content")
@@ -783,7 +851,17 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
         return
     user_turns = [m["content"] for m in history if m["role"] == "user"]
     context = " ".join(user_turns[-3:-1])
-    if classify(question) == "search":
+    pinned = previous_events(previous_sources, events) if len(history) > 1 else []
+    mode = classify(question)
+    if mode == "search" and pinned and refers_back(question, events, today):
+        if not OLLAMA_URL:
+            answer, sources = search_answer(question, pinned, today, followup=True)
+            yield _ndjson({"type": "sources", "events": sources})
+            yield _ndjson({"type": "delta", "text": FOLLOWUP_NOTE + answer})
+            yield _ndjson({"type": "done", "mode": "search"})
+            return
+        mode = "ai"
+    if mode == "search":
         answer, sources = search_answer(question, events, today, context=context)
         yield _ndjson({"type": "sources", "events": sources})
         yield _ndjson({"type": "delta", "text": answer})
@@ -819,7 +897,7 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
         return
 
     # Följdfrågor ("och på söndag då?") saknar ofta sammanhang, så tidigare frågor tas med i sökningen
-    selection = select_events(question, events, today, context=context)
+    selection = select_events(question, events, today, context=context, pinned=pinned)
     sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]}
                for e, occ in selection["events"]]
     web = []

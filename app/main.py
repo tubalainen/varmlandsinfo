@@ -320,7 +320,8 @@ async def _session_stream(session: sessions.Session, expired: bool, question: st
         yield json.dumps({"type": "session", "id": session.id, "expired": expired}) + "\n"
         messages = [*session.model_history(), {"role": "user", "content": question}]
         async with aclosing(chat.chat_stream(messages, events.current_events(), events.today(),
-                                             data_version=events.state["updated"], admit=admit)) as stream:
+                                             data_version=events.state["updated"], admit=admit,
+                                             previous_sources=session.previous_sources())) as stream:
             async for line in stream:
                 ev = json.loads(line)
                 if ev["type"] == "delta":

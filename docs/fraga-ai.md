@@ -20,7 +20,12 @@ AI:n används när frågan kräver en bedömning, till exempel rekommendationer,
 - **Rekommendationer:** komplexa frågor fungerar, till exempel "Vilka aktiviteter skulle passa för min 8 år gamla son
   i Karlstad nu till helgen?". Ålder och ord som son, dotter och familj tolkas som barn, så barn- och
   familjeevenemang prioriteras. AI:n väljer ut 3–5 förslag och motiverar varför de passar.
-- **Följdfrågor** som "och på söndag då?" fungerar.
+- **Följdfrågor:** samtalet har ett sammanhang, så du behöver inte upprepa tidigare frågor och svar. AI:n får
+  samtalets senaste frågor och svar, och underlaget börjar med evenemangen som de senaste svaren tog upp (de som
+  länkades, annars hela underlaget). Följdfrågor med egna villkor, som "och på söndag då?" eller "finns det något
+  gratis?", ärver datum, kommun och typ från tidigare frågor. En följdfråga som syftar tillbaka ("Vilken tid börjar
+  den?", "Hur tar jag mig dit?", "Var ligger arenan?") besvaras av AI:n i stället för med en ny sökning. Utan Ollama
+  visas evenemangen från förra svaret igen.
 - **Underlaget:** appen skickar inte alla evenemang till modellen. För varje fråga tolkar den tidsuttryck (idag,
   i helgen, nästa vecka, 3 oktober, i oktober …), kommuner, evenemangstyper och sökord. Utifrån det väljer den ut
   de mest relevanta evenemangen (högst `CHAT_MAX_EVENTS`) och skickar dem som underlag. Modellen instrueras att
@@ -58,8 +63,9 @@ Varje webbläsarflik har ett eget samtal (session), och servern äger historiken
 
 - Fliken får ett slumpat sessions-id av servern och sparar det i `sessionStorage`. Klienten skickar bara sin nya
   fråga, så historiken kan inte förfalskas.
-- Samtalet finns kvar när sidan laddas om. En ny flik ger ett nytt samtal, och *Nytt samtal* rensar samtalet på
-  servern.
+- Samtalet (sammanhanget för följdfrågor) finns kvar när sidan Fråga AI laddas om. Det rensas, både på servern
+  och i fliken, när du trycker *Nytt samtal* eller lämnar sidan Fråga AI (går till Evenemang, Kalender eller Om
+  applikationen). En pågående fråga avbryts då. En ny flik ger ett nytt samtal.
 - Samtalen finns bara i minnet. Samtal som inte använts på 2 timmar tas bort vid nästa städning (efter varje hämtning
   från källorna), och alla samtal tas bort efter morgonkörningen och vid omstart.
 - Varje samtal ställer en fråga i taget.

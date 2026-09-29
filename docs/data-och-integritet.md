@@ -46,7 +46,7 @@ Regeln är att data som hämtats före den senaste morgonkörningen (`DAILY_REFR
 | Data från avstängda källor | Direkt, till exempel Ticketmaster när API-nyckeln tagits bort. |
 | Sparade AI-svar (`chat_cache.json`) | När de inte gäller dagens datum, aktuell evenemangsdata och modell. |
 | Bilder (`data/images/`) | När de inte längre hör till något evenemang, liksom halvfärdiga filer från en avbruten hämtning. |
-| Chattsamtal (bara i minnet) | Samtal som inte använts på 2 timmar, och alla samtal efter morgonkörningen. Vid omstart försvinner alla. |
+| Chattsamtal (bara i minnet) | Direkt vid *Nytt samtal* och när man lämnar sidan Fråga AI. Annars samtal som inte använts på 2 timmar (t.ex. när fliken stängts), och alla samtal efter morgonkörningen. Vid omstart försvinner alla. |
 | IP-adresser i spärren för Fråga AI (bara i minnet) | Adresser vars senaste AI-fråga är äldre än 30 minuter. Vid omstart försvinner alla. |
 | Besöksstatistikens besökare med IP-adresser (`besoksinfo.json`) | Dygn som är slut: de summeras och IP-adresserna tas bort. |
 | Besöksstatistikens summerade dagar | Dagar äldre än 13 månader. |

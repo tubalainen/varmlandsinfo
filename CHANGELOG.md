@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Fråga AI har sammanhang i samtalet: följdfrågor som syftar tillbaka ("Vilken tid börjar den?", "Var ligger
+  arenan?") besvaras av AI:n med samtalets historik och evenemangen från de senaste svaren först i underlaget, i
+  stället för med en ny sökning utan sammanhang. Utan Ollama visas förra svarets evenemang igen. Samtalet rensas
+  när man trycker Nytt samtal eller lämnar sidan Fråga AI, och en pågående fråga avbryts då (#73).
+
 ## [0.24.0] - 2026-09-29
 
 ### Tillagt
