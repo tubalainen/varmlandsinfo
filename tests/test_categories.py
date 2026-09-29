@@ -62,3 +62,10 @@ def test_chat_understands_new_categories():
     assert chat.find_categories("Var finns det språkcafé?") == {"Träffar och caféer"}
     assert chat.find_categories("Något författarbesök i oktober?") == {"Böcker och litteratur"}
     assert chat.find_categories("Kan jag boka biljetter?") == set()
+
+
+def test_bandy_keyword_rule():
+    assert titles("Bandy: IF Boltic - Djurgården", ["Sport, motion och hälsa"]) == ["Sport, motion och hälsa", "Bandy"]
+    assert titles("Bandymatch på Tingvalla", ["Evenemang"]) == ["Bandy"]
+    assert titles("Innebandy: Damer", ["Sport, motion och hälsa"]) == ["Sport, motion och hälsa"]
+    assert titles("Allmänhetens åkning på bandyplanen", ["Sport, motion och hälsa"]) == ["Sport, motion och hälsa"]

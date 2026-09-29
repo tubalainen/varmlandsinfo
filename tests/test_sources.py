@@ -139,3 +139,12 @@ def test_free_category_from_sources():
     tm = ticketmaster.normalize_event(tm_event(priceRanges=[{"min": 0, "max": 0, "currency": "SEK"}]))
     assert "Gratis" in [c["title"] for c in tm["categories"]]
     assert "Gratis" not in [c["title"] for c in ticketmaster.normalize_event(tm_event())["categories"]]
+
+
+def test_merge_keeps_source_only_categories():
+    a = shl.normalize_game(shl_game())
+    b = dict(ticketmaster.normalize_event(tm_event(name="Färjestad BK - Rögle BK")))
+    b["categories"] = [{"title": "Sport, motion och hälsa"}, {"title": "Bandy"}, {"title": "Musik"}]
+    merged = merge([[a], [b]])
+    assert len(merged) == 1
+    assert [c["title"] for c in merged[0]["categories"]] == ["Sport, motion och hälsa", "SHL", "Bandy"]  # inte Musik

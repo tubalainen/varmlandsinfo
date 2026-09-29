@@ -94,7 +94,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Träffar och caféer, Böcker och litteratur) från titeln, och från ingressen bara när källan saknar egen typ. Reglerna
   gäller inte loppisar och motorsport. *Övrigt* blir kvar bara när inget annat passar (Gratis räknas inte).
   Kategorifiltren står i bokstavsordning. Nya ordregler: pröva först mot sparad data så att de inte träffar fel.
-  *SHL* (#68) sätts av källan SHL. Kategorier i `categories.SOURCE_ONLY` följer med vid sammanslagning (`merge._absorb`),
+  *SHL* (#68) sätts av källan SHL, *Bandy* (#70) av ordregeln (bara ordet bandy, inte innebandy eller bandyplanen). Kategorier i `categories.SOURCE_ONLY` följer med vid sammanslagning (`merge._absorb`),
   eftersom Visit Värmland och Ticketmaster har högre prioritet och annars skulle ta bort dem.
 - **Ordning i listan och kalendern** (`multiDay` i `app.js`): under varje dag står evenemang som bara äger rum en dag
   före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte

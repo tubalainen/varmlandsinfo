@@ -9,6 +9,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 ### Tillagt
 - Inställningen `CHAT_ENABLED` (standard `true`): med `false` döljs Fråga AI helt, med menyval, sida, texter på sidan
   Om och API:t för chatten (#69).
+- Snabbfiltret Bandy: bandymatcher får en egen kategori (titeln nämner bandy, inte innebandy), som följer med vid
+  sammanslagning, och snabbvalet Bandy i Fråga AI (#70).
 - Snabbfiltret SHL: Färjestads hemmamatcher får en egen kategori, även när matchen också finns hos Visit Värmland
   eller Ticketmaster, och snabbvalet SHL i Fråga AI (#68).
 

@@ -39,6 +39,10 @@ CATEGORIES: dict[str, dict] = {
         "icon": "🏒", "color": "#1d4ed8",
         "description": "Hemmamatcher i SHL, herrarnas högsta serie i ishockey (Färjestad BK i Löfbergs Arena).",
     },
+    "Bandy": {
+        "icon": "🏑", "color": "#0e7490",
+        "description": "Bandymatcher i Värmland: seriematcher, cuper och träningsmatcher.",
+    },
     "Motorsport": {
         "icon": "🏁", "color": "#dc2626",
         "description": "Folkrace, rally, rallycross, crosskart, karting, motocross, enduro, speedway och annan motorsport.",
@@ -97,9 +101,10 @@ def describe_category(title: str | None) -> dict:
 
 
 SHL = "SHL"
-# Kategorier som bara en källa sätter och som följer med när evenemanget slås ihop med samma evenemang från en
-# annan källa (Visit Värmland och Ticketmaster listar också Färjestads matcher)
-SOURCE_ONLY = (SHL,)
+BANDY = "Bandy"
+# Kategorier som bara en källa eller ordregel sätter och som följer med när evenemanget slås ihop med samma evenemang
+# från en annan källa (Visit Värmland och Ticketmaster listar också Färjestads matcher)
+SOURCE_ONLY = (SHL, BANDY)
 
 
 # ---------------------------------------------------------------- loppisar
@@ -166,6 +171,8 @@ def split_motorsport(categories: list[dict], title: str, summary: str) -> list[d
 # Kategorier ur titeln (och ingressen när källan inte angett någon egen kategori). Mest för Visit Värmlands
 # evenemang som bara har paraplyetiketterna, t.ex. bio, caféträffar, bokcirklar och bingo.
 KEYWORD_RULES = [
+    # Bara ordet bandy (och bandymatch, bandycup …): inte innebandy eller åkning på bandyplanen
+    ("Bandy", re.compile(r"\bbandy(match|matchen|matcher|cup|cupen|turnering|en)?\b", re.I)),
     ("Musik", re.compile(
         r"konsert|gospel|\bjazz|\bkör(en|er|erna|sång)?\b|\bsånger (i|om|för|från|till|av|med)\b|allsång|visafton"
         r"|trubadur|orkester|symfoni|\bopera\b|livemusik|live music|musikafton|musikkväll", re.I)),
