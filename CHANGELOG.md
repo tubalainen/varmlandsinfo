@@ -7,6 +7,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 ## [Unreleased]
 
 ### Tillagt
+- Inställningen `CHAT_ENABLED` (standard `true`): med `false` döljs Fråga AI helt, med menyval, sida, texter på sidan
+  Om och API:t för chatten (#69).
 - Snabbfiltret SHL: Färjestads hemmamatcher får en egen kategori, även när matchen också finns hos Visit Värmland
   eller Ticketmaster, och snabbvalet SHL i Fråga AI (#68).
 

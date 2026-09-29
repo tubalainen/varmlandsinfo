@@ -13,7 +13,7 @@ from contextlib import aclosing, asynccontextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -176,7 +176,7 @@ async def lifespan(_: FastAPI):
         f"  Värmlandsinfo v{__version__}",
         f"  Release: {RELEASE_URL}",
         f"  Källkod: {REPO_URL}",
-        f"  AI-chatt: {chat.OLLAMA_MODEL if chat.OLLAMA_URL else 'avstängd'}",
+        f"  Fråga AI: {'dold (CHAT_ENABLED=false)' if not chat.CHAT_ENABLED else chat.OLLAMA_MODEL if chat.OLLAMA_URL else 'bara sökfrågor (ingen OLLAMA_URL)'}",
         "=" * 60,
     ):
         log.info(line)
@@ -262,12 +262,19 @@ class ChatRequest(BaseModel):
 
 SessionHeader = Header(default=None, alias="X-Chat-Session", max_length=100)
 
-@app.get("/api/chat/presets")
+
+def require_chat() -> None:
+    """Fråga AI finns inte när funktionen är avstängd (CHAT_ENABLED=false)."""
+    if not chat.CHAT_ENABLED:
+        raise HTTPException(status_code=404)
+
+
+@app.get("/api/chat/presets", dependencies=[Depends(require_chat)])
 async def chat_presets():
     return chat.presets()
 
 
-@app.get("/api/chat/status")
+@app.get("/api/chat/status", dependencies=[Depends(require_chat)])
 async def chat_status():
     return await chat.ollama_status()
 
@@ -280,7 +287,7 @@ def _minutes(seconds: float) -> str:
     return "1 minut" if n == 1 else f"{n} minuter"
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(require_chat)])
 async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | None = SessionHeader):
     """Ny fråga i ett samtal. Samtalet (sessionen) och dess historik finns på servern, klienten skickar
     bara frågan och sitt sessions-id. Okänt eller utgånget id ger ett nytt samtal."""
@@ -333,14 +340,14 @@ async def _session_stream(session: sessions.Session, expired: bool, question: st
         sessions.store.end(session, turns)
 
 
-@app.get("/api/chat/session")
+@app.get("/api/chat/session", dependencies=[Depends(require_chat)])
 async def chat_session(session_id: str | None = SessionHeader):
     """Samtalet för att visa det igen efter omladdning av sidan."""
     session = sessions.store.get(session_id)
     return {"messages": session.view() if session else [], "busy": bool(session and session.is_busy())}
 
 
-@app.delete("/api/chat/session")
+@app.delete("/api/chat/session", dependencies=[Depends(require_chat)])
 async def chat_session_reset(session_id: str | None = SessionHeader):
     """Nytt samtal: historiken på servern tas bort."""
     return {"reset": sessions.store.reset(session_id)}
@@ -360,14 +367,18 @@ async def cache_headers(request: Request, call_next):
     return response
 
 
-def _render_index() -> str:
+def _render_index(chat_enabled: bool) -> str:
     """index.html med versionen i adresserna till stil, skript och ikoner, så att en uppgradering
-    alltid ger nya filer i webbläsaren."""
+    alltid ger nya filer i webbläsaren. Utan Fråga AI tas menyvalet och chattens skript bort."""
     page = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    if not chat_enabled:
+        page = re.sub(r'\s*<a href="#/fraga".*?</a>', "", page)
+        page = page.replace('\n<script src="/static/chat.js"></script>', "")
+        page = page.replace("<body>", '<body data-chat="off">', 1)
     return re.sub(r'((?:href|src)="/(?:static/[^"?]+|manifest\.webmanifest))"', rf'\1?v={__version__}"', page)
 
 
-INDEX_HTML = _render_index()
+INDEX_HTML = {on: _render_index(on) for on in (True, False)}
 
 
 @app.get("/")
@@ -376,7 +387,7 @@ async def index(request: Request):
         visits.store.record(access.client_ip(request), request.headers.get("user-agent", ""),
                             request.headers.get("referer"), request.headers.get("host"), datetime.now(TZ))
     # Bilder bara från appen själv: webbläsaren ska aldrig hämta något från källorna
-    return HTMLResponse(INDEX_HTML, headers={"Cache-Control": "no-cache",
+    return HTMLResponse(INDEX_HTML[chat.CHAT_ENABLED], headers={"Cache-Control": "no-cache",
                                              "Content-Security-Policy": "img-src 'self' data:"})
 
 

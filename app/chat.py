@@ -24,6 +24,14 @@ def base_url(url: str) -> str:
     return re.sub(r"(/v1(/chat/completions|/completions)?|/api(/chat|/generate)?)$", "", url)
 
 
+def flag(name: str, default: bool = True) -> bool:
+    """Av/på-inställning: false, 0, no, nej och off stänger av. Tomt värde ger standardvärdet."""
+    value = os.getenv(name, "").strip().lower()
+    return default if not value else value not in ("false", "0", "no", "nej", "off")
+
+
+# Fråga AI visas i gränssnittet (false döljer funktionen helt, även sökfrågorna)
+CHAT_ENABLED = flag("CHAT_ENABLED")
 OLLAMA_URL = base_url(os.getenv("OLLAMA_URL", ""))
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "16384"))
@@ -175,7 +183,9 @@ något ngt finns några blir kul roligt göra gör hittar hitta rekommendera fö
 
 
 def chat_config() -> dict:
-    return {"enabled": bool(OLLAMA_URL), "model": OLLAMA_MODEL if OLLAMA_URL else None,
+    if not CHAT_ENABLED:
+        return {"visible": False, "enabled": False, "model": None, "websearch": False}
+    return {"visible": True, "enabled": bool(OLLAMA_URL), "model": OLLAMA_MODEL if OLLAMA_URL else None,
             "websearch": websearch.enabled()}
 
 

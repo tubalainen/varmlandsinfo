@@ -50,7 +50,8 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
 | `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
 | `SHL_TEAM_CODE`      | `FBK`              | Lag vars hemmamatcher hämtas från SHL. |
-| `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI-chatten är avstängd. |
+| `CHAT_ENABLED`       | `true`             | Visa Fråga AI. `false` döljer funktionen helt: menyvalet, sidan, texterna om AI-chatten på sidan Om och API:t för chatten (svarar 404). |
+| `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI:n är avstängd och att Fråga AI bara svarar på sökfrågor. |
 | `OLLAMA_MODEL`       | `llama3.1:8b`      | Modell i Ollama. |
 | `OLLAMA_NUM_CTX`     | `16384`            | Kontextfönster (tokens) för modellen. |
 | `CHAT_MAX_EVENTS`    | `40`               | Max antal evenemang som skickas med till modellen per fråga. |

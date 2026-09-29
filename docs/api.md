@@ -15,6 +15,8 @@ API:t är till för appens eget gränssnitt.
 | GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
 | DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
 
+Med `CHAT_ENABLED=false` svarar alla `/api/chat*` med 404, och `chat.visible` i `/api/events` är `false`.
+
 ## Åtkomst till API:t
 
 Det som gränssnittet hämtar (`/api/events`, `/img/…` och `/api/chat*`) kan alltid hämtas av den som når appen, även

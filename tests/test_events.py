@@ -107,7 +107,7 @@ def test_next_run_daily():
 
 def test_index_references_versioned_assets():
     from version import __version__
-    html = main.INDEX_HTML
+    html = main.INDEX_HTML[True]
     assert f'/static/style.css?v={__version__}"' in html
     assert f'/static/app.js?v={__version__}"' in html
     assert f'/manifest.webmanifest?v={__version__}"' in html

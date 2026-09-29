@@ -55,6 +55,7 @@ De viktigaste inställningarna i `.env`:
 
 | Variabel | Beskrivning |
 |----------|-------------|
+| `CHAT_ENABLED` | `false` döljer Fråga AI helt (standard `true`). |
 | `OLLAMA_URL` | Adress till din Ollama, t.ex. `http://host.docker.internal:11434`. Tom = Fråga AI svarar bara på sökfrågor. |
 | `SEARXNG_URL` | Adress till SearXNG för webbsökning i Fråga AI. Tom = av. |
 | `TICKETMASTER_API_KEY` | API-nyckel för Ticketmaster. Tom = källan är av. |

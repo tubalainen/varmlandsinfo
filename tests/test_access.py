@@ -89,3 +89,28 @@ def test_questions_without_ai_are_not_limited_per_ip(client):
     for _ in range(6):
         r = client.post("/api/chat", json={"question": "Vad händer idag?"})
         assert r.status_code == 200 and '"mode": "search"' in r.text.splitlines()[-1]
+
+
+def test_chat_can_be_turned_off(client, monkeypatch):
+    """CHAT_ENABLED=false: Fråga AI syns inte i gränssnittet och API:t för chatten finns inte."""
+    page = client.get("/").text
+    assert 'href="#/fraga"' in page and "/static/chat.js" in page
+    assert client.get("/api/events").json()["chat"]["visible"] is True
+
+    monkeypatch.setattr(chat, "CHAT_ENABLED", False)
+    page = client.get("/").text
+    assert 'href="#/fraga"' not in page and "/static/chat.js" not in page and 'data-chat="off"' in page
+    assert 'href="#/kalender"' in page and "/static/app.js" in page
+    assert client.get("/api/events").json()["chat"] == {"visible": False, "enabled": False, "model": None,
+                                                         "websearch": False}
+    for method, path in (("get", "/api/chat/presets"), ("get", "/api/chat/status"), ("get", "/api/chat/session"),
+                         ("delete", "/api/chat/session")):
+        assert getattr(client, method)(path).status_code == 404, path
+    assert client.post("/api/chat", json={"question": "Vad händer idag?"}).status_code == 404
+
+
+def test_chat_flag(monkeypatch):
+    for value, expected in (("", True), ("true", True), ("1", True), ("false", False), ("False", False), ("0", False),
+                            ("nej", False), ("off", False)):
+        monkeypatch.setenv("X_FLAG", value)
+        assert chat.flag("X_FLAG") is expected, value

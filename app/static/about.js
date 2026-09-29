@@ -15,6 +15,8 @@
     ["database", "Sparad data", "Allt som hämtas sparas på servern, även bilderna. Vid omstart visas evenemangen direkt, utan nya anrop till källorna."],
     ["shield", "Lokalt och privat", "Appen körs hemma i Docker. AI-chatten använder en egen Ollama-server, så frågorna lämnar aldrig ditt nätverk."],
   ];
+  // Utan Fråga AI (CHAT_ENABLED=false) beskrivs inte AI-chatten
+  const NO_CHAT_FEATURES = { sparkles: null, shield: "Appen körs hemma i Docker och laddar inga externa skript, typsnitt eller spårning." };
 
   const SOURCE_INFO = {
     visitvarmland: "Evenemang i hela Värmland via Visit Värmlands öppna API. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar.",
@@ -41,13 +43,18 @@
     const m = state.meta || {};
     const sources = groupSources(m.sources);
     const chat = m.chat || {};
+    const chatOn = chat.visible !== false;
+    const features = chatOn ? FEATURES : FEATURES.flatMap(([ico, title, text]) =>
+      ico in NO_CHAT_FEATURES ? (NO_CHAT_FEATURES[ico] ? [[ico, title, NO_CHAT_FEATURES[ico]]] : []) : [[ico, title, text]]);
     $("#about").replaceChildren(
       section("info", "Vad är Värmlandsinfo?",
-        el("p", {}, "Värmlandsinfo samlar evenemang i Värmland från flera källor och visar dem på ett ställe: som lista, i en kalender och via en AI-assistent som svarar på frågor om vad som händer."),
+        el("p", {}, chatOn
+          ? "Värmlandsinfo samlar evenemang i Värmland från flera källor och visar dem på ett ställe: som lista, i en kalender och via en AI-assistent som svarar på frågor om vad som händer."
+          : "Värmlandsinfo samlar evenemang i Värmland från flera källor och visar dem på ett ställe: som lista och i en kalender."),
         el("p", { class: "muted" }, `Just nu finns ${m.events?.length ?? "–"} aktuella evenemang, senast uppdaterade ${fmtTime(m.updated)}. Nästa automatiska uppdatering sker ${fmtTime(m.next_refresh)}.`)),
 
       section("sparkles", "Funktioner",
-        el("div", { class: "features" }, FEATURES.map(([ico, title, text]) =>
+        el("div", { class: "features" }, features.map(([ico, title, text]) =>
           el("div", { class: "feature" }, icon(ico), el("h3", {}, title), el("p", {}, text))))),
 
       section("layers", "Källor",
@@ -65,7 +72,7 @@
             el("td", { title: s.error || s.config_error || "" }, status(s), s.error || s.config_error
               ? el("div", { class: "muted", style: "font-size:.8rem" }, s.error || s.config_error) : null))))))),
 
-      section("message", "AI-chatten",
+      !chatOn ? null : section("message", "AI-chatten",
         el("p", {}, "AI-chatten använder en språkmodell i din egen Ollama-server. För varje fråga tolkar appen tidsuttryck (idag, i helgen, nästa vecka, 3 oktober …), kommuner, evenemangstyper och sökord. Sedan skickar den de mest relevanta evenemangen till modellen, som instrueras att bara svara utifrån dem."),
         el("p", {}, "Modellen körs lokalt i ditt eget nätverk, så frågorna skickas aldrig till någon AI-tjänst i molnet. Det gör att svaren kan ta lite längre tid än hos molntjänster som ChatGPT och Gemini."),
         el("p", {}, "Webbsökning (valfritt): med en egen SearXNG-server kan AI:n komplettera svaren med information från webben, till exempel om en artist eller en plats. Frågan skickas då som sökord via SearXNG till sökmotorer på webben. Webbträffarna visas under svaret, och evenemangen i appen går alltid före. Det söks bara på webben när frågan gäller ett visst evenemang, en plats eller en arrangör i appen, aldrig för enkla sökfrågor och sparade svar."),
@@ -76,12 +83,13 @@
         el("p", { class: "muted" }, chat.enabled ? `Modell: ${chat.model}. Webbsökning: ${chat.websearch ? "på" : "av"}.` : "AI-chatten är inte konfigurerad. Sätt OLLAMA_URL i .env för att aktivera den.")),
 
       section("database", "Cookies och lagring",
-        el("p", {}, "Appen använder inga cookies och laddar inga externa skript, typsnitt eller spårning. Tre små värden sparas i din webbläsare för att gränssnittet ska fungera som du förväntar dig:"),
+        el("p", {}, `Appen använder inga cookies och laddar inga externa skript, typsnitt eller spårning. ${chatOn ? "Tre" : "Två"} små värden sparas i din webbläsare för att gränssnittet ska fungera som du förväntar dig:`),
         el("ul", {},
           el("li", {}, el("strong", {}, "route"), " (localStorage): om du senast tittade på listan eller kalendern."),
           el("li", {}, el("strong", {}, "sidebar"), " (localStorage): om menyn är ihopfälld eller utfälld."),
-          el("li", {}, el("strong", {}, "chat-session"), " (sessionStorage): samtalets slumpmässiga id i Fråga AI. Det försvinner när fliken stängs.")),
-        el("p", {}, "Samtalen i Fråga AI (frågor och svar) sparas bara i serverns minne. Samtal som inte använts på 2 timmar tas bort vid nästa hämtning från källorna, och alla samtal tas bort efter morgonkörningen och när appen startas om. Spärren för Fråga AI minns din IP-adress i minnet tills din senaste fråga till AI:n är 30 minuter gammal, och glömmer den vid nästa hämtning därefter. Webbserverns åtkomstlogg är avstängd, så besökarnas IP-adresser sparas inte i loggen."),
+          !chatOn ? null : el("li", {}, el("strong", {}, "chat-session"), " (sessionStorage): samtalets slumpmässiga id i Fråga AI. Det försvinner när fliken stängs.")),
+        !chatOn ? el("p", {}, "Webbserverns åtkomstlogg är avstängd, så besökarnas IP-adresser sparas inte i loggen.")
+          : el("p", {}, "Samtalen i Fråga AI (frågor och svar) sparas bara i serverns minne. Samtal som inte använts på 2 timmar tas bort vid nästa hämtning från källorna, och alla samtal tas bort efter morgonkörningen och när appen startas om. Spärren för Fråga AI minns din IP-adress i minnet tills din senaste fråga till AI:n är 30 minuter gammal, och glömmer den vid nästa hämtning därefter. Webbserverns åtkomstlogg är avstängd, så besökarnas IP-adresser sparas inte i loggen."),
         el("p", {}, "Evenemangens bilder visas via appen. Servern hämtar dem från källorna och sparar dem, så din webbläsare kontaktar aldrig källornas bildservrar och de ser inte din IP-adress. Bilder som inte längre hör till något evenemang tas bort vid nästa hämtning från källorna."),
         el("p", {}, "Länkar till källorna skickar inte med att du kommer från Värmlandsinfo. Klickar du på en länk besöker du förstås källans webbplats, med de villkor som gäller där."),
         m.visit_stats ? el("p", {}, el("strong", {}, "Besöksstatistik: "),
@@ -103,7 +111,9 @@
       section("sparkles", "Framtagen med Claude Code",
         el("p", {}, "Värmlandsinfo är framtagen med hjälp av ", el("a", { href: "https://claude.com/claude-code", target: "_blank", rel: "noopener" }, "Claude Code"),
           ", Anthropics AI-assistent för programmering. Idéer, krav och beslut kommer från projektets ägare. Claude Code har skrivit det mesta av koden, testerna och dokumentationen, och arbetar efter issues på GitHub, kör testerna och följer upp bygg och releaser."),
-        el("p", {}, "Claude används bara för att utveckla appen. AI-chatten i appen använder en egen Ollama-server, och inga frågor skickas till Claude eller någon annan AI-tjänst i molnet.")),
+        el("p", {}, chatOn
+          ? "Claude används bara för att utveckla appen. AI-chatten i appen använder en egen Ollama-server, och inga frågor skickas till Claude eller någon annan AI-tjänst i molnet."
+          : "Claude används bara för att utveckla appen, och appen skickar inget till Claude eller någon annan AI-tjänst i molnet.")),
 
       section("code", "Version och källkod",
         el("p", {}, `Du kör version ${m.version ? "v" + m.version : "–"}. Appen är öppen källkod under MIT-licensen. Ändringar, versioner och instruktioner finns på GitHub.`),

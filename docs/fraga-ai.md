@@ -1,7 +1,8 @@
 # Fråga AI
 
 Ställ frågor om evenemangen på vanlig svenska, med förslagskort och snabbval. Hur Ollama och SearXNG sätts upp står
-i [Installation](installation.md#ai-chatten-med-ollama).
+i [Installation](installation.md#ai-chatten-med-ollama). Med `CHAT_ENABLED=false` döljs Fråga AI helt: menyvalet och
+sidan försvinner, sidan Om beskriver inte AI-chatten och API:t för chatten (`/api/chat…`) svarar 404.
 
 ![Fråga AI besvarar en sökfråga direkt med en lista i datumordning](screenshots/fraga-ai.jpg)
 
