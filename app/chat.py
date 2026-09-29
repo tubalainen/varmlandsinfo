@@ -149,6 +149,7 @@ CATEGORY_WORDS = {
                      "traktor", "raggarträff", "cruising"],
     "SHL": ["shl", "hockey", "ishockey"],
     "Bandy": ["bandy"],
+    "Handboll": ["handboll"],
     "Motorsport": ["motorsport", "bilsport", "folkrace", "rally", "rallyt", "rallyn", "rallycross", "crosskart",
                    "karting", "gokart", "go-kart", "motocross", "enduro", "speedway", "supermoto", "trial$",
                    "roadracing", "dragracing", "drifting", "bilcross", "racing", "skoterrace", "isracing", "mx$",

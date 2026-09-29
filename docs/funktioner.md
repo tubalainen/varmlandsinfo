@@ -50,6 +50,8 @@ används i första hand och kompletteras med regler:
   följer med när samma match också finns hos Visit Värmland eller Ticketmaster.
 - **Bandy:** bandymatcher. Ett evenemang räknas som bandy om titeln nämner bandy, bandymatch eller bandycup (inte
   innebandy eller åkning på bandyplanen). Kategorin följer med vid sammanslagning, precis som *SHL*.
+- **Handboll:** handbollsmatcher från källan Handboll, och evenemang som har handboll, handbollsmatch eller
+  handbollscup i titeln (inte i ingressen, där klubbens namn ofta står). Kategorin följer med vid sammanslagning.
 - **Gratis:** evenemang med fri entré. Ett evenemang räknas bara som gratis om källan anger fri entré eller pris 0
   och inget pris över 0 finns.
 

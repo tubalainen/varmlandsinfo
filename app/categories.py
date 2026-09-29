@@ -43,6 +43,10 @@ CATEGORIES: dict[str, dict] = {
         "icon": "⛸️", "color": "#0e7490",
         "description": "Bandymatcher i Värmland: seriematcher, cuper och träningsmatcher.",
     },
+    "Handboll": {
+        "icon": "🤾", "color": "#c2410c",
+        "description": "Handbollsmatcher i Värmland: seniorernas serier och Svenska cupen.",
+    },
     "Motorsport": {
         "icon": "🏁", "color": "#dc2626",
         "description": "Folkrace, rally, rallycross, crosskart, karting, motocross, enduro, speedway och annan motorsport.",
@@ -102,9 +106,10 @@ def describe_category(title: str | None) -> dict:
 
 SHL = "SHL"
 BANDY = "Bandy"
+HANDBOLL = "Handboll"
 # Kategorier som bara en källa eller ordregel sätter och som följer med när evenemanget slås ihop med samma evenemang
 # från en annan källa (Visit Värmland och Ticketmaster listar också Färjestads matcher)
-SOURCE_ONLY = (SHL, BANDY)
+SOURCE_ONLY = (SHL, BANDY, HANDBOLL)
 
 
 # ---------------------------------------------------------------- loppisar
@@ -173,6 +178,8 @@ def split_motorsport(categories: list[dict], title: str, summary: str) -> list[d
 KEYWORD_RULES = [
     # Bara ordet bandy (och bandymatch, bandycup …): inte innebandy eller åkning på bandyplanen
     ("Bandy", re.compile(r"\bbandy(match|matchen|matcher|cup|cupen|turnering|en)?\b", re.I)),
+    # Handbollsmatcher, inte handbollsskolor och liknande (#82)
+    ("Handboll", re.compile(r"\bhandboll(smatch|smatchen|smatcher|scup|scupen|en)?\b", re.I)),
     ("Musik", re.compile(
         r"konsert|gospel|\bjazz|\bkör(en|er|erna|sång)?\b|\bsånger (i|om|för|från|till|av|med)\b|allsång|visafton"
         r"|trubadur|orkester|symfoni|\bopera\b|livemusik|live music|musikafton|musikkväll", re.I)),
@@ -186,6 +193,8 @@ KEYWORD_RULES = [
         r"\bbok(cirkel|släpp|prat|caf[eé]|tips|klubb|samtal|en|ens)?\b|bokprat|bokfrukost|\bböcker|litteratur"
         r"|författar|läsklubb|läscirkel|läscafé|sagostund|godnattsaga|shared reading|läsa, lyssna|poesi", re.I)),
 ]
+# Regler som bara gäller titeln: klubbens namn i ingressen ("Karlskoga Handboll ordnar tipspromenad") är ingen match
+TITLE_ONLY = {"Handboll"}
 
 
 def refine(categories: list[dict], title: str, summary: str) -> list[dict]:
@@ -199,7 +208,7 @@ def refine(categories: list[dict], title: str, summary: str) -> list[dict]:
     # Loppisar och motorsport har egna källor och regler (loppisar.com har t.ex. "… restaurang & cafe" som namn)
     rules = [] if LOPPIS in titles or MOTORSPORT in titles else KEYWORD_RULES
     for name, pattern in rules:
-        if name not in titles and (pattern.search(title or "") or (vague and pattern.search(summary or ""))):
+        if name not in titles and (pattern.search(title or "") or (vague and name not in TITLE_ONLY and pattern.search(summary or ""))):
             titles.append(name)
     if any(t not in (OTHER, FREE) for t in titles):
         titles = [t for t in titles if t != OTHER]

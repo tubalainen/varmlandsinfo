@@ -8,8 +8,9 @@ Arbetsflödet (issues, commits, releaser) beskrivs i [CONTRIBUTING.md](../CONTRI
 app/
   main.py          FastAPI-server, API, schemaläggning och städning
   events.py        Hämtning, lagring och status för alla källor
-  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, bandy, greatevent, karlstadloppis,
-                   loppisar, motorsport: SBF och Svemo, kommunerna: Säffle och Kil)
+  sources/         En modul per källa (visitvarmland, ticketmaster, ccc, scala, shl, bandy, handboll, greatevent,
+                   karlstadloppis, loppisar, motorsport: SBF och Svemo, kommunerna: Säffle och Kil), och profixio.py
+                   med det som bandy och handboll har gemensamt
   merge.py         Sammanslagning av samma evenemang från flera källor
   categories.py    Klassificering och beskrivning av evenemangstyper
   common.py        Gemensamma hjälpfunktioner (HTTP med rate limit, textrensning)

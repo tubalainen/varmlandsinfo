@@ -15,7 +15,7 @@ ORTER = {
     # Karlstad
     "molkom": "Karlstad", "vålberg": "Karlstad", "skattkärr": "Karlstad", "väse": "Karlstad", "edsvalla": "Karlstad",
     "blombacka": "Karlstad", "ulvsby": "Karlstad", "vallargärdet": "Karlstad", "östra fågelvik": "Karlstad",
-    "ilanda": "Karlstad", "alster": "Karlstad", "nyed": "Karlstad",
+    "ilanda": "Karlstad", "alster": "Karlstad", "nyed": "Karlstad", "skåre": "Karlstad",
     # Hammarö
     "skoghall": "Hammarö", "hallersrud": "Hammarö", "mörmon": "Hammarö",
     # Arvika

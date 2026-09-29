@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa och kategori, *Handboll*: Svenska Handbollförbundets matcher i Profixio för seniorer, herr och dam, som
+  spelas i Värmland (nationella serier, Svenska cupen och Handbollförbundet Västs division 2–4). Appen läser de
+  värmländska lagens egna sidor (2 anrop per lag), och letar upp lagen en gång i veckan. Fråga AI förstår
+  handboll (#82).
+
 ## [0.28.2] - 2026-09-29
 
 ### Dokumentation

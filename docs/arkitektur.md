@@ -23,7 +23,7 @@ exportera bilden.
 | Evenemang i minnet | Källornas evenemang sammanslagna och kategoriserade. | `app/events.py`, `app/merge.py`, `app/categories.py` |
 | Schemaläggare | Hämtar varje morgon (05:00), gör nya försök och städar bort inaktuell data. | `app/main.py` |
 | Hämtning | En modul per källa. API-källor som JSON, övriga som webbsidor (HTML). | `app/events.py`, `app/sources/` |
-| Källorna | Visit Värmland, Ticketmaster och SHL (API) samt Profixio (bandy), CCC, Scalateatern, Great Event, loppisarna, SBF, Svemo, Säffle och Kil (webbsidor). | se [Källor](kallor.md) |
+| Källorna | Visit Värmland, Ticketmaster och SHL (API) samt Profixio (bandy och handboll), CCC, Scalateatern, Great Event, loppisarna, SBF, Svemo, Säffle och Kil (webbsidor). | se [Källor](kallor.md) |
 | `/data` | Volym på värden: källdata, sparade AI-svar och bilder. | se [Data och integritet](data-och-integritet.md) |
 | Ollama, SearXNG | Egna tjänster utanför appen. Båda är valfria. | se [Installation](installation.md) |
 

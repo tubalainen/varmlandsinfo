@@ -53,7 +53,7 @@ aktuella när något ändras.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
   CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA, Profixio, Säffle och Kil är vanliga
   webbplatser).
-  Profixio (bandy): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
+  Profixio (bandy och handboll): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
   sedan bara serierna med lag från Värmland.
   Svemo TA har 13 000+ historiska tävlingar: bläddra aldrig igenom hela listan, bara sista sidorna bakåt.
   Hämta inte oftare än nödvändigt, varken i appen eller under utveckling. Testa mot sparad data (se Lärdomar).
@@ -89,17 +89,18 @@ gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1) och arkitekturbilden med 13 källor och
-  aktuella kodhänvisningar (#80, v0.28.2).
+  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll (#82, pushad men inte släppt ännu).
 - **Öppet:** inga issues.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
-  registrerar) och handboll via Profixio (`lx/SHF`). Fråga användaren innan något av dem påbörjas.
+  registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
   "Medis stora scen" utan Medis i titeln kommer inte med. Gäller alla platser och fanns före #79.
 
 ## Läget (v0.28.2, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
-  standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Great Event, Karlstad Loppis + loppisar.com
+  standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
+  #82), Great Event, Karlstad Loppis + loppisar.com
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
   **Kommunerna**, `sources/kommunerna.py`, #79). En källas `group` gör att
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
@@ -115,8 +116,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   ger året när den stämmer). Kil: `registerInitialState` i sidan, 25 per sida (`?start=25`), utan plats och kategori
   (`KIL_RULES` och `CHILD_RE` ur titeln). Samma titel (och plats) blir ett evenemang med flera tillfällen. Karlstad,
   Hammarö, Sunne (Sagolika Sunne) och Grums visar Visit Värmlands data.
-- **Analys av källor som saknas** (2026-09-29): möjliga nästa steg är Tickster (Event Dump API, en fil per dygn,
-  kräver nyckel) och handboll i Profixio (`lx/SHF`, samma upplägg som bandy). Avfärdade: Svenska kyrkan
+- **Analys av källor som saknas** (2026-09-29): möjligt nästa steg är Tickster (Event Dump API, en fil per dygn,
+  kräver nyckel). Handboll är gjord (#82). Avfärdade: Svenska kyrkan
   (användarens beslut), Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
   (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
   Storfors (fritext) och Karlstads universitet (mest för studenter).
@@ -133,6 +134,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   gäller inte loppisar och motorsport. *Övrigt* blir kvar bara när inget annat passar (Gratis räknas inte).
   Kategorifiltren står i bokstavsordning. Nya ordregler: pröva först mot sparad data så att de inte träffar fel.
   *SHL* (#68) sätts av källan SHL, *Bandy* (#70) av ordregeln (bara ordet bandy, inte innebandy eller bandyplanen).
+  *Handboll* (#82) av källan Handboll och ordregeln, som bara gäller titeln (`TITLE_ONLY`: klubbens namn står ofta i
+  ingressen, t.ex. "Karlskoga Handboll ordnar tipspromenad").
   **Bandy och innebandy är olika sporter** (bandy på is med skridskor) och får aldrig blandas ihop: varken i
   kategorier, sökrutan (`matches` i `app.js`) eller Fråga AI (#71). Kategorier i `categories.SOURCE_ONLY` följer med vid sammanslagning (`merge._absorb`),
   eftersom Visit Värmland och Ticketmaster har högre prioritet och annars skulle ta bort dem.
@@ -273,6 +276,16 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Läget: `PLACES` i `bandy.py` (arenor och klubbar) och motorsportens orter och kommuner. Seniorer och
   träningsmatcher, inte ungdom (`YOUTH_RE`: U17, F15, flick …, men "Katrineholm Bandy U" är ett utvecklingslag).
   2026/27: IF Boltic (Bandyallsvenskan herr, Tingvalla) och Slottsbron IF (träningsmatcher Mellansverige).
+- **Handboll** (`sources/handboll.py`, #82): samma Profixio som bandyn (gemensam tolkning i `sources/profixio.py`),
+  förbundet `lx/SHF`. Värmland hör till Handbollförbundet Väst. Seniorserier: `SENIOR_RE` (nationella serier, Svenska
+  cupen och Dam/Herr 2–4 Väst). Serierna har oftast bara ett värmländskt lag (t.ex. IFK Hammarö av 23 i Herr 3 Väst),
+  så lagens sidor läses i stället för seriernas: lagsidan `/lx/competition/leagueid<serie>/teams/<lag>` och
+  Livewire-komponenten `lx.team.schedule` (`matchFilter: upcoming`, 15 matcher). En gång i veckan tävlingslistan och
+  första sidan av varje seniorserie (alla lag står där) för att hitta lagen: ort i lagnamnet (`kommuner.kommun`) eller
+  `CLUBS` (Hellton → Karlstad, Brukspôjkera → Forshaga). Matchens kommun: arenan, annars hemmalaget. "U" i lagnamnet är
+  ett utvecklingslag (seniorer). Klubbar i Värmland: Arvika HK, Forshaga HK, HK Brukspôjkera, HK Grums, IF Hellton,
+  IFK Hammarö, IFK Kristinehamn, Karlskoga HK, Kils AIKs HF, Skåre HK och Torsby IF. 2026/27 har bara Hellton, Hammarö
+  och Kristinehamn seniorlag i serierna.
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
 - **Archify** finns inte installerat: `git clone --depth 1 https://github.com/tt-a1i/archify` till scratchpaden och kör
   `archify/bin/archify.mjs`. I kopian av repot måste `origin` vara `https://github.com/tubalainen/varmlandsinfo`

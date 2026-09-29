@@ -8,6 +8,7 @@
 | [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
 | [Bandy (Profixio)](https://www.profixio.com/app/lx/SBF) | Svenska Bandyförbundets matcher i Profixio (HTML) | Bandymatcher i Värmland för seniorer: serier, cuper och träningsmatcher (inte ungdom). Bandy spelas på is med skridskor, inte innebandy. |
+| [Handboll (Profixio)](https://www.profixio.com/app/lx/SHF) | Svenska Handbollförbundets matcher i Profixio (HTML) | Handbollsmatcher i Värmland för seniorer, herr och dam: nationella serier, Svenska cupen och Handbollförbundet Västs division 2–4 (inte ungdom, motion eller para). |
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 | [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
 | [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
@@ -31,6 +32,14 @@ dit Värmland hör) som spelas i Värmland: på en värmländsk arena (t.ex. Tin
 värmländskt hemmalag (lagets ort, t.ex. Slottsbron IF → Grums). Ungdoms- och juniorlag (U17, F15 …) räknas inte.
 Säsongen 2026/27 är det IF Boltic (Bandyallsvenskan herr) och Slottsbron IF (träningsmatcher).
 
+**Handboll:** Svenska Handbollförbundets matcher finns också i Profixio. Värmland hör till Handbollförbundet Väst. Med
+kommer seniormatcher, herr och dam, i de nationella serierna (Handbollsligan, Allsvenskan, Dam/Herr 1, Svenska cupen)
+och Västs division 2–4, när matchen spelas i Värmland: på en värmländsk arena (t.ex. Hammarhallen, Hammarö) eller med
+ett värmländskt hemmalag (ort i lagnamnet eller en känd klubb, t.ex. IF Hellton → Karlstad och HK Brukspôjkera →
+Forshaga). Serierna har oftast bara något enstaka lag från Värmland, så appen läser lagens egna sidor i stället för
+hela seriers spelscheman. Säsongen 2026/27 är det IF Hellton Karlstad (Dam 1, Herr 2 Väst och utvecklingslaget i Dam 3
+Väst), IFK Hammarö (Herr 3 Väst) och IFK Kristinehamn (Herr 4 Väst).
+
 **Loppisar:** Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten
 och på sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
 `/api/health`.
@@ -41,7 +50,7 @@ tillfällen som inte är slut). Kils kalender saknar plats och kategori, så kat
 tillfällen (t.ex. Babytorsdag) blir ett evenemang med flera tillfällen. Karlstads och Hammarö kommuns kalendrar
 visar Visit Värmlands evenemang och behövs inte, och det gäller även Sunne (Sagolika Sunne) och Grums.
 
-**Webbsidor utan API:** Profixio (bandy), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
+**Webbsidor utan API:** Profixio (bandy och handboll), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
 
@@ -57,6 +66,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
 | SHL | 2 | Säsongsfilter och spelschema. |
 | Bandy | cirka 10 | Spelschemat för serierna med lag från Värmland, bara kommande matcher: 25 matcher per sida, nästa sida med ett Livewire-anrop som i webbläsaren, 2 s paus mellan anropen. En gång i veckan dessutom tävlingslistan och första sidan av varje seniorserie (cirka 15 anrop) för att se vilka serier som har lag från Värmland. |
+| Handboll | cirka 10 | Lagsidan och lagets kommande matcher (15 st, Livewire-anrop som i webbläsaren) för varje lag från Värmland, 2 anrop per lag och 2 s paus. En gång i veckan dessutom tävlingslistan och första sidan av varje seniorserie (cirka 15 anrop) för att hitta lagen. |
 | Great Event | 1 | Sidan Kommande evenemang. |
 | Karlstad Loppis | 1 | Startsidan med nästa datum. |
 | loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
