@@ -73,15 +73,28 @@ function linkify(text) {
   return out;
 }
 
-/** Beskrivningen som stycken: befintliga stycken behålls och långa textmassor delas vid meningsgränser. */
+/**
+ * Beskrivningen som stycken. Källorna har en radbrytning per stycke eller ingen alls: en lång rad som avslutar en
+ * mening blir ett eget stycke, korta rader i följd (rubriker, tider, listor) hålls ihop, och långa textmassor utan
+ * radbrytningar delas vid meningsgränser.
+ */
 function descriptionBlock(text) {
-  const blocks = [];
+  const paras = [];
   for (const block of text.trim().split(/\n\s*\n/)) {
-    const lines = block.split("\n");
-    if (lines.length > 1 && lines.every((l) => l.length <= 400)) blocks.push(block);
-    else for (const line of lines) blocks.push(...(line.length > 400 ? sentenceParagraphs(line.trim()) : [line]));
+    let cur = [];
+    const flush = () => { if (cur.length) paras.push(cur.join("\n")); cur = []; };
+    for (const raw of block.split("\n")) {
+      const line = raw.trim();
+      if (!line) continue;
+      if (line.length > 400) { flush(); paras.push(...sentenceParagraphs(line)); continue; }
+      const long = line.length >= 60;
+      if (long && cur.length && cur.at(-1).length < 60) flush();
+      cur.push(line);
+      if (long && /[.!?…:"”]$/.test(line)) flush();
+    }
+    flush();
   }
-  return el("div", { class: "desc" }, blocks.filter((b) => b.trim()).map((b) => el("p", {}, linkify(b.trim()))));
+  return el("div", { class: "desc" }, paras.map((p) => el("p", {}, linkify(p))));
 }
 
 /** Sant när beskrivningen börjar med ingressen, som då kan döljas när beskrivningen är utfälld. */
@@ -124,6 +137,8 @@ const ROUTES = {
   fraga: { view: "view-chat" },
   om: { view: "view-about" },
 };
+// Fråga AI kan stängas av (CHAT_ENABLED=false): då saknas menyvalet och #/fraga visar listan
+if (document.body.dataset.chat === "off") delete ROUTES.fraga;
 
 function currentRoute() {
   const r = location.hash.replace(/^#\/?/, "");
