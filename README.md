@@ -16,7 +16,7 @@ kalender och via **Fråga AI**, en chatt som svarar med hjälp av din egen Ollam
 
 [![Arkitekturöversikt](docs/arkitektur/varmlandsinfo.png)](https://tubalainen.github.io/varmlandsinfo/arkitektur/varmlandsinfo.html)
 
-Webbläsaren hämtar allt från en FastAPI-app i Docker. Appen hämtar evenemangen från källorna varje morgon, sparar
+Webbläsaren hämtar allt från en FastAPI-app i Docker (den streckade rutan). Appen hämtar evenemangen från källorna varje morgon, sparar
 dem i `/data` och håller dem sammanslagna i minnet. Fråga AI använder din egen Ollama och valfritt SearXNG, och
 bilderna hämtas via appen så att källorna aldrig ser besökarna.
 

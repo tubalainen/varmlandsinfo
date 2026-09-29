@@ -141,8 +141,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit med de citerade
   raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
   `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska i båda lägena och ta skärmbilden i
-  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). En
-  Archify-boundary ritas som en rektangel runt sina delar och får inte omsluta delar som inte hör dit.
+  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). Gränsen
+  "Docker-container" (#65) är en Archify-boundary, som ritas som en rektangel runt sina delar: containerns sju delar
+  ligger därför samlade i två kolumner i mitten, webbläsarens delar till vänster, externa tjänster och `/data` till
+  höger och källorna (en nod) till vänster om Hämtning. Inget utanför containern får hamna innanför rektangeln.
 
 ## Beslut och önskemål från användaren (gäller framåt)
 

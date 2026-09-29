@@ -6,7 +6,8 @@ Klicka på bilden för den [interaktiva, animerade översikten](https://tubalain
 [Archify-specifikationen](arkitektur/varmlandsinfo.architecture.json).
 
 Översikten är skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden, och varje del hänvisar till
-källkoden. I den interaktiva versionen följer en animering huvudvägen genom appen (*Rörelse*/*Stilla*), och du kan
+källkoden. Den streckade rutan visar gränsen för Docker-containern: allt innanför körs i containern, medan
+webbläsaren, `/data` (en volym på värden), källorna, bildservrarna, Ollama och SearXNG ligger utanför. I den interaktiva versionen följer en animering huvudvägen genom appen (*Rörelse*/*Stilla*), och du kan
 klicka på delarna för att se hänvisningarna, följa vägar mellan dem (PATH), jämföra typer (LENS), byta tema och
 exportera bilden.
 
@@ -22,6 +23,7 @@ exportera bilden.
 | Evenemang i minnet | Källornas evenemang sammanslagna och kategoriserade. | `app/events.py`, `app/merge.py`, `app/categories.py` |
 | Schemaläggare | Hämtar varje morgon (05:00), gör nya försök och städar bort inaktuell data. | `app/main.py` |
 | Hämtning | En modul per källa. API-källor som JSON, övriga som webbsidor (HTML). | `app/events.py`, `app/sources/` |
+| Källorna | Visit Värmland, Ticketmaster och SHL (API) samt CCC, Scalateatern, Great Event, loppisarna, SBF och Svemo (webbsidor). | se [Källor](kallor.md) |
 | `/data` | Volym på värden: källdata, sparade AI-svar och bilder. | se [Data och integritet](data-och-integritet.md) |
 | Ollama, SearXNG | Egna tjänster utanför appen. Båda är valfria. | se [Installation](installation.md) |
 
