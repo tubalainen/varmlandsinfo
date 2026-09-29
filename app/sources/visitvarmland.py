@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import httpx
 
 from common import TZ, category, finalize, get_json, https_url, log, now_iso, price_is_free, strip_html
+from kommuner import kommun
 
 API_BASE = os.getenv("VISITVARMLAND_API", "https://turid.visitvarmland.com/api/v8")
 SITE_BASE = "https://visitvarmland.com"
@@ -80,11 +81,10 @@ def normalize_event(ev: dict, municipalities: dict[int, str]) -> dict | None:
     if price_is_free(ev.get("prices")):
         categories.append(category("Gratis"))
 
-    municipality = None
-    for org in ev.get("organizers") or []:
-        municipality = municipalities.get(org.get("municipality_id")) or org.get("city")
-        if municipality:
-            break
+    organizers = ev.get("organizers") or []
+    org_municipality = next((municipalities.get(o.get("municipality_id")) for o in organizers
+                             if municipalities.get(o.get("municipality_id"))), None)
+    org_city = next((o.get("city") for o in organizers if o.get("city")), None)
 
     place = None
     places = ev.get("places") or []
@@ -118,7 +118,8 @@ def normalize_event(ev: dict, municipalities: dict[int, str]) -> dict | None:
         "summary": strip_html(ev.get("sales_text") or ev.get("description"), 300),
         "description": strip_html(ev.get("presentation") or ev.get("description")),
         "categories": categories,
-        "municipality": municipality,
+        # Arrangörens kommun, annars platsens adress och namn, sist arrangörens ort (#81)
+        "municipality": org_municipality or kommun((place or {}).get("address"), (place or {}).get("title"), org_city),
         "place": place,
         "organizer": (ev.get("organizers") or [{}])[0].get("title"),
         "url": f"{SITE_BASE}/{slug}" if slug else None,

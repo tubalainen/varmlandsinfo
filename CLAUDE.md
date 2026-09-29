@@ -106,6 +106,11 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   bandy). Avfärdade: Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
   (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
   Storfors (fritext) och Karlstads universitet (mest för studenter).
+- **Kommuner** (`kommuner.py`, #81): filtret Kommun har bara `KOMMUNER` (Värmlands 16 + Karlskoga och Degerfors, som
+  Visit Värmlands kommunlista). `common.finalize` sätter kommunen med `kommun()` ur källans kommun, platsens adress
+  och namn: kommunnamn, orter (`ORTER`, t.ex. Väse → Karlstad) och postnummerprefix som bara används i en kommun
+  (`POSTNUMMER`). Annars ingen kommun. Nya orter läggs till i `ORTER` (inte korta eller tvetydiga namn). Fråga AI
+  förstår orterna (`find_municipalities`, `_index`). Motorsportens banor och byar (`motorsport.PLACES`) är kvar där.
 - **Kategorier** (`categories.py`, regler i `common.finalize`): `SOURCE_NAMES` byter källornas namn (Visit Värmlands
   *Evenemang* och *Övriga evenemang* blir *Övrigt*, *Motor* blir *Motorträffar*). `split_loppis` bryter ut *Loppis* ur
   marknadskategorin, och `split_motorsport` ger tävlingar *Motorsport*, medan *Motorträffar* bara gäller träffar och

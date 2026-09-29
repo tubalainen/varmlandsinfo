@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import httpx
 
 from common import category, finalize, get_json, https_url, strip_html
+from kommuner import kommun
 
 API_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
 API_KEY = os.getenv("TICKETMASTER_API_KEY", "").strip()
@@ -19,17 +20,7 @@ CENTER = (59.55, 13.30)        # ungefär mitt i Värmland
 PAGE_SIZE = 200                # max per sida
 MAX_RESULTS = 1000             # Ticketmaster ger max 1000 träffar per sökning (size * page)
 
-# Orter i Värmland (samt Karlskoga och Degerfors, som Visit Värmland räknar in) -> kommun
-LOCALITIES = {
-    "karlstad": "Karlstad", "molkom": "Karlstad", "vålberg": "Karlstad", "skattkärr": "Karlstad",
-    "hammarö": "Hammarö", "skoghall": "Hammarö",
-    "arvika": "Arvika", "årjäng": "Årjäng", "eda": "Eda", "charlottenberg": "Eda", "åmotfors": "Eda",
-    "säffle": "Säffle", "grums": "Grums", "kil": "Kil", "forshaga": "Forshaga", "deje": "Forshaga",
-    "sunne": "Sunne", "torsby": "Torsby", "hagfors": "Hagfors", "ekshärad": "Hagfors",
-    "munkfors": "Munkfors", "filipstad": "Filipstad", "storfors": "Storfors",
-    "kristinehamn": "Kristinehamn", "karlskoga": "Karlskoga", "degerfors": "Degerfors",
-}
-# Postnummerprefix i Värmland (662 = Åmål i Västra Götaland tas inte med)
+# Postnummerprefix i Värmland (662 = Åmål i Västra Götaland tas inte med). Orter och kommuner: kommuner.py
 POSTCODE_PREFIXES = ("65", "660", "661", "663", "664", "665", "666", "667", "668", "669",
                      "67", "68", "691", "693")
 
@@ -67,14 +58,15 @@ def geohash(lat: float, lon: float, precision: int = 6) -> str:
 
 
 def municipality_for(venue: dict) -> str | None:
-    """Kommun för en arena i Värmland, annars None (arenan ligger utanför Värmland)."""
-    city = ((venue.get("city") or {}).get("name") or "").strip().lower()
-    if city in LOCALITIES:
-        return LOCALITIES[city]
+    """Kommunen för en arena: orten, annars postnumret (#81). None om den inte går att knyta till en kommun."""
+    return kommun((venue.get("city") or {}).get("name"), venue.get("postalCode"))
+
+
+def in_area(venue: dict) -> bool:
+    """Arenan ligger i Värmland (eller Karlskoga/Degerfors): känd ort eller kommun, eller värmländskt postnummer.
+    En arena kan ligga i området utan att kommunen är känd (t.ex. en okänd by), och tas då med utan kommun."""
     postcode = (venue.get("postalCode") or "").replace(" ", "")
-    if postcode.startswith(POSTCODE_PREFIXES):
-        return (venue.get("city") or {}).get("name") or None
-    return None
+    return bool(municipality_for(venue)) or postcode.startswith(POSTCODE_PREFIXES)
 
 
 class Ticketmaster:
@@ -97,7 +89,7 @@ class Ticketmaster:
             )
             for ev in (data.get("_embedded") or {}).get("events") or []:
                 venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
-                if municipality_for(venue):
+                if in_area(venue):
                     events[ev["id"]] = ev
             total_pages = int((data.get("page") or {}).get("totalPages") or 0)
             page += 1
@@ -140,8 +132,7 @@ def normalize_event(ev: dict) -> dict | None:
     if not day:
         return None
     venue = ((ev.get("_embedded") or {}).get("venues") or [{}])[0]
-    municipality = municipality_for(venue)
-    if not municipality:
+    if not in_area(venue):
         return None
 
     genres = []
@@ -170,7 +161,7 @@ def normalize_event(ev: dict) -> dict | None:
         "description": info,
         "categories": _categories(ev) + ([category("Gratis")] if prices and all(
             (p.get("min") or 0) == 0 and (p.get("max") or 0) == 0 for p in prices) else []),
-        "municipality": municipality,
+        "municipality": municipality_for(venue),
         "place": {"title": venue.get("name"), "address": address,
                   "lat": loc.get("latitude"), "lon": loc.get("longitude")} if venue.get("name") else None,
         "organizer": (ev.get("promoter") or {}).get("name"),

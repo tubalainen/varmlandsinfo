@@ -23,6 +23,9 @@
 
 - Fritextsök, kategori, kommun, källa och datum.
 - Kommun och källa är flerval, så det går att välja flera samtidigt.
+- Filtret Kommun har bara kommuner: Värmlands 16 och Karlskoga och Degerfors. Orter knyts till sin kommun (Väse och
+  Skoghall hör till Karlstad respektive Hammarö), liksom platser med postnummer. Ett evenemang som inte går att knyta
+  till någon av kommunerna visas under Alla kommuner. Fråga AI förstår orterna ("Vad händer i Skoghall?").
 - **Datumval:** Idag, Imorgon, I helgen, Den här veckan, Nästa vecka, Den här månaden, Nästa månad eller egna datum.
 - **Kategorifiltren** står i bokstavsordning, med antalet evenemang per kategori.
 

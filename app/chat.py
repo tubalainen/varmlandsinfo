@@ -13,6 +13,7 @@ import httpx
 import websearch
 from chat_cache import AnswerCache
 from chat_cache import normalize as normalize_question
+from kommuner import ORTER, orter_i
 
 log = logging.getLogger("varmlandsinfo.chat")
 
@@ -258,8 +259,10 @@ def parse_date_range(text: str, today: date) -> tuple[date, date] | None:
 
 
 def find_municipalities(text: str, municipalities: list[str]) -> set[str]:
+    """Kommunerna som texten nämner, även via en ort ("i Skoghall" -> Hammarö, #81)."""
     t = text.lower()
-    return {m for m in municipalities if re.search(rf"\b{re.escape(m.lower())}s?\b", t)}
+    found = {m for m in municipalities if re.search(rf"\b{re.escape(m.lower())}s?\b", t)}
+    return found | {k for k in orter_i(text).values() if k in municipalities}
 
 
 def find_categories(text: str) -> set[str]:
@@ -324,8 +327,9 @@ def select_events(question: str, events: list[dict], today: date, limit: int = C
     who = audience(question)
     if not who["kids"] and context:
         who = audience(context)
+    places = orter_i(question)          # orter räknas som sin kommun och är inga sökord
     kws = [_stem(w) for w in keywords(question)
-           if not any(w.startswith(m.lower()) for m in munis)]
+           if not any(w.startswith(m.lower()) for m in munis) and w.lower() not in places]
 
     def in_range(e):
         if not date_range:
@@ -487,6 +491,8 @@ def _index(events: list[dict]) -> dict:
                             words.add(w[:-1])          # "Kalvholmens" -> även "kalvholmen"
         if e.get("municipality"):
             munis.add(_fold(e["municipality"]))
+    # Orter i appens kommuner är också kända platser ("Vad händer i Väse?"), och räknas som kommuner (#81)
+    munis |= {_fold(o) for o, k in ORTER.items() if " " not in o and _fold(k) in munis}
     return {"words": words, "texts": texts, "munis": munis}
 
 

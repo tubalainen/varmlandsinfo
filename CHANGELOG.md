@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Filtret Kommun visar bara kommuner, inte orter som Väse och Brunskog eller orter utanför området som Stockholm.
+  Orter och postnummer knyts till sin kommun, så att fler evenemang får rätt kommun (t.ex. Karlskoga Konserthall),
+  och Fråga AI förstår frågor om orter (#81).
+
 ## [0.28.0] - 2026-09-29
 
 ### Tillagt

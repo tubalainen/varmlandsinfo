@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 import httpx
 
 from categories import describe_category, refine, split_loppis, split_motorsport
+from kommuner import kommun
 from version import __version__
 
 TZ = ZoneInfo(os.getenv("TZ", "Europe/Stockholm"))
@@ -209,6 +210,9 @@ def finalize(event: dict) -> dict | None:
     event["occasions"] = occ
     event["next"] = occ[0]
     title, summary = event.get("title") or "", event.get("summary") or ""
+    # Bara kommuner, inte orter (#81): källans kommun, ort eller adress knyts till en av appens kommuner
+    place = event.get("place") or {}
+    event["municipality"] = kommun(event.get("municipality"), place.get("address"), place.get("title"))
     event["categories"] = refine(
         split_motorsport(split_loppis(event.get("categories") or [], title, summary), title, summary), title, summary)
     event.setdefault("sources", [{"name": event["source"], "url": event.get("url")}])
