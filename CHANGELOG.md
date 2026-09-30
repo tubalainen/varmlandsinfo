@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Skärmdumparna visar källan och kategorin Handboll (#83).
+
 ## [0.29.0] - 2026-09-29
 
 ### Tillagt

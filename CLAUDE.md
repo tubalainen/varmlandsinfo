@@ -89,7 +89,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1) och arkitekturbilden med 13 källor och
-  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll med arkitekturbilden med 14 källor (#82, v0.29.0).
+  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll med arkitekturbilden med 14 källor (#82, v0.29.0), och skärmdumparna med Handboll (#83, inte
+  släppt, dokumentation).
 - **Öppet:** inga issues.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
