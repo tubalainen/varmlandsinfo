@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Arkitekturbilden visar säkerhetsskydden (storleksgräns, säkerhetshuvuden och CSP, länkar i AI-svar bara till
+  underlaget, bildproxyns takt, härdad container, pip-audit och Trivy), och hänvisningarna till koden pekar på
+  dagens rader. Skärmdumparna visar v0.30.2 (#94).
+
 ## [0.30.2] - 2026-09-30
 
 ### Dokumentation

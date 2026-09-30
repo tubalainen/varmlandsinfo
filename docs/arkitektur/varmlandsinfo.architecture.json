@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "5c30ddd1e63875e9a44aa4500bd7310b68311af3"
+      "revision": "865b072a5c703f9ab132788cb306ae94ca8f1dcb"
     }
   },
   "components": [
@@ -99,8 +99,9 @@
         },
         {
           "path": "app/static/chat.js",
-          "line": 119,
-          "label": "frågar /api/chat"
+          "line": 11,
+          "end_line": 15,
+          "label": "länkar bara till underlaget"
         }
       ]
     },
@@ -120,20 +121,20 @@
       "sources": [
         {
           "path": "app/main.py",
-          "line": 221,
-          "end_line": 240,
+          "line": 227,
+          "end_line": 248,
           "label": "/api/events och /img"
         },
         {
           "path": "app/main.py",
-          "line": 286,
+          "line": 295,
           "label": "/api/chat"
         },
         {
           "path": "app/main.py",
-          "line": 381,
-          "end_line": 388,
-          "label": "sidan och CSP"
+          "line": 365,
+          "end_line": 422,
+          "label": "högst 32 KB, säkerhetshuvuden och CSP"
         }
       ]
     },
@@ -164,8 +165,8 @@
         },
         {
           "path": "app/main.py",
-          "line": 242,
-          "end_line": 248,
+          "line": 251,
+          "end_line": 257,
           "label": "health och refresh"
         }
       ]
@@ -186,18 +187,19 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 813,
+          "line": 840,
           "label": "chat_stream"
         },
         {
           "path": "app/chat.py",
-          "line": 912,
+          "line": 940,
           "label": "kön till Ollama"
         },
         {
-          "path": "app/main.py",
-          "line": 318,
-          "label": "anropas från API:t"
+          "path": "app/chat.py",
+          "line": 694,
+          "end_line": 697,
+          "label": "tillåtna länkar"
         }
       ]
     },
@@ -217,7 +219,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 933,
+          "line": 961,
           "label": "POST /api/chat"
         }
       ]
@@ -238,7 +240,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 901,
+          "line": 929,
           "label": "webbsökning"
         },
         {
@@ -253,7 +255,7 @@
       "id": "images",
       "type": "backend",
       "label": "Bildproxy",
-      "sublabel": "/img/<nyckel>",
+      "sublabel": "/img/<nyckel> · takt",
       "pos": [
         755,
         400
@@ -265,17 +267,18 @@
       "sources": [
         {
           "path": "app/images.py",
-          "line": 71,
+          "line": 101,
           "label": "ImageProxy"
         },
         {
           "path": "app/images.py",
-          "line": 135,
-          "label": "get"
+          "line": 155,
+          "end_line": 163,
+          "label": "takt mot källorna"
         },
         {
           "path": "app/images.py",
-          "line": 169,
+          "line": 213,
           "label": "_download"
         }
       ]
@@ -296,9 +299,15 @@
       "sources": [
         {
           "path": "app/images.py",
-          "line": 169,
-          "end_line": 191,
+          "line": 213,
+          "end_line": 238,
           "label": "hämtning med kontroller"
+        },
+        {
+          "path": "app/images.py",
+          "line": 86,
+          "end_line": 98,
+          "label": "serverns adress är publik"
         }
       ]
     },
@@ -416,7 +425,7 @@
         },
         {
           "path": "app/images.py",
-          "line": 160,
+          "line": 204,
           "label": "bilder"
         }
       ]
@@ -562,6 +571,7 @@
       "title": "Drift",
       "items": [
         "Den streckade rutan är Docker-containern",
+        "Containern: no-new-privileges, skrivskyddad",
         "/data är en volym på värden",
         "Ollama och SearXNG är valfria"
       ]
@@ -571,7 +581,7 @@
       "title": "Integritet",
       "items": [
         "Inga cookies eller externa skript",
-        "Bilder bara via appen (CSP img-src 'self')",
+        "Bilder bara via appen",
         "Frågor bara till egen Ollama",
         "Ingen åtkomstlogg"
       ]
@@ -587,11 +597,13 @@
     },
     {
       "dot": "rose",
-      "title": "Åtkomst",
+      "title": "Åtkomst och säkerhet",
       "items": [
         "/api/health och /api/refresh bara lokalt",
-        "Fråga AI: 5 AI-frågor per 30 min och samtal",
-        "20 per 30 min och IP-adress"
+        "Fråga AI: 5 AI-frågor per 30 min och samtal, 20 per IP-adress",
+        "Säkerhetshuvuden, strikt CSP och anrop högst 32 KB",
+        "AI-svar länkar bara till underlaget",
+        "Låsta beroenden, pip-audit och Trivy varje vecka"
       ]
     },
     {
