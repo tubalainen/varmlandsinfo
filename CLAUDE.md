@@ -88,26 +88,27 @@ aktuella när något ändras.
 Läs detta först i en ny session. Senaste releasen är **v0.30.1**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
-- **Säkerhetsanalysen** (v0.30.0) (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
-  åtgärdspaket, ett issue per paket, görs stegvis. Användarens prioritet: webbservern och det besökarna når via
+- **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0 och v0.30.1, `docs/sakerhet.md` med status per paket). Åtta
+  åtgärdspaket, ett issue per paket. Användarens prioritet: webbservern och det besökarna når via
   hemsidan ska inte vara en säkerhetsrisk, utan att appen låses ned i onödan. Klara: #85 (FastAPI 0.142.2/Starlette
   1.7.0, låsta beroenden i `app/constraints.txt`), #86 och #93 (råd för drift bakom Nginx Proxy Manager, appen litar
-  på localhost och LAN), #87 (inga interna detaljer till besökarna) och #89 (gränser: `main.BodyLimit` 32 KB,
-  `visits.MAX_VISITORS_PER_DAY` och `MAX_PER_DIMENSION`, bildproxyns takt `images.DOWNLOAD_BURST`) och #88
+  på localhost och LAN), #87 (inga interna detaljer till besökarna), #89 (gränser: `main.BodyLimit` 32 KB,
+  `visits.MAX_VISITORS_PER_DAY` och `MAX_PER_DIMENSION`, bildproxyns takt `images.DOWNLOAD_BURST`), #88
   (`main.SECURITY_HEADERS` på alla svar och strikt `main.PAGE_CSP` för sidan: gränssnittet får aldrig använda
-  inbäddade skript, `style`-attribut i HTML, `eval` eller externa resurser. `style.cssText` från JS går bra) och #90 (bara länkar i
+  inbäddade skript, `style`-attribut i HTML, `eval` eller externa resurser. `style.cssText` från JS går bra), #90 (bara länkar i
   `chat.allowed_links` blir klickbara i AI-svar, `sources` har `links`, svar med andra adresser sparas inte;
-  `images.peer_is_public`). Kan vänta
-  (rör inte hemsidan): #91 härdad container och leveranskedja, #92 råd för Ollama (CVE-2026-7482) och SearXNG.
-  Användaren kör Nginx Proxy Manager i en egen container på samma värd.
+  `images.peer_is_public`), #91 (härdad container, `apt-get upgrade`, `security.yml`, `SECURITY.md`) och #92 (råd för
+  Ollama och SearXNG i `docs/sakerhet.md`). Användaren kör Nginx Proxy Manager i en egen container på samma värd.
 - **Tidigare arbete:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i
-  `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Blir *Säkerhetskontroll*
-  röd: rätta beroendet eller föreslå användaren en PATCH-release (ett nytt bygge får Debians rättningar).
-- **Öppet:** #92 (råd för Ollama och SearXNG). Rör inte hemsidan och kan vänta. Fråga användaren innan det påbörjas.
+- **Inte släppt** (under `[Unreleased]`, bara dokumentation): råden för Ollama och SearXNG (#92). Användaren vill ha
+  dokumentation pushad direkt, utan release. v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`,
+  `apt-get upgrade` i `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Blir
+  *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release (ett nytt bygge får Debians
+  rättningar).
+- **Öppet:** inga issues. Säkerhetsanalysens alla paket (#85–#93) är klara.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på

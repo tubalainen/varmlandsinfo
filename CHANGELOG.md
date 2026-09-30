@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Råd för Ollama och SearXNG i `docs/sakerhet.md` och `docs/installation.md`: Ollama har ingen inloggning, så
+  använd minst 0.17.1 (CVE-2026-7482 "Bleeding Llama", CVE-2025-63389, CVE-2024-37032), släpp bara in appens värd
+  på port 11434 och exponera aldrig Ollama eller SearXNG mot internet (#92).
+
 ## [0.30.1] - 2026-09-30
 
 ### Säkerhet

@@ -18,7 +18,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Klart |
 | [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Klart |
 | [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Klart |
-| [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Planerat |
+| [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Klart |
 
 ## Råd: nå appen från internet via Nginx Proxy Manager
 
@@ -132,6 +132,41 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
   [SECURITY.md](../SECURITY.md).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och
   bilderna visas via appen så att källorna aldrig ser besökarna.
+
+## Råd: Ollama och SearXNG
+
+Ollama och SearXNG körs utanför appen. Appen behöver kunna nå dem, men besökarna ska aldrig kunna det.
+
+**Ollama har ingen inloggning.** Den som når port 11434 kan använda, hämta och ta bort modeller, och i äldre
+versioner utnyttja kända sårbarheter:
+
+- CVE-2026-7482 "Bleeding Llama": läser ut Ollamas processminne (frågor, systemprompter, miljövariabler) med tre
+  anrop utan inloggning. Rättad i 0.17.1.
+- CVE-2025-63389: API:t för att hantera modeller saknar autentisering (till och med 0.12.3).
+- CVE-2024-37032 "Probllama": sökvägstraversering som kan ge kodkörning. Rättad i 0.1.34.
+
+Därför:
+
+- **Håll Ollama uppdaterad**, minst 0.17.1. Se versionen med `ollama --version` eller
+  `curl http://<ip-adress>:11434/api/version`.
+- **Porten 11434 bara för appen.** `OLLAMA_HOST=0.0.0.0` gör Ollama nåbar från hela nätverket. Begränsa porten med
+  brandväggen på Ollamas dator, till exempel med ufw (tillåt appens värd först, neka sedan alla andra):
+
+  ```bash
+  sudo ufw allow from <appens-ip-adress> to any port 11434 proto tcp
+  sudo ufw deny 11434/tcp
+  ```
+
+  Körs Ollama på samma dator som appen tillåter du Dockers nät (`172.16.0.0/12`) i stället för appens adress. Körs
+  Ollama i Docker: lägg den i samma Docker-nät som appen utan `ports` och sätt `OLLAMA_URL=http://ollama:11434`.
+- **Aldrig från internet.** Öppna inte port 11434 i routern och lägg inte Ollama bakom den omvända proxyn.
+- Appen visar aldrig Ollamas adress för besökarna, och frågor som inte rör evenemangen stoppas innan de når Ollama
+  (se [Fråga AI](fraga-ai.md#säkerhet-och-avgränsning)).
+
+**SearXNG** behövs bara för appen. Publicera den inte mot internet: en öppen instans kan användas av vem som helst för
+automatiska sökningar, så att sökmotorerna spärrar din IP-adress. Kör den i samma Docker-nät som appen utan `ports`
+(`SEARXNG_URL=http://searxng:8080`), eller begränsa porten med brandväggen som för Ollama. Håll den uppdaterad
+(`docker compose pull`).
 
 ## Lösenordet till besöksstatistiken
 

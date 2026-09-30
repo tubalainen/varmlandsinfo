@@ -81,7 +81,8 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
    Basadressen räcker, men en fullständig endpoint som `http://<ip-adress>:11434/v1/chat/completions`
    fungerar också.
 3. Om Ollama körs på en annan dator måste den lyssna på nätverket och inte bara på `localhost`.
-   Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö.
+   Sätt `OLLAMA_HOST=0.0.0.0` i Ollamas miljö. Ollama har ingen inloggning: använd minst version 0.17.1 och låt
+   brandväggen släppa in bara appens värd på port 11434 (se [Säkerhet](sakerhet.md#råd-ollama-och-searxng)).
 4. Starta om: `docker compose up -d`. Sidan *Fråga AI* visar vilken modell som används och
    varnar om Ollama inte går att nå eller om modellen saknas.
 
@@ -101,7 +102,8 @@ AI:n kan komplettera svaren med information från webben via en egen [SearXNG](h
    ```
    Har du SearXNG:s `limiter` påslagen kan den stoppa appens anrop. Stäng av den eller släpp igenom appens adress.
 3. Ange adressen i `.env`, till exempel `SEARXNG_URL=http://<ip-adress>:8888` (eller `http://searxng:8080` om
-   SearXNG körs i samma compose-projekt), och starta om: `docker compose up -d`.
+   SearXNG körs i samma compose-projekt), och starta om: `docker compose up -d`. Publicera inte SearXNG mot
+   internet (se [Säkerhet](sakerhet.md#råd-ollama-och-searxng)).
 
 När webben används beskrivs i [Fråga AI](fraga-ai.md#webbsökning).
 
