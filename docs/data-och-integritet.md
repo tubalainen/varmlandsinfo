@@ -69,7 +69,9 @@ Evenemangens bilder visas via appen, så att källornas bildservrar aldrig ser b
 - `/api/events` ger bildadresser som `/img/<nyckel>`, där nyckeln är en hash av bildens adress hos källan.
 - Första gången någon visar en bild hämtar servern den från källan och sparar den i `data/images/`. Därefter visas
   den från disk, och webbläsaren cachar den ett dygn. Högst 4 bilder hämtas samtidigt, och en bild som inte gick
-  att hämta försöks igen tidigast efter en timme.
+  att hämta försöks igen tidigast efter en timme. Nya hämtningar från källorna följer en takt (högst 60 direkt,
+  sedan en per sekund), så att ingen kan få appen att hämta alla bilder på en gång. Över takten svarar `/img` 503
+  och bilden hämtas vid ett senare besök (#89).
 - **Ingen öppen proxy:** bara bilder som finns i appens evenemang kan hämtas. En okänd nyckel ger 404.
 - **Inga anrop in i det lokala nätverket:** bara http- och https-adresser vars värd pekar på publika IP-adresser
   hämtas, och det kontrolleras även vid omdirigeringar.
@@ -89,9 +91,11 @@ felaktiga lösenord på 15 minuter spärras IP-adressen en stund.
   dygn. Samma person räknas en gång per dygn, men kan inte följas mellan dygnen.
 - **Dagens besökare** sparas med IP-adress, tid, antal visningar, plats (land, region och ort), enhet, webbläsare,
   operativsystem och hänvisning (bara domänen på webbplatsen besökaren kom från). När dygnet är slut summeras det vid
-  nästa städning, och IP-adresserna och slumpvärdet tas bort.
+  nästa städning, och IP-adresserna och slumpvärdet tas bort. Högst 20 000 besökare sparas per dygn, därefter räknas
+  bara sidvisningarna. `/besoksinfo` visar de 500 senaste (#89).
 - **Summerad statistik per dag** (antal visningar och unika, samt fördelningen på land, ort, enhet, webbläsare,
-  operativsystem och hänvisning, utan IP-adresser) sparas i 13 månader.
+  operativsystem och hänvisning, utan IP-adresser) sparas i 13 månader. Varje fördelning har högst 100 rader per dag,
+  resten räknas som "Övriga" (#89).
 - **Plats** slås upp lokalt i DB-IP:s fria databas *IP to City Lite* ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
   [DB-IP](https://db-ip.com)). Databasen hämtas från db-ip.com när den saknas och sedan en gång i månaden. Inga uppgifter
   om besökarna skickas ut.

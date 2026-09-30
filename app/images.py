@@ -27,6 +27,10 @@ MAX_BYTES = 10 * 1024 * 1024      # största bild som hämtas
 MAX_REDIRECTS = 3
 CONCURRENCY = 4                   # samtidiga hämtningar från källorna
 RETRY_FAILED_AFTER = 3600         # sekunder innan en bild som inte gick att hämta försöks igen
+# Nya hämtningar från källorna (sparade bilder räknas inte), så att ingen kan få appen att hämta alla bilder på en
+# gång och riskera att källorna spärrar appen (#89): högst BURST direkt, sedan en per sekund.
+DOWNLOAD_BURST = 60
+DOWNLOADS_PER_SECOND = 1.0
 SIZES = ("small", "medium", "large")
 
 TYPES = {                         # filsignatur -> mediatyp
@@ -47,6 +51,10 @@ def media_type(data: bytes) -> str | None:
     if data[4:12] in (b"ftypavif", b"ftypavis"):
         return "image/avif"
     return None
+
+
+class Busy(Exception):
+    """För många nya hämtningar från källorna just nu. Bilden hämtas vid ett senare besök."""
 
 
 def key(url: str) -> str:
@@ -79,6 +87,7 @@ class ImageProxy:
             timeout=httpx.Timeout(10, read=20), headers={"User-Agent": USER_AGENT}))
         self._sem = asyncio.Semaphore(CONCURRENCY)
         self._locks: dict[str, asyncio.Lock] = {}
+        self._tokens, self._refilled = float(DOWNLOAD_BURST), clock()
         self._source = None                     # evenemangslistan som adresserna senast lästes från
 
     # ------------------------------------------------------------ adresser
@@ -121,6 +130,16 @@ class ImageProxy:
 
     # ------------------------------------------------------------ hämtning
 
+    def _take(self) -> bool:
+        """En ny hämtning från källorna ryms i takten (DOWNLOAD_BURST, sedan DOWNLOADS_PER_SECOND)."""
+        now = self.clock()
+        self._tokens = min(DOWNLOAD_BURST, self._tokens + (now - self._refilled) * DOWNLOADS_PER_SECOND)
+        self._refilled = now
+        if self._tokens < 1:
+            return False
+        self._tokens -= 1
+        return True
+
     def _path(self, k: str) -> Path:
         return self.dir / k
 
@@ -133,7 +152,8 @@ class ImageProxy:
         return (data, kind) if kind else None
 
     async def get(self, k: str) -> tuple[bytes, str] | None:
-        """Bilden för nyckeln: från disk, annars från källan. None om den inte finns eller inte går att hämta."""
+        """Bilden för nyckeln: från disk, annars från källan. None om den inte finns eller inte går att hämta.
+        Busy om för många bilder har hämtats från källorna nyss."""
         if k not in self.urls:
             return None
         if hit := self.cached(k):
@@ -145,6 +165,8 @@ class ImageProxy:
             if hit := self.cached(k):           # någon annan hann hämta den medan vi väntade
                 return hit
             try:
+                if not self._take():
+                    raise Busy
                 async with self._sem:
                     data = await self._download(self.urls[k])
             finally:

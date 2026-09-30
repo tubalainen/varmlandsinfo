@@ -15,7 +15,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | [#86](https://github.com/tubalainen/varmlandsinfo/issues/86) Råd för drift bakom Nginx Proxy Manager | Medel | Klart. "Bara lokalt" gäller localhost och LAN som förut ([#93](https://github.com/tubalainen/varmlandsinfo/issues/93)) |
 | [#87](https://github.com/tubalainen/varmlandsinfo/issues/87) Inga interna detaljer (Ollamas adress, undantag, sökvägar) till besökarna | Medel | Klart |
 | [#88](https://github.com/tubalainen/varmlandsinfo/issues/88) Säkerhetshuvuden och strikt CSP | Låg–medel | Planerat |
-| [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Planerat |
+| [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Klart |
 | [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Planerat |
 | [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Planerat |
 | [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Planerat |
@@ -106,6 +106,9 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
 - **Inga interna detaljer till besökarna:** fel hos Ollama visas med fasta texter, utan Ollamas adress (ofta en
   privat IP-adress), undantag eller Ollamas eget felsvar, och `/api/events` visar varken datakatalogen eller
   lagringsfelets detaljer. Allt finns i loggen och i `/api/health`.
+- **Gränser:** anrop med en kropp större än 32 KB avvisas (413), både enligt `Content-Length` och medan kroppen tas
+  emot. Besöksstatistiken har tak per dygn, och bildproxyn hämtar nya bilder från källorna i en begränsad takt, så att
+  ingen kan fylla minnet eller disken eller få källorna att spärra appen.
 - **Beroenden:** alla beroenden är låsta till kända versioner i `app/constraints.txt`, se
   [Utveckling](utveckling.md#beroenden).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och

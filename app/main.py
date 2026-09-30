@@ -237,7 +237,10 @@ async def image(key: str):
     if not IMAGE_KEY.fullmatch(key):
         return Response(status_code=404)
     image_proxy.register(events.state["events"])
-    hit = await image_proxy.get(key)
+    try:
+        hit = await image_proxy.get(key)
+    except images.Busy:
+        return Response(status_code=503, headers={"Cache-Control": "no-store", "Retry-After": "60"})
     if not hit:
         return Response(status_code=404, headers={"Cache-Control": "no-store"})
     data, kind = hit
@@ -354,6 +357,38 @@ async def chat_session(session_id: str | None = SessionHeader):
 async def chat_session_reset(session_id: str | None = SessionHeader):
     """Nytt samtal: historiken på servern tas bort."""
     return {"reset": sessions.store.reset(session_id)}
+
+
+MAX_BODY = 32 * 1024     # största kropp i ett anrop (en fråga i Fråga AI är högst 4000 tecken)
+
+
+class BodyLimit:
+    """Avvisar kroppar större än MAX_BODY med 413, både enligt Content-Length och medan kroppen tas emot, så att
+    ingen kan fylla minnet med stora anrop (#89)."""
+
+    def __init__(self, app, limit: int = MAX_BODY):
+        self.app, self.limit = app, limit
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope["method"] in ("GET", "HEAD", "OPTIONS"):
+            return await self.app(scope, receive, send)
+        length = dict(scope["headers"]).get(b"content-length")
+        if length is not None and (not length.isdigit() or int(length) > self.limit):
+            return await JSONResponse({"error": "Anropet är för stort."}, status_code=413)(scope, receive, send)
+        received = 0
+
+        async def limited():
+            nonlocal received
+            message = await receive()
+            if message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > self.limit:
+                    raise HTTPException(status_code=413, detail="Anropet är för stort.")
+            return message
+        await self.app(scope, limited, send)
+
+
+app.add_middleware(BodyLimit)
 
 
 @app.middleware("http")

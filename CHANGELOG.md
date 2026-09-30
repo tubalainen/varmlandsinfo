@@ -14,6 +14,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Besökarna ser inte längre Ollamas adress, undantag eller Ollamas egna felsvar när AI:n inte kan svara, bara en
   fast text. `/api/chat/status` visar inte vilka modeller som finns i Ollama, och `/api/events` visar varken
   datakatalogen eller detaljerna i ett lagringsfel. Detaljerna står i loggen och i `/api/health` (#87).
+- Gränser så att ingen kan fylla minnet eller disken: anrop större än 32 KB avvisas (413), besöksstatistiken sparar
+  högst 20 000 besökare per dygn och högst 100 rader per fördelning och dag, och `/besoksinfo` visar de 500 senaste
+  besökarna. Bildproxyn hämtar nya bilder från källorna i en begränsad takt (högst 60 direkt, sedan en per sekund),
+  så att ingen kan få appen att hämta alla bilder på en gång och riskera att källorna spärrar den (#89).
 
 ### Dokumentation
 - Nytt dokument, `docs/sakerhet.md`: säkerhetsanalysen, skydden i appen och råd för den som vill nå appen från

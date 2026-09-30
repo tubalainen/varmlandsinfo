@@ -25,6 +25,10 @@ log = logging.getLogger("varmlandsinfo")
 PASSWORD = os.getenv("BESOKSINFO_PASSWORD", "")
 RETENTION_DAYS = 396              # 13 månader summerad statistik
 SAVE_INTERVAL = 60                # sekunder mellan sparningarna
+# Tak så att statistiken inte kan växa utan gräns (#89): besökare per dygn (därefter räknas bara sidvisningarna) och
+# rader per kategori (land, ort, hänvisning …) i den summerade statistiken per dag (övriga blir "Övriga")
+MAX_VISITORS_PER_DAY = 20000
+MAX_PER_DIMENSION = 100
 DIMENSIONS = ("country", "city", "device", "browser", "os", "referrer")
 
 BOT_RE = re.compile(
@@ -130,7 +134,9 @@ class VisitStats:
             d["visits"] += 1
             key = hashlib.sha256(f"{d['salt']}|{ip}|{user_agent}".encode()).hexdigest()[:20]
             visitor = d["visitors"].get(key)
-            if visitor is None:
+            if visitor is None and len(d["visitors"]) >= MAX_VISITORS_PER_DAY:
+                pass                                    # taket nått: bara sidvisningen räknas
+            elif visitor is None:
                 d["visitors"][key] = {"ip": ip, "first": now.strftime("%H:%M"), "last": now.strftime("%H:%M"), "hits": 1,
                                       **_place(ip, self.geo), **parse_user_agent(user_agent),
                                       "referrer": referrer_domain(referer, host)}
@@ -147,7 +153,10 @@ class VisitStats:
         visitors = list((detail.get("visitors") or {}).values())
         out = {"visits": detail.get("visits", 0), "unique": len(visitors)}
         for dim in DIMENSIONS:
-            out[dim] = dict(Counter(v.get(dim) or "Okänd" for v in visitors))
+            counts = Counter(v.get(dim) or "Okänd" for v in visitors).most_common()
+            out[dim] = dict(counts[:MAX_PER_DIMENSION])
+            if rest := sum(n for _, n in counts[MAX_PER_DIMENSION:]):
+                out[dim]["Övriga"] = out[dim].get("Övriga", 0) + rest
         return out
 
     def cleanup(self, today: date) -> tuple[int, int]:

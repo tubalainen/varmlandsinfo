@@ -11,6 +11,7 @@ LABELS = {"country": "Länder", "city": "Orter", "device": "Enheter", "browser":
           "referrer": "Hänvisningar"}
 MONTHS = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
 TOP = 10
+MAX_ROWS = 500                    # dagens besökare som visas (de senaste)
 
 STYLE = """
 .page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -102,9 +103,10 @@ def _visitors(visitors: list[dict]) -> str:
         f'<td>{escape(v["first"])}–{escape(v["last"])}</td><td class="num">{v["hits"]}</td>'
         f'<td>{escape(v.get("city", ""))}</td><td>{escape(v.get("device", ""))}</td>'
         f'<td>{escape(v.get("browser", ""))} · {escape(v.get("os", ""))}</td><td>{escape(v.get("referrer", ""))}</td></tr>'
-        for v in visitors)
+        for v in visitors[:MAX_ROWS])
+    more = f'<p class="empty">+ {len(visitors) - MAX_ROWS} till</p>' if len(visitors) > MAX_ROWS else ""
     return ('<div class="scroll"><table><thead><tr><th>IP-adress</th><th>Tid</th><th class="num">Visningar</th><th>Plats</th>'
-            f'<th>Enhet</th><th>Webbläsare</th><th>Hänvisning</th></tr></thead><tbody>{rows}</tbody></table></div>')
+            f'<th>Enhet</th><th>Webbläsare</th><th>Hänvisning</th></tr></thead><tbody>{rows}</tbody></table></div>{more}')
 
 
 def render(report: dict, period: int, geo_available: bool) -> str:
