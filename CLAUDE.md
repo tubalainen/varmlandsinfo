@@ -90,8 +90,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Pågår: säkerhetsanalysen** (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
   åtgärdspaket, ett issue per paket, görs stegvis i prioritetsordning. Klara: #85 (FastAPI 0.142.2/Starlette 1.7.0,
-  låsta beroenden i `app/constraints.txt`), #86 (`require_local` bara loopback, drift bakom Nginx Proxy Manager) och
-  #87 (inga interna detaljer till besökarna). Kvar: #88 säkerhetshuvuden och CSP, #89 gränser (kroppens storlek,
+  låsta beroenden i `app/constraints.txt`), #86 och #93 (råd för drift bakom Nginx Proxy Manager, appen litar på
+  localhost och LAN) och #87 (inga interna detaljer till besökarna). Kvar: #88 säkerhetshuvuden och CSP, #89 gränser (kroppens storlek,
   besöksstatistiken, bildhämtningen), #90 länkar i AI-svar bara till underlaget och bildproxyns serveradress, #91
   härdad container och leveranskedja, #92 råd för Ollama (CVE-2026-7482) och SearXNG. Användaren kör Nginx Proxy
   Manager i en egen container på samma värd.
@@ -100,7 +100,7 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
 - **Inte släppt** (under `[Unreleased]` i CHANGELOG): skärmdumparna (#83), det här avsnittet (#84) och
-  säkerhetspaketen #85–#87. #86 och #87 ändrar appens beteende, så nästa release blir en MINOR.
+  säkerhetspaketen #85–#87 och #93. #87 ändrar appens beteende, så nästa release blir en MINOR.
 - **Öppet:** säkerhetspaketen #88–#92.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
@@ -172,8 +172,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
      pågående fråga och tar bort samtalet på servern.
   5. Valfri SearXNG (`websearch.py`, `SEARXNG_URL`).
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
-  (`require_local`: bara loopback utan proxyhuvuden, alltså healthchecken och `docker exec`, #86. Inte LAN eller
-  Dockers bryggnät, eftersom Docker kan få anrop från internet att se ut att komma från en privat adress). Fel hos
+  (`require_local`: loopback och privata adresser utan proxyhuvuden. Appen litar på LAN, användarens beslut i #93).
+  Fel hos
   Ollama och lagringsfel visas för besökarna bara som fasta texter (`chat.AI_FAILED`, `chat.UNREACHABLE`,
   `main.STORAGE_ERROR`), detaljerna i loggen och `status(detail=True)` i `/api/health` (#87). Fråga AI: spärrarna gäller bara frågor som går
   till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per 30 minuter och session och
@@ -246,8 +246,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Besöksstatistik: bara med lösenord (`BESOKSINFO_PASSWORD`, av som standard), inga cookies, unika per dygn. Fulla
   IP-adresser bara för innevarande dygn (rensas när dygnet är slut), summerad statistik i 13 månader. Plats via en
   lokal geodatabas, aldrig via en extern tjänst.
-- Appen ska alltid driftas bakom en omvänd proxy med HTTPS (användaren kör Nginx Proxy Manager i en egen container
-  på samma värd), aldrig direkt mot internet. Uppsättningen står i `docs/sakerhet.md`.
+- **Lås inte ned appen i onödan** (användarens beslut, #93): appen litar på localhost och LAN och ska fungera både
+  med och utan omvänd proxy. Om och hur appen exponeras mot internet bestämmer den som driftar den. Proxyn är ett
+  råd i `docs/sakerhet.md`, aldrig ett krav. Håll säkerhetsåtgärderna enkla och konkreta. Användaren kör själv Nginx
+  Proxy Manager i en egen container på samma värd.
 - Säkerhetsfynd kopplas till CVE/CWE, och beroenden hålls låsta (`app/constraints.txt`) och uppdaterade.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.

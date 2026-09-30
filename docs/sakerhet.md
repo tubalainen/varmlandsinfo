@@ -1,8 +1,8 @@
 # Säkerhet
 
-Värmlandsinfo är byggd för att köras bakom en omvänd proxy med HTTPS, till exempel Nginx Proxy Manager. Appen ska
-aldrig publiceras direkt mot internet. Här står hur appen skyddar sig, hur den bör driftas och vilka risker som finns
-kvar. Hur data lagras och rensas står i [Data och integritet](data-och-integritet.md), och vem som får anropa vad i
+Appen litar på localhost och det lokala nätverket (LAN). Hur den görs tillgänglig utanför nätverket bestämmer den
+som driftar den. Appen fungerar både med och utan omvänd proxy. Här står hur appen skyddar sig, råd för den som vill
+nå appen från internet och vilka risker som finns kvar. Hur data lagras och rensas står i [Data och integritet](data-och-integritet.md), och vem som får anropa vad i
 [API](api.md#åtkomst-till-apit).
 
 ## Säkerhetsanalys (2026-09-30)
@@ -12,7 +12,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | Paket | Risk | Status |
 |-------|------|--------|
 | [#85](https://github.com/tubalainen/varmlandsinfo/issues/85) Uppgradera FastAPI/Starlette, lås beroendena (CVE-2025-62727, CVE-2026-48710) | Hög | Klart |
-| [#86](https://github.com/tubalainen/varmlandsinfo/issues/86) Drift bakom Nginx Proxy Manager, "bara lokalt" bara via loopback | Medel | Klart |
+| [#86](https://github.com/tubalainen/varmlandsinfo/issues/86) Råd för drift bakom Nginx Proxy Manager | Medel | Klart. "Bara lokalt" gäller localhost och LAN som förut ([#93](https://github.com/tubalainen/varmlandsinfo/issues/93)) |
 | [#87](https://github.com/tubalainen/varmlandsinfo/issues/87) Inga interna detaljer (Ollamas adress, undantag, sökvägar) till besökarna | Medel | Klart |
 | [#88](https://github.com/tubalainen/varmlandsinfo/issues/88) Säkerhetshuvuden och strikt CSP | Låg–medel | Planerat |
 | [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Planerat |
@@ -20,21 +20,23 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Planerat |
 | [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Planerat |
 
-## Rekommenderad drift med Nginx Proxy Manager
+## Råd: nå appen från internet via Nginx Proxy Manager
 
-Nginx Proxy Manager (NPM) kör i en egen container på samma värd. Appen och NPM delar ett Docker-nät, och bara NPM
-tar emot trafik från internet (port 80 och 443 i routern). Port 7799 öppnas aldrig i routern.
+Inom det egna nätverket räcker `http://<värd>:7799`. Ska appen nås från internet rekommenderas en omvänd proxy med
+HTTPS i stället för att öppna port 7799 i routern. Här beskrivs Nginx Proxy Manager (NPM) i en egen container på samma
+värd. Appen och NPM delar ett Docker-nät, och bara NPM tar emot trafik från internet (port 80 och 443 i routern).
 
-### 1. Porten bara på värden
+### 1. Valfritt: porten bara på värden
 
-Docker publicerar portar förbi värdens brandvägg (ufw och firewalld ser inte Dockers regler). Med standardvärdet
-`7799` nås appen därför från hela nätet, okrypterat och förbi NPM. Bind porten till värden i `.env`:
+Standardvärdet `7799` publicerar porten på alla gränssnitt (0.0.0.0), så att appen nås från hela det lokala nätverket.
+Docker publicerar portar förbi värdens brandvägg (ufw och firewalld ser inte Dockers regler). Vill du att appen bara
+ska nås via NPM binder du porten till värden i `.env`:
 
 ```bash
 VARMLANDSINFO_PORT=127.0.0.1:7799
 ```
 
-Appen nås då bara från värden själv (<http://localhost:7799>), och från internet bara via NPM.
+Appen nås då bara från värden själv (<http://localhost:7799>) och via NPM.
 
 ### 2. Gemensamt Docker-nät med NPM
 
@@ -61,7 +63,7 @@ Kör `docker compose up -d`. I NPM pekar värden (*Proxy Host*) på `http`, `var
 - **Details:** *Block Common Exploits* på. *Websockets Support* behövs inte. *Cache Assets* av (appen sätter själv
   rätt cachehuvuden).
 - **Advanced:** begränsa kroppens storlek (NPM tillåter 2000 MB som standard) och stäng adresserna som bara är till
-  för den som driftar appen:
+  för den som driftar appen (appen nekar dem redan via en proxy, det här är ett extra skydd):
 
   ```nginx
   client_max_body_size 64k;
@@ -90,16 +92,20 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
 
 ## Skydd i appen
 
-- **Bara inifrån containern:** `/api/health` och `/api/refresh` svarar bara på loopback (127.0.0.1 och ::1) utan
-  proxyhuvuden. Dockers healthcheck fungerar som vanligt, och en manuell uppdatering görs med `docker exec` (se
-  [Installation](installation.md#kom-igång)). Anrop från det lokala nätverket, Dockers bryggnät eller via en proxy
-  nekas, eftersom Docker kan få anrop från internet att se ut att komma från en privat adress (t.ex. via IPv6).
-- **Spärrar per IP-adress** (Fråga AI och lösenordet till `/besoksinfo`) litar bara på `X-Forwarded-For` när anropet
-  kommer från en privat adress, alltså från proxyn. Därför får port 7799 inte nås direkt från andra datorer: den som
-  når porten från nätet kan ange vilken adress som helst.
+- **Bara lokalt:** `/api/health` och `/api/refresh` svarar på localhost och det lokala nätverket (privata adresser)
+  när anropet inte kommer via en proxy. Anrop via en proxy (med `X-Forwarded-For` m.fl.) och från publika adresser
+  nekas.
+- **Spärrar per IP-adress** (Fråga AI och lösenordet till `/besoksinfo`) litar på `X-Forwarded-For` när anropet
+  kommer från en privat adress, alltså från proxyn eller från LAN.
+- **Bra att känna till:** appen litar på LAN. En proxy som inte lägger till `X-Forwarded-For` (t.ex. ren
+  TCP-vidarebefordran) och anrop över IPv6 till en port som Docker publicerar kan se ut att komma från LAN. Blockera
+  då `/api/health` och `/api/refresh` i proxyn, eller bind porten till `127.0.0.1` enligt ovan. Den som når appen
+  från LAN kan också ange en valfri adress i `X-Forwarded-For` och på så sätt komma runt spärrarna per IP-adress.
+- **Utan proxy mot internet:** öppnas port 7799 direkt i routern går all trafik okrypterat, även lösenordet till
+  `/besoksinfo`. Det fungerar, men HTTPS via en omvänd proxy rekommenderas.
 - **Inga interna detaljer till besökarna:** fel hos Ollama visas med fasta texter, utan Ollamas adress (ofta en
   privat IP-adress), undantag eller Ollamas eget felsvar, och `/api/events` visar varken datakatalogen eller
-  lagringsfelets detaljer. Allt finns i loggen, och i `/api/health` inifrån containern.
+  lagringsfelets detaljer. Allt finns i loggen och i `/api/health`.
 - **Beroenden:** alla beroenden är låsta till kända versioner i `app/constraints.txt`, se
   [Utveckling](utveckling.md#beroenden).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och
@@ -108,4 +114,4 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
 ## Lösenordet till besöksstatistiken
 
 `/besoksinfo` skyddas med HTTP Basic och `BESOKSINFO_PASSWORD`. Använd ett långt slumpat lösenord (t.ex.
-`openssl rand -base64 24`) och öppna sidan bara via HTTPS.
+`openssl rand -base64 24`), och öppna sidan via HTTPS när den nås från internet.

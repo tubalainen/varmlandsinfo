@@ -11,17 +11,14 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   med många intervall kunde låsa processorn via `/static`) och CVE-2026-48710 (ett ogiltigt Host-huvud kunde ge
   svar från `/api/` lång cachetid). Cachehuvudena väljs nu efter den råa sökvägen. Alla beroenden, även indirekta,
   är låsta i `app/constraints.txt` (#85).
-- `/api/health` och `/api/refresh` svarar bara inifrån containern (loopback), inte längre från hela det lokala
-  nätverket. Bakom Docker kan anrop från internet se ut att komma från en privat adress (t.ex. via IPv6 eller en
-  proxy utan `X-Forwarded-For`). Dockers healthcheck fungerar som förut, och en manuell uppdatering görs med
-  `docker exec` (#86).
 - Besökarna ser inte längre Ollamas adress, undantag eller Ollamas egna felsvar när AI:n inte kan svara, bara en
   fast text. `/api/chat/status` visar inte vilka modeller som finns i Ollama, och `/api/events` visar varken
   datakatalogen eller detaljerna i ett lagringsfel. Detaljerna står i loggen och i `/api/health` (#87).
 
 ### Dokumentation
-- Nytt dokument, `docs/sakerhet.md`: säkerhetsanalysen och drift bakom Nginx Proxy Manager (porten bara på
-  `127.0.0.1`, gemensamt Docker-nät, HTTPS, HSTS, storleksgräns och spärrade adresser i proxyn) (#86).
+- Nytt dokument, `docs/sakerhet.md`: säkerhetsanalysen, skydden i appen och råd för den som vill nå appen från
+  internet via en omvänd proxy som Nginx Proxy Manager (HTTPS, HSTS, storleksgräns och spärrade adresser i proxyn,
+  porten eventuellt bara på `127.0.0.1`). Appen litar på localhost och LAN, och proxyn är ett råd, inget krav (#86, #93).
 - Skärmdumparna visar källan och kategorin Handboll (#83).
 - CLAUDE.md beskriver läget för att återuppta arbetet och hur appen körs utan att belasta källorna (#84).
 

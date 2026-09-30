@@ -4,8 +4,7 @@ services:
     build: .
     container_name: varmlandsinfo
     restart: unless-stopped
-    # Bakom en omvänd proxy: VARMLANDSINFO_PORT=127.0.0.1:7799 i .env, så att porten inte nås från nätet
-    # (Docker går förbi värdens brandvägg). Se docs/sakerhet.md.
+    # Alla gränssnitt som standard. VARMLANDSINFO_PORT=127.0.0.1:7799 i .env: bara från värden (se docs/sakerhet.md)
     ports:
       - "${VARMLANDSINFO_PORT:-7799}:8080"
     # Gör det möjligt att nå en Ollama som körs direkt på värdmaskinen

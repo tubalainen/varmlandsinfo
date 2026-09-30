@@ -61,10 +61,10 @@ De viktigaste inställningarna i `.env`:
 | `SEARXNG_URL` | Adress till SearXNG för webbsökning i Fråga AI. Tom = av. |
 | `TICKETMASTER_API_KEY` | API-nyckel för Ticketmaster. Tom = källan är av. |
 | `BESOKSINFO_PASSWORD` | Lösenord till besöksstatistiken på `/besoksinfo`. Tom = ingen statistik. |
-| `VARMLANDSINFO_PORT` | Port på värden (standard `7799`). Bakom en omvänd proxy: `127.0.0.1:7799`. |
+| `VARMLANDSINFO_PORT` | Port på värden (standard `7799`). |
 
-Alla inställningar och hur Ollama och SearXNG sätts upp står i [Installation](docs/installation.md). Appen ska bara
-nås utifrån via en omvänd proxy med HTTPS: se [Säkerhet](docs/sakerhet.md) för uppsättningen med Nginx Proxy Manager.
+Alla inställningar och hur Ollama och SearXNG sätts upp står i [Installation](docs/installation.md). Råd för att nå appen
+från internet (t.ex. via Nginx Proxy Manager) finns i [Säkerhet](docs/sakerhet.md).
 
 ## Dokumentation
 
@@ -77,7 +77,7 @@ nås utifrån via en omvänd proxy med HTTPS: se [Säkerhet](docs/sakerhet.md) f
 | [Fråga AI](docs/fraga-ai.md) | Direktsökning, AI, avgränsning, spärrar, webbsökning |
 | [Data och integritet](docs/data-och-integritet.md) | Lagring, städning, bilder via appen, cookies |
 | [API](docs/api.md) | Adresserna och vem som får anropa dem |
-| [Säkerhet](docs/sakerhet.md) | Säkerhetsanalysen, drift bakom Nginx Proxy Manager |
+| [Säkerhet](docs/sakerhet.md) | Säkerhetsanalysen och råd för drift |
 | [Utveckling](docs/utveckling.md) | Projektstruktur, tester, releaser |
 
 Ändringar per version: [CHANGELOG.md](CHANGELOG.md). Arbetsflöde: [CONTRIBUTING.md](CONTRIBUTING.md).

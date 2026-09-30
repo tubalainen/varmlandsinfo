@@ -1,9 +1,7 @@
 """Åtkomst till API:t: vad som bara får anropas lokalt, och spärren per IP-adress i Fråga AI.
 
 Appen har ingen proxykonfiguration. En omvänd proxy framför appen hanteras utanför den. Anrop via en
-proxy känns igen på huvudena som proxyn lägger till, och räknas aldrig som lokala. "Lokalt" betyder bara
-loopback, alltså inifrån containern (#86): anrop från det lokala nätverket, Dockers bryggnät eller en proxy
-som inte lägger till några huvuden kan inte skiljas från anrop utifrån.
+proxy känns igen på huvudena som proxyn lägger till, och räknas aldrig som lokala.
 """
 
 import ipaddress
@@ -33,19 +31,16 @@ def _is_lan(ip) -> bool:
 
 
 def is_local(request: Request) -> bool:
-    """Anropet kommer inifrån containern (loopback), och inte via en omvänd proxy. Dockers healthcheck och
-    `docker exec` räknas som lokala. Det lokala nätverket gör det inte: bakom Docker kan anrop från internet se ut
-    att komma från bryggans privata adress (t.ex. via IPv6 eller en proxy som inte lägger till huvuden)."""
+    """Anropet kommer direkt från samma dator eller det lokala nätverket, och inte via en omvänd proxy."""
     if any(h in request.headers for h in FORWARD_HEADERS):
         return False
-    ip = _ip(request.client.host if request.client else None)
-    return bool(ip) and ip.is_loopback
+    return _is_lan(_ip(request.client.host if request.client else None))
 
 
 def require_local(request: Request) -> None:
     """Beroende för adresser som bara är till för den som driftar appen (t.ex. /api/refresh)."""
     if not is_local(request):
-        raise HTTPException(status_code=403, detail="Bara tillgängligt inifrån containern (docker exec).")
+        raise HTTPException(status_code=403, detail="Bara tillgängligt från det lokala nätverket.")
 
 
 def client_ip(request: Request) -> str:

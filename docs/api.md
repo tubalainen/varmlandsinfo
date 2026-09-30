@@ -26,21 +26,15 @@ med ett skript. Resten är begränsat:
 - **Inga interna detaljer:** fel hos Ollama visas för besökarna med fasta texter, utan Ollamas adress, undantag eller
   Ollamas eget felsvar. `/api/events` visar inte datakatalogen, och ett lagringsfel bara som en fast text.
   Detaljerna finns i loggen och i `/api/health` (#87).
-- **Bara lokalt:** `/api/health` och `/api/refresh` svarar bara på anrop inifrån containern (loopback, 127.0.0.1
-  och ::1). Övriga får 403, även från det lokala nätverket och Dockers bryggnät: bakom Docker kan anrop från
-  internet se ut att komma från en privat adress, till exempel via IPv6 eller en proxy som inte lägger till några
-  huvuden (#86). Dockers healthcheck anropar `/api/health` inifrån containern och fungerar som vanligt. En manuell
-  uppdatering görs med `docker exec`:
-
-  ```bash
-  docker exec varmlandsinfo python -c "import urllib.request as u; print(u.urlopen(u.Request('http://127.0.0.1:8080/api/refresh', method='POST'), timeout=900).read().decode())"
-  ```
+- **Bara lokalt:** `/api/health` och `/api/refresh` svarar bara på anrop direkt från samma dator eller det lokala
+  nätverket (localhost och privata adresser som 192.168.x.x, 10.x.x.x och 172.16–31.x.x). Övriga får 403. Dockers
+  healthcheck anropar `/api/health` inifrån containern och fungerar som vanligt.
 - **Omvänd proxy:** appen har ingen proxykonfiguration, det hanteras utanför appen. Anrop som kommer via en omvänd
   proxy (med huvudena `Forwarded`, `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP` eller `True-Client-IP`)
-  räknas aldrig som lokala. Blockera gärna `/api/health` och `/api/refresh` i proxyn också (se
-  [Säkerhet](sakerhet.md#3-inställningar-i-npm)).
+  räknas aldrig som lokala. Allt som når appen via proxyn nekas alltså till `/api/health` och `/api/refresh`. En
+  proxy som inte sätter något av huvudena (t.ex. ren TCP-vidarebefordran) ser ut som ett lokalt anrop. Blockera
+  då gärna `/api/health` och `/api/refresh` i proxyn (se [Säkerhet](sakerhet.md)).
 - **Fråga AI:** högst 5 frågor till AI:n per 30 minuter och session och 20 per 30 minuter och IP-adress, så att
   ingen kan belasta Ollama genom att öppna nya flikar eller börja nya samtal. Frågor som besvaras utan AI
   (sökfrågor, sparade svar, stoppade frågor) räknas inte. När anropet kommer från en proxy i det lokala nätverket
-  gäller spärren adressen som proxyn lagt till sist i `X-Forwarded-For`. Därför får appens port inte nås direkt
-  från andra datorer i nätet, som annars kan ange vilken adress som helst.
+  gäller spärren adressen som proxyn lagt till sist i `X-Forwarded-For`.
