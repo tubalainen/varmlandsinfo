@@ -775,6 +775,12 @@ def build_system_prompt(selection: dict, today: date, total_events: int, web: li
 
 # ---------------------------------------------------------------- Ollama
 
+# Besökarna får bara fasta texter om fel hos Ollama. Adressen (ofta en privat IP-adress), undantag och Ollamas
+# egna felsvar står bara i loggen (#87).
+UNREACHABLE = "AI-modellen går inte att nå just nu"
+AI_FAILED = "AI:n kunde inte svara just nu. Försök igen om en stund. Enkla sökfrågor fungerar som vanligt."
+
+
 async def ollama_status() -> dict:
     cfg = chat_config()
     if not cfg["enabled"]:
@@ -787,9 +793,10 @@ async def ollama_status() -> dict:
         err = None
         if OLLAMA_MODEL not in models and f"{OLLAMA_MODEL}:latest" not in models:
             err = f"Modellen {OLLAMA_MODEL} finns inte i Ollama. Kör: ollama pull {OLLAMA_MODEL}"
-        return {**cfg, "reachable": True, "models": models, "error": err}
+        return {**cfg, "reachable": True, "error": err}
     except Exception as exc:
-        return {**cfg, "reachable": False, "error": f"Kan inte nå Ollama på {OLLAMA_URL}: {exc}"}
+        log.warning("Kan inte nå Ollama på %s: %s", OLLAMA_URL, exc)
+        return {**cfg, "reachable": False, "error": UNREACHABLE}
 
 
 def _ndjson(obj: dict) -> str:
@@ -933,14 +940,16 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
             async with client.stream("POST", f"{OLLAMA_URL}/api/chat", json=payload) as r:
                 if r.status_code != 200:
                     body = (await r.aread()).decode(errors="replace")[:300]
-                    yield _ndjson({"type": "error", "error": f"Ollama svarade {r.status_code}: {body}"})
+                    log.warning("Ollama svarade %s: %s", r.status_code, body)
+                    yield _ndjson({"type": "error", "error": AI_FAILED})
                     return
                 async for line in r.aiter_lines():
                     if not line.strip():
                         continue
                     data = json.loads(line)
                     if data.get("error"):
-                        yield _ndjson({"type": "error", "error": data["error"]})
+                        log.warning("Fel från Ollama: %s", data["error"])
+                        yield _ndjson({"type": "error", "error": AI_FAILED})
                         return
                     answer += (data.get("message") or {}).get("content") or ""
                     done = bool(data.get("done"))
@@ -970,8 +979,8 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
             return
         yield _ndjson({"type": "done"})
     except Exception as exc:
-        log.warning("Ollama-anrop misslyckades: %s", exc)
-        yield _ndjson({"type": "error", "error": f"Kunde inte prata med Ollama ({OLLAMA_URL}): {exc}"})
+        log.warning("Ollama-anrop till %s misslyckades: %s", OLLAMA_URL, exc)
+        yield _ndjson({"type": "error", "error": AI_FAILED})
         return
     finally:
         queue.leave(ticket)

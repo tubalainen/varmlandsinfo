@@ -10,7 +10,7 @@ API:t är till för appens eget gränssnitt.
 | GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. **Bara lokalt.** |
 | POST  | `/api/refresh`     | Hämtar alla evenemang på nytt, städar bort inaktuell data och svarar när det är klart. Hämtar inte om datan är yngre än 5 minuter. **Bara lokalt.** |
 | GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
-| GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå. |
+| GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå (utan Ollamas adress eller felets detaljer). |
 | POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår. För många frågor till AI:n (5 per 30 minuter och session, 20 per 30 minuter och IP-adress) ger en händelse `{"type": "error"}` i svaret. |
 | GET   | `/api/chat/session` | Samtalet för sessionen i `X-Chat-Session`. |
 | DELETE | `/api/chat/session` | Nytt samtal: tar bort sessionens historik. |
@@ -23,6 +23,9 @@ Det som gränssnittet hämtar (`/api/events`, `/img/…` och `/api/chat*`) kan a
 med ett skript. Resten är begränsat:
 
 - **Ingen API-dokumentation:** FastAPI:s `/docs`, `/redoc` och `/openapi.json` är avstängda.
+- **Inga interna detaljer:** fel hos Ollama visas för besökarna med fasta texter, utan Ollamas adress, undantag eller
+  Ollamas eget felsvar. `/api/events` visar inte datakatalogen, och ett lagringsfel bara som en fast text.
+  Detaljerna finns i loggen och i `/api/health` (#87).
 - **Bara lokalt:** `/api/health` och `/api/refresh` svarar bara på anrop inifrån containern (loopback, 127.0.0.1
   och ::1). Övriga får 403, även från det lokala nätverket och Dockers bryggnät: bakom Docker kan anrop från
   internet se ut att komma från en privat adress, till exempel via IPv6 eller en proxy som inte lägger till några

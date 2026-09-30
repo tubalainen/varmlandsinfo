@@ -15,6 +15,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   nätverket. Bakom Docker kan anrop från internet se ut att komma från en privat adress (t.ex. via IPv6 eller en
   proxy utan `X-Forwarded-For`). Dockers healthcheck fungerar som förut, och en manuell uppdatering görs med
   `docker exec` (#86).
+- Besökarna ser inte längre Ollamas adress, undantag eller Ollamas egna felsvar när AI:n inte kan svara, bara en
+  fast text. `/api/chat/status` visar inte vilka modeller som finns i Ollama, och `/api/events` visar varken
+  datakatalogen eller detaljerna i ett lagringsfel. Detaljerna står i loggen och i `/api/health` (#87).
 
 ### Dokumentation
 - Nytt dokument, `docs/sakerhet.md`: säkerhetsanalysen och drift bakom Nginx Proxy Manager (porten bara på

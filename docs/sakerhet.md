@@ -13,7 +13,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 |-------|------|--------|
 | [#85](https://github.com/tubalainen/varmlandsinfo/issues/85) Uppgradera FastAPI/Starlette, lås beroendena (CVE-2025-62727, CVE-2026-48710) | Hög | Klart |
 | [#86](https://github.com/tubalainen/varmlandsinfo/issues/86) Drift bakom Nginx Proxy Manager, "bara lokalt" bara via loopback | Medel | Klart |
-| [#87](https://github.com/tubalainen/varmlandsinfo/issues/87) Inga interna detaljer (Ollamas adress, undantag, sökvägar) till besökarna | Medel | Planerat |
+| [#87](https://github.com/tubalainen/varmlandsinfo/issues/87) Inga interna detaljer (Ollamas adress, undantag, sökvägar) till besökarna | Medel | Klart |
 | [#88](https://github.com/tubalainen/varmlandsinfo/issues/88) Säkerhetshuvuden och strikt CSP | Låg–medel | Planerat |
 | [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Planerat |
 | [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Planerat |
@@ -97,6 +97,9 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
 - **Spärrar per IP-adress** (Fråga AI och lösenordet till `/besoksinfo`) litar bara på `X-Forwarded-For` när anropet
   kommer från en privat adress, alltså från proxyn. Därför får port 7799 inte nås direkt från andra datorer: den som
   når porten från nätet kan ange vilken adress som helst.
+- **Inga interna detaljer till besökarna:** fel hos Ollama visas med fasta texter, utan Ollamas adress (ofta en
+  privat IP-adress), undantag eller Ollamas eget felsvar, och `/api/events` visar varken datakatalogen eller
+  lagringsfelets detaljer. Allt finns i loggen, och i `/api/health` inifrån containern.
 - **Beroenden:** alla beroenden är låsta till kända versioner i `app/constraints.txt`, se
   [Utveckling](utveckling.md#beroenden).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och

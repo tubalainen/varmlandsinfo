@@ -40,7 +40,8 @@ aktuella när något ändras.
 
 ## Utveckling
 
-- Tester: `pip install -r requirements-dev.txt && python -m pytest -q tests`
+- Tester: `pip install -r requirements-dev.txt && python -m pytest -q tests`. Beroendena är låsta i
+  `app/constraints.txt` (se `docs/utveckling.md#beroenden` för hur den uppdateras)
 - Köra lokalt: `cd app && DATA_DIR=/tmp/data uvicorn main:app --port 8080`
 - Docker: `docker compose up -d --build`. Porten på värden är 7799.
 - Inställningar finns i `.env` (mall: `.env.example`). Nya inställningar ska in i `.env.example`,
@@ -87,14 +88,20 @@ aktuella när något ändras.
 Läs detta först i en ny session. Senaste releasen är **v0.29.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
-- **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
+- **Pågår: säkerhetsanalysen** (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
+  åtgärdspaket, ett issue per paket, görs stegvis i prioritetsordning. Klara: #85 (FastAPI 0.142.2/Starlette 1.7.0,
+  låsta beroenden i `app/constraints.txt`), #86 (`require_local` bara loopback, drift bakom Nginx Proxy Manager) och
+  #87 (inga interna detaljer till besökarna). Kvar: #88 säkerhetshuvuden och CSP, #89 gränser (kroppens storlek,
+  besöksstatistiken, bildhämtningen), #90 länkar i AI-svar bara till underlaget och bildproxyns serveradress, #91
+  härdad container och leveranskedja, #92 råd för Ollama (CVE-2026-7482) och SearXNG. Användaren kör Nginx Proxy
+  Manager i en egen container på samma värd.
+- **Tidigare arbete:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt** (under `[Unreleased]` i CHANGELOG, bara dokumentation): skärmdumparna (#83) och det här avsnittet
-  (#84). Nästa release blir en PATCH om inget annat tillkommer. Användaren vill ha dokumentation pushad direkt,
-  utan release.
-- **Öppet:** inga issues.
+- **Inte släppt** (under `[Unreleased]` i CHANGELOG): skärmdumparna (#83), det här avsnittet (#84) och
+  säkerhetspaketen #85–#87. #86 och #87 ändrar appens beteende, så nästa release blir en MINOR.
+- **Öppet:** säkerhetspaketen #88–#92.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
@@ -165,7 +172,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
      pågående fråga och tar bort samtalet på servern.
   5. Valfri SearXNG (`websearch.py`, `SEARXNG_URL`).
 - **Åtkomst** (`access.py`): inga `/docs`, `/redoc` eller `/openapi.json`. `/api/health` och `/api/refresh` bara lokalt
-  (`require_local`: loopback och privata adresser utan proxyhuvuden). Fråga AI: spärrarna gäller bara frågor som går
+  (`require_local`: bara loopback utan proxyhuvuden, alltså healthchecken och `docker exec`, #86. Inte LAN eller
+  Dockers bryggnät, eftersom Docker kan få anrop från internet att se ut att komma från en privat adress). Fel hos
+  Ollama och lagringsfel visas för besökarna bara som fasta texter (`chat.AI_FAILED`, `chat.UNREACHABLE`,
+  `main.STORAGE_ERROR`), detaljerna i loggen och `status(detail=True)` i `/api/health` (#87). Fråga AI: spärrarna gäller bara frågor som går
   till AI:n (`admit` i `chat_stream`, efter sparade svar och före webbsökning): 5 per 30 minuter och session och
   `chat_limiter`, 20 per 30 minuter och IP (`client_ip`: sista adressen i `X-Forwarded-For` bara när anropet kommer
   från en lokal adress).
@@ -236,6 +246,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - Besöksstatistik: bara med lösenord (`BESOKSINFO_PASSWORD`, av som standard), inga cookies, unika per dygn. Fulla
   IP-adresser bara för innevarande dygn (rensas när dygnet är slut), summerad statistik i 13 månader. Plats via en
   lokal geodatabas, aldrig via en extern tjänst.
+- Appen ska alltid driftas bakom en omvänd proxy med HTTPS (användaren kör Nginx Proxy Manager i en egen container
+  på samma värd), aldrig direkt mot internet. Uppsättningen står i `docs/sakerhet.md`.
+- Säkerhetsfynd kopplas till CVE/CWE, och beroenden hålls låsta (`app/constraints.txt`) och uppdaterade.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.
 - **Belasta inte Visit Värmland under utvecklingen** (användarens önskan 2026-09-29): inga omhämtningar, och inga

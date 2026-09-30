@@ -195,8 +195,14 @@ app = FastAPI(title="Värmlandsinfo", version=__version__, lifespan=lifespan, do
               openapi_url=None)
 
 
-def status() -> dict:
+STORAGE_ERROR = "Appen kan inte spara hämtad data, så den finns bara i minnet. Se loggen."
+
+
+def status(detail: bool = False) -> dict:
+    """Appens status. Datakatalogen och fullständiga lagringsfel bara med `detail` (/api/health, bara lokalt, #87)."""
     s = events.state
+    storage = ({"dir": str(events.DATA_DIR), "error": s["storage_error"]} if detail
+               else {"error": STORAGE_ERROR if s["storage_error"] else None})
     return {
         "version": __version__,
         "release_url": RELEASE_URL,
@@ -207,7 +213,7 @@ def status() -> dict:
         "error": s["error"],
         "api_calls": stats["api_calls"],
         "sources": s["sources"],
-        "storage": {"dir": str(events.DATA_DIR), "error": s["storage_error"]},
+        "storage": storage,
         "chat": chat.chat_config(),
         "visit_stats": visits.enabled(),
     }
@@ -241,7 +247,7 @@ async def image(key: str):
 
 @app.get("/api/health", dependencies=[Depends(access.require_local)])
 async def health():
-    return {"ok": True, **status()}
+    return {"ok": True, **status(detail=True)}
 
 
 @app.post("/api/refresh", dependencies=[Depends(access.require_local)])
@@ -249,7 +255,7 @@ async def refresh():
     message = await events.manual_refresh()
     if not message:                     # städningen görs efter varje hämtning
         cleanup(datetime.now(TZ))
-    return {**status(), "message": message}
+    return {**status(detail=True), "message": message}
 
 
 class ChatRequest(BaseModel):
