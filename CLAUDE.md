@@ -83,12 +83,12 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.29.0)
+## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.30.0)
 
-Läs detta först i en ny session. Senaste releasen är **v0.29.0**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.30.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
-- **Pågår: säkerhetsanalysen** (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
+- **Säkerhetsanalysen** (v0.30.0) (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
   åtgärdspaket, ett issue per paket, görs stegvis. Användarens prioritet: webbservern och det besökarna når via
   hemsidan ska inte vara en säkerhetsrisk, utan att appen låses ned i onödan. Klara: #85 (FastAPI 0.142.2/Starlette
   1.7.0, låsta beroenden i `app/constraints.txt`), #86 och #93 (råd för drift bakom Nginx Proxy Manager, appen litar
@@ -104,9 +104,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt** (under `[Unreleased]` i CHANGELOG): skärmdumparna (#83), det här avsnittet (#84) och
-  säkerhetspaketen #85–#90 och #93. #87 ändrar appens beteende, så nästa release blir en MINOR.
-- **Öppet:** säkerhetspaketen #91 och #92 (rör inte hemsidan, kan vänta).
+- **Inte släppt:** inget.
+- **Öppet:** säkerhetspaketen #91 (härdad container och leveranskedja) och #92 (råd för Ollama och SearXNG). De rör
+  inte det besökarna når via hemsidan och kan vänta. Fråga användaren innan de påbörjas.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på

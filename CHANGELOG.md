@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-09-30
+
 ### Säkerhet
 - FastAPI 0.142.2 med Starlette 1.7.0 (från 0.41.3) och uvicorn 0.54.0. Rättar CVE-2025-62727 (ett Range-huvud
   med många intervall kunde låsa processorn via `/static`) och CVE-2026-48710 (ett ogiltigt Host-huvud kunde ge
@@ -435,7 +437,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.29.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.0...HEAD
+[0.30.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.2...v0.29.0
 [0.28.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.1...v0.28.2
 [0.28.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.0...v0.28.1
