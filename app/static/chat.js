@@ -8,6 +8,11 @@
 
   // ---- enkel och säker markdown-rendering (bygger DOM-noder, aldrig innerHTML)
   const safeUrl = (u) => /^https?:\/\//i.test(u) ? u : null;
+  // Länkarna som ett svar får innehålla: underlagets evenemang och webbträffar. Andra adresser i AI:ns svar (t.ex.
+  // efter promptinjektion i en evenemangstext) visas som text (#90).
+  const allowedLinks = (sources, web) =>
+    new Set([...sources.flatMap((s) => [s.url, ...(s.links || [])]), ...web.map((w) => w.url)].filter(Boolean));
+  let allowed = null;   // gäller svaret som ritas just nu (null = alla http(s)-länkar, t.ex. i underlagslistan)
 
   function inline(text) {
     const out = [];
@@ -17,7 +22,12 @@
       if (m.index > last) out.push(document.createTextNode(text.slice(last, m.index)));
       if (m[1]) out.push(link(m[1], m[2]));
       else if (m[3]) { const b = document.createElement("strong"); b.append(...inline(m[3])); out.push(b); }
-      else out.push(link(m[4], m[4]));
+      else {
+        // Punkt och liknande sist hör till meningen, inte till adressen
+        const url = m[4].replace(/[.,;:!?]+$/, "");
+        out.push(link(url, url));
+        if (url.length < m[4].length) out.push(document.createTextNode(m[4].slice(url.length)));
+      }
       last = re.lastIndex;
     }
     if (last < text.length) out.push(document.createTextNode(text.slice(last)));
@@ -25,13 +35,14 @@
   }
 
   function link(label, url) {
-    if (!safeUrl(url)) return document.createTextNode(label);
+    if (!safeUrl(url) || (allowed && !allowed.has(url))) return document.createTextNode(label);
     const a = document.createElement("a");
     a.href = url; a.target = "_blank"; a.rel = "noopener"; a.textContent = label;
     return a;
   }
 
-  function renderMarkdown(target, text) {
+  function renderMarkdown(target, text, links = null) {
+    allowed = links;
     const frag = document.createDocumentFragment();
     let list = null;
     for (const raw of text.split("\n")) {
@@ -50,6 +61,7 @@
       else p.append(...inline(line));
       frag.append(p);
     }
+    allowed = null;
     target.replaceChildren(frag);
   }
 
@@ -155,7 +167,7 @@
           else if (ev.type === "delta") {
             answer += ev.text;
             body.classList.add("typing");   // skrivmarkör medan svaret strömmar in
-            renderMarkdown(body, answer);
+            renderMarkdown(body, answer, allowedLinks(sources, web));
             log.scrollTop = log.scrollHeight;
           }
           else if (ev.type === "error") throw new Error(ev.error);
@@ -165,7 +177,7 @@
       if (ctrl.signal.aborted) return;   // samtalet rensades (Nytt samtal eller en annan sida)
       msg.classList.add("error");
       answer += (answer ? "\n\n" : "") + "⚠️ " + e.message;
-      renderMarkdown(body, answer);
+      renderMarkdown(body, answer, allowedLinks(sources, web));
     } finally {
       if (controller === ctrl) controller = null;
       if (!ctrl.signal.aborted) {
@@ -202,7 +214,7 @@
       for (const m of s.messages) {
         if (m.role === "user") { addMsg("user", m.content); continue; }
         const msg = addMsg("assistant"), body = el("div");
-        renderMarkdown(body, m.content);
+        renderMarkdown(body, m.content, allowedLinks(m.sources || [], m.web || []));
         msg.append(body);
         decorate(msg, m, m.sources || [], m.web || []);
       }

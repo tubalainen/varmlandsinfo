@@ -95,8 +95,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   på localhost och LAN), #87 (inga interna detaljer till besökarna) och #89 (gränser: `main.BodyLimit` 32 KB,
   `visits.MAX_VISITORS_PER_DAY` och `MAX_PER_DIMENSION`, bildproxyns takt `images.DOWNLOAD_BURST`) och #88
   (`main.SECURITY_HEADERS` på alla svar och strikt `main.PAGE_CSP` för sidan: gränssnittet får aldrig använda
-  inbäddade skript, `style`-attribut i HTML, `eval` eller externa resurser. `style.cssText` från JS går bra). Näst på
-  tur: #90 länkar i AI-svar bara till underlaget och bildproxyns serveradress. Kan vänta
+  inbäddade skript, `style`-attribut i HTML, `eval` eller externa resurser. `style.cssText` från JS går bra) och #90 (bara länkar i
+  `chat.allowed_links` blir klickbara i AI-svar, `sources` har `links`, svar med andra adresser sparas inte;
+  `images.peer_is_public`). Kan vänta
   (rör inte hemsidan): #91 härdad container och leveranskedja, #92 råd för Ollama (CVE-2026-7482) och SearXNG.
   Användaren kör Nginx Proxy Manager i en egen container på samma värd.
 - **Tidigare arbete:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
@@ -104,8 +105,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
 - **Inte släppt** (under `[Unreleased]` i CHANGELOG): skärmdumparna (#83), det här avsnittet (#84) och
-  säkerhetspaketen #85–#89 och #93. #87 ändrar appens beteende, så nästa release blir en MINOR.
-- **Öppet:** säkerhetspaketen #90–#92.
+  säkerhetspaketen #85–#90 och #93. #87 ändrar appens beteende, så nästa release blir en MINOR.
+- **Öppet:** säkerhetspaketen #91 och #92 (rör inte hemsidan, kan vänta).
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på

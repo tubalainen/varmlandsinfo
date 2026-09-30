@@ -21,6 +21,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Säkerhetshuvuden på alla svar (`nosniff`, `Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy`,
   `Permissions-Policy`) och en strikt Content-Security-Policy för sidan: bara appens egna skript, stilar, bilder och
   anrop, och ingen inbäddning i andra sidor (#88).
+- Fråga AI: bara länkar till underlaget (evenemangens sidor, biljettlänkar och webbträffar) blir klickbara i AI:ns
+  svar. Andra adresser, t.ex. efter promptinjektion i en evenemangstext, visas som text, och ett sådant svar sparas
+  inte. Bildproxyn kontrollerar efter anslutningen att servern har en publik adress (skydd mot DNS-rebinding) (#90).
+
+### Rättat
+- Fråga AI: en adress i slutet av en mening får inte längre med punkten i länken (#90).
 
 ### Dokumentation
 - Nytt dokument, `docs/sakerhet.md`: säkerhetsanalysen, skydden i appen och råd för den som vill nå appen från

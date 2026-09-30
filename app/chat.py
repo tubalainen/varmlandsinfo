@@ -677,6 +677,26 @@ def _clean(text: str | None) -> str:
     return text.replace(OFF_TOPIC, "").replace("UTANFÖR", "")
 
 
+def event_links(e: dict) -> list[str]:
+    """Evenemangets länkar i underlaget till AI:n: sidan, samma evenemang hos andra källor och biljetterna."""
+    urls = [e.get("url"), *(s.get("url") for s in e.get("sources") or []), e.get("booking_link")]
+    return list(dict.fromkeys(u for u in urls if u))
+
+
+# Adresser i ett svar (som i gränssnittet, chat.js). Punkt och liknande sist räknas inte till adressen.
+ANSWER_URL_RE = re.compile(r"https?://[^\s)<>\]]+")
+
+
+def answer_links(answer: str) -> set[str]:
+    return {u.rstrip(".,;:!?") for u in ANSWER_URL_RE.findall(answer)}
+
+
+def allowed_links(sources: list[dict], web: list[dict]) -> set[str]:
+    """Adresserna som AI:ns svar får länka till: underlagets evenemang och webbträffar (#90)."""
+    return ({u for s in sources for u in [s.get("url"), *(s.get("links") or [])] if u}
+            | {w["url"] for w in web if w.get("url")})
+
+
 def format_event(e: dict, occ: list[dict]) -> str:
     dates = "; ".join(_fmt_occ(o) for o in occ[:6])
     if len(occ) > 6:
@@ -898,7 +918,8 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
 
     # Följdfrågor ("och på söndag då?") saknar ofta sammanhang, så tidigare frågor tas med i sökningen
     selection = select_events(question, events, today, context=context, pinned=pinned)
-    sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"]}
+    # links: evenemangets alla länkar i underlaget. Gränssnittet gör bara dem klickbara i svaret (#90).
+    sources = [{"title": e["title"], "url": e.get("url"), "date": occ[0]["date_start"], "links": event_links(e)}
                for e, occ in selection["events"]]
     web = []
     if websearch.enabled() and scope["entities"]:
@@ -986,5 +1007,9 @@ async def chat_stream(messages: list[dict], events: list[dict], today: date,
         queue.leave(ticket)
     # Bara kompletta svar på fristående frågor inom uppdraget sparas
     answer = answer.replace(OFF_TOPIC, "")
-    if standalone and cache and complete and answer.strip():
+    if outside := answer_links(answer) - allowed_links(sources, web):
+        # Länkar som inte finns i underlaget (t.ex. efter promptinjektion i en evenemangstext) visas inte som länkar,
+        # och svaret sparas inte, så att det inte visas för andra (#90)
+        log.info("Svaret sparas inte: %d länkar utanför underlaget", len(outside))
+    elif standalone and cache and complete and answer.strip():
         cache.put(question, ctx, answer, sources, preset=is_preset(question), web=web)

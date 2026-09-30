@@ -14,6 +14,7 @@ import ipaddress
 import logging
 import os
 import time
+import urllib.request
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
@@ -74,6 +75,27 @@ async def is_public(url: str) -> bool:
         return bool(infos) and all(ipaddress.ip_address(i[4][0].split("%")[0]).is_global for i in infos)
     except ValueError:
         return False
+
+
+def _proxied(url: str) -> bool:
+    """Hämtningen går via en utgående proxy (HTTPS_PROXY m.fl.), som httpx använder."""
+    parts = urlsplit(url)
+    return bool(urllib.request.getproxies().get(parts.scheme)) and not urllib.request.proxy_bypass(parts.hostname or "")
+
+
+def peer_is_public(r: httpx.Response, url: str) -> bool:
+    """Adressen som anslutningen faktiskt gick till är publik. Skyddar mot DNS-rebinding, där värdnamnet pekar på en
+    publik adress när det kontrolleras och på en adress i det lokala nätverket när httpx ansluter (#90). Via en
+    utgående proxy är anslutningen proxyns, och då gäller kontrollen av värdnamnet."""
+    stream = r.extensions.get("network_stream")
+    addr = stream.get_extra_info("server_addr") if stream else None
+    if not addr or _proxied(url):
+        return True
+    try:
+        ip = ipaddress.ip_address(str(addr[0]).split("%")[0])
+    except ValueError:
+        return False
+    return (getattr(ip, "ipv4_mapped", None) or ip).is_global
 
 
 class ImageProxy:
@@ -196,6 +218,9 @@ class ImageProxy:
                         log.warning("Bilden hämtades inte (värden är inte publik): %s", urlsplit(url).hostname)
                         return None
                     async with client.stream("GET", url, headers={"Accept": "image/*"}) as r:
+                        if not peer_is_public(r, url):
+                            log.warning("Bilden hämtades inte (servern är inte publik): %s", urlsplit(url).hostname)
+                            return None
                         if r.is_redirect and (location := r.headers.get("location")):
                             url = urljoin(url, location)
                             continue

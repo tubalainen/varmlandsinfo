@@ -52,7 +52,12 @@ AI:n svarar bara på frågor om evenemangen i appen.
   Modellen markerar sådana frågor, och servern ersätter markören innan något visas.
 - Uppenbara försök att ändra AI:ns uppdrag ("ignorera dina instruktioner …") stoppas direkt, utan att modellen
   tillfrågas.
-- Evenemangstexterna från källorna skickas som avgränsad data och kan inte ge modellen nya instruktioner.
+- Evenemangstexterna från källorna skickas som avgränsad data och ska inte kunna ge modellen nya instruktioner.
+  Helt säkert är det inte: en språkmodell kan ändå påverkas av text i ett evenemang eller en webbträff
+  (promptinjektion). Därför blir **bara länkar till underlaget klickbara** i AI:ns svar: evenemangens sidor, samma
+  evenemang hos andra källor, biljettlänkar och webbträffarna. Andra adresser visas som text, och ett sådant svar
+  sparas inte, så att det aldrig visas för någon annan (#90). AI:n har inga verktyg och kan inte göra något annat
+  än att svara med text.
 - Frågor får vara högst 1000 tecken.
 - **Integritet:** modellen körs i din egen Ollama, så frågorna skickas aldrig till någon AI-tjänst i molnet. Med
   webbsökning påslagen skickas frågan som sökord via SearXNG till sökmotorer på webben.

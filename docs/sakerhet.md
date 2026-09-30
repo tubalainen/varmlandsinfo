@@ -16,7 +16,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | [#87](https://github.com/tubalainen/varmlandsinfo/issues/87) Inga interna detaljer (Ollamas adress, undantag, sökvägar) till besökarna | Medel | Klart |
 | [#88](https://github.com/tubalainen/varmlandsinfo/issues/88) Säkerhetshuvuden och strikt CSP | Låg–medel | Klart |
 | [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Klart |
-| [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Planerat |
+| [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Klart |
 | [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Planerat |
 | [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Planerat |
 
@@ -115,6 +115,11 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
   stilar, bilder och anrop, inga inbäddade skript och ingen inbäddning i andra sidor. Även om någon skulle lyckas
   få in kod i en text från en källa kan webbläsaren inte köra den. HSTS sätts i den omvända proxyn, eftersom bara
   den vet om HTTPS används.
+- **Fråga AI:** bara länkar till underlaget (evenemangen och webbträffarna) blir klickbara i AI:ns svar, och svar med
+  andra adresser sparas inte. En evenemangstext som försöker få AI:n att länka till en falsk sida ger alltså bara text
+  (se [Fråga AI](fraga-ai.md#säkerhet-och-avgränsning)).
+- **Bildproxyn** hämtar bara bilder som finns i evenemangen, bara från publika adresser (kontrolleras både före och
+  efter anslutningen) och bara riktiga bildfiler.
 - **Beroenden:** alla beroenden är låsta till kända versioner i `app/constraints.txt`, se
   [Utveckling](utveckling.md#beroenden).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och

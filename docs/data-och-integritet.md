@@ -74,7 +74,9 @@ Evenemangens bilder visas via appen, så att källornas bildservrar aldrig ser b
   och bilden hämtas vid ett senare besök (#89).
 - **Ingen öppen proxy:** bara bilder som finns i appens evenemang kan hämtas. En okänd nyckel ger 404.
 - **Inga anrop in i det lokala nätverket:** bara http- och https-adresser vars värd pekar på publika IP-adresser
-  hämtas, och det kontrolleras även vid omdirigeringar.
+  hämtas, och det kontrolleras även vid omdirigeringar. Efter anslutningen kontrolleras också att servern som svarade
+  har en publik adress, så att ett värdnamn som byter adress mellan kontrollen och hämtningen (DNS-rebinding) inte
+  når det lokala nätverket (#90).
 - **Bara riktiga bilder:** JPEG, PNG, GIF, WebP och AVIF på högst 10 MB släpps igenom. Typen avgörs av filens innehåll,
   inte av vad servern påstår. SVG och annat innehåll stoppas.
 - **Webbläsaren** får bara visa bilder från appen själv (`img-src 'self' data:` i sidans Content-Security-Policy), och

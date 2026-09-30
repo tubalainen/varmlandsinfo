@@ -169,3 +169,60 @@ def test_strict_csp_on_the_page():
                  "frame-ancestors 'none'", "img-src 'self' data:"):
         assert part in csp
     assert "unsafe" not in csp
+
+
+# ---------------------------------------------------------------- länkar i AI-svar och bildproxyns server (#90)
+
+def test_event_links_and_allowed_links():
+    e = {"url": "https://visitvarmland.com/a", "booking_link": "https://tickster.com/a",
+         "sources": [{"name": "VV", "url": "https://visitvarmland.com/a"}, {"name": "CCC", "url": "https://ccc.se/a"}]}
+    assert chat.event_links(e) == ["https://visitvarmland.com/a", "https://ccc.se/a", "https://tickster.com/a"]
+    allowed = chat.allowed_links([{"url": "https://visitvarmland.com/a", "links": chat.event_links(e)}],
+                                 [{"url": "https://sv.wikipedia.org/wiki/Karlstad"}])
+    answer = ("Gå på [A](https://visitvarmland.com/a), biljetter på https://tickster.com/a. "
+              "Läs mer: https://sv.wikipedia.org/wiki/Karlstad och [logga in](https://evil.example/login)")
+    assert chat.answer_links(answer) - allowed == {"https://evil.example/login"}
+
+
+def ai_answer(text, tmp_path, monkeypatch):
+    body = json.dumps({"message": {"content": text}, "done": True})
+    ollama(monkeypatch, lambda request: httpx.Response(200, text=body))
+    monkeypatch.setattr(chat, "cache", chat.AnswerCache(tmp_path / "c.json"))
+    q = chat.SUGGESTIONS[0]["q"]
+
+    async def go():
+        return [json.loads(x) async for x in chat.chat_stream([{"role": "user", "content": q}], EVENTS, THU, "v")]
+    return asyncio.run(go()), chat.normalize_question(q)
+
+
+def test_answers_with_links_outside_the_material_are_not_cached(tmp_path, monkeypatch):
+    konsert = next(e for e in EVENTS if e["title"] == "Höstkonsert")          # i helgen, alltså i underlaget
+    out, key = ai_answer(f"Gå på [{konsert['title']}]({konsert['url']}).", tmp_path, monkeypatch)
+    sources = next(x for x in out if x["type"] == "sources")["events"]
+    assert all("links" in s for s in sources)
+    assert key in chat.cache.presets                                   # länken finns i underlaget: sparas
+    out, key = ai_answer("Vinn biljetter på [tävlingen](https://evil.example/vinn)!", tmp_path, monkeypatch)
+    assert out[-1] == {"type": "done"} and key not in chat.cache.presets     # visas, men sparas inte
+
+
+class Stream:
+    def __init__(self, ip):
+        self.ip = ip
+
+    def get_extra_info(self, name):
+        return (self.ip, 443) if name == "server_addr" else None
+
+
+def test_image_proxy_checks_the_connected_server(tmp_path, monkeypatch):
+    monkeypatch.setattr(images.urllib.request, "getproxies", lambda: {})
+    for ip, ok in (("93.184.216.34", True), ("10.0.0.1", False), ("127.0.0.1", False), ("::ffff:192.168.1.1", False)):
+        p = images.ImageProxy(tmp_path / ip, check_host=lambda url: asyncio.sleep(0, True), clock=lambda: 0,
+                              client_factory=lambda: httpx.AsyncClient(transport=httpx.MockTransport(
+                                  lambda r: httpx.Response(200, content=JPEG, extensions={"network_stream": Stream(ip)}))))
+        url = "https://rebind.example/x.jpg"
+        p.register([{"id": "e", "title": "T", "images": [{"large": url}]}])
+        assert bool(asyncio.run(p.get(images.key(url)))) is ok, ip
+    # Via en utgående proxy är anslutningen proxyns (ofta en lokal adress), och då gäller kontrollen av värdnamnet
+    monkeypatch.setattr(images.urllib.request, "getproxies", lambda: {"https": "http://10.0.0.9:3128"})
+    r = httpx.Response(200, extensions={"network_stream": Stream("10.0.0.9")})
+    assert images.peer_is_public(r, "https://rebind.example/x.jpg")
