@@ -6,10 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.30.1] - 2026-09-30
+
 ### Säkerhet
 - Varje bygge av imagen får Debians säkerhetsuppdateringar (`apt-get upgrade`), även när basimagen inte hunnit
-  byggas om. Imagen för v0.30.0 har två rättade sårbarheter i OpenSSL (CVE-2026-75804 och CVE-2026-84782, som appen
-  inte använder: QUIC och DTLS) som försvinner med nästa release (#91).
+  byggas om. Rättar två sårbarheter i OpenSSL i imagen för v0.30.0 (CVE-2026-75804 och CVE-2026-84782, som appen inte
+  använder: QUIC och DTLS) (#91).
 - Containern startar med `no-new-privileges`, bara de capabilities som entrypointen behöver och skrivskyddat
   filsystem utom `/data` och `/tmp` (`docker-compose.yaml`) (#91).
 - Nytt flöde, *Säkerhetskontroll*: `pip-audit` av de låsta Python-beroendena och Trivy-skanning av imagen varje
@@ -446,7 +448,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.1...HEAD
+[0.30.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.0...v0.30.1
 [0.30.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.2...v0.29.0
 [0.28.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.1...v0.28.2

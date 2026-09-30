@@ -83,9 +83,9 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.30.0)
+## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.30.1)
 
-Läs detta först i en ny session. Senaste releasen är **v0.30.0**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.30.1**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Säkerhetsanalysen** (v0.30.0) (2026-09-30, `docs/sakerhet.md`, där tabellen visar status per paket). Åtta
@@ -104,9 +104,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i `Dockerfile`, flödet
-  `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Imagen för v0.30.0 har två rättade
-  OpenSSL-sårbarheter som nästa release rättar (PATCH), och *Säkerhetskontroll* blir röd på måndag tills dess.
+- **Inte släppt:** inget. v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i
+  `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Blir *Säkerhetskontroll*
+  röd: rätta beroendet eller föreslå användaren en PATCH-release (ett nytt bygge får Debians rättningar).
 - **Öppet:** #92 (råd för Ollama och SearXNG). Rör inte hemsidan och kan vänta. Fråga användaren innan det påbörjas.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
