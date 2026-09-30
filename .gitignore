@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 .env
+docker-compose.override.yaml
 .pytest_cache/
 data/
 tools/screenshots/

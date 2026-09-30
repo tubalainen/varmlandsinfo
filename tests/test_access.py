@@ -20,9 +20,11 @@ def request(host, headers=None):
 
 
 def test_local_addresses():
-    for host in ("127.0.0.1", "::1", "192.168.1.20", "10.0.0.5", "172.17.0.1", "::ffff:192.168.1.20", "fd00::1"):
+    for host in ("127.0.0.1", "::1", "::ffff:127.0.0.1"):
         assert access.is_local(request(host)), host
-    for host in ("81.230.12.4", "2a00:1450::1", "testclient", None, "0.0.0.0"):
+    # Det lokala nätverket och Dockers bryggnät räknas inte som lokala (#86)
+    for host in ("192.168.1.20", "10.0.0.5", "172.17.0.1", "::ffff:192.168.1.20", "fd00::1",
+                 "81.230.12.4", "2a00:1450::1", "testclient", None, "0.0.0.0"):
         assert not access.is_local(request(host)), host
 
 
@@ -65,6 +67,17 @@ def test_admin_endpoints_only_locally(monkeypatch):
     monkeypatch.setattr(access, "is_local", lambda r: True)
     assert client.get("/api/health").json()["ok"]
     assert client.get("/api/events").status_code == 200    # gränssnittets data är alltid öppen
+
+
+def test_admin_endpoints_only_from_inside_the_container():
+    """Bara loopback (healthcheck och docker exec), inte det lokala nätverket eller Dockers bryggnät (#86)."""
+    for host in ("192.168.1.20", "172.17.0.1", "fd00::1"):
+        client = TestClient(main.app, client=(host, 50000))
+        assert client.get("/api/health").status_code == 403, host
+        assert client.post("/api/refresh").status_code == 403, host
+    local = TestClient(main.app, client=("127.0.0.1", 50000))
+    assert local.get("/api/health").json()["ok"]
+    assert local.get("/api/health", headers={"X-Forwarded-For": "81.230.12.4"}).status_code == 403
 
 
 @pytest.fixture

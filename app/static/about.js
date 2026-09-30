@@ -108,7 +108,7 @@
             x.homepage ? el("a", { href: x.homepage, target: "_blank", rel: "noopener" }, x.title) : x.title]),
           "). Appen visar ett urval och länkar till källan för varje evenemang. Kontrollera alltid tider och andra uppgifter hos arrangören eller källan."),
         el("p", {}, el("strong", {}, "API:t: "),
-          "API:t är till för appens eget gränssnitt och har ingen öppen dokumentation. Status och manuell uppdatering (/api/health och /api/refresh) svarar bara inom det lokala nätverket, aldrig via internet eller en omvänd proxy."),
+          "API:t är till för appens eget gränssnitt och har ingen öppen dokumentation. Status och manuell uppdatering (/api/health och /api/refresh) svarar bara inifrån servern där appen körs, aldrig via nätverket eller en omvänd proxy."),
         el("p", {}, el("strong", {}, "Inget ansvar: "),
           "appen levereras i befintligt skick, utan garantier av något slag. Inget som helst ansvar tas för appens funktion, för att uppgifterna stämmer eller är aktuella, för AI-chattens svar eller för följderna av att använda appen.")),
 

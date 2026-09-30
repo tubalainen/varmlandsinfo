@@ -20,8 +20,11 @@ Första hämtningen tar ungefär 10–30 sekunder, eftersom Visit Värmlands API
 Därefter sparas datan och laddas direkt vid omstart.
 
 Evenemangen hämtas automatiskt en gång per dygn (standard 05:00). Vill du uppdatera direkt anropar du
-`POST /api/refresh` från samma dator eller det lokala nätverket, till exempel
-`curl -X POST http://localhost:7799/api/refresh` (se [API](api.md)).
+`POST /api/refresh` inifrån containern (se [API](api.md)):
+
+```bash
+docker exec varmlandsinfo python -c "import urllib.request as u; print(u.urlopen(u.Request('http://127.0.0.1:8080/api/refresh', method='POST'), timeout=900).read().decode())"
+```
 
 ### Köra en viss version
 
@@ -34,9 +37,11 @@ eller logga in med `docker login ghcr.io` innan du kör `docker compose pull`.
 
 ### Nå appen utifrån
 
-Appen har ingen egen konfiguration för omvända proxyer (nginx, Traefik, Caddy, Nginx Proxy Manager, Cloudflare
-Tunnel …). Sådant hanteras utanför appen. Anrop via en proxy räknas aldrig som lokala, så `/api/health` och
-`/api/refresh` nekas automatiskt utifrån. Se [Åtkomst till API:t](api.md#åtkomst-till-apit).
+Appen ska bara nås utifrån via en omvänd proxy med HTTPS (t.ex. Nginx Proxy Manager), aldrig direkt. Appen har
+ingen egen konfiguration för proxyer, det hanteras utanför appen. Sätt `VARMLANDSINFO_PORT=127.0.0.1:7799`, så att
+porten inte nås från nätet förbi proxyn (Docker går förbi värdens brandvägg), och anslut appen till proxyns
+Docker-nät. Hela uppsättningen, med inställningarna i Nginx Proxy Manager, står i
+[Säkerhet](sakerhet.md#rekommenderad-drift-med-nginx-proxy-manager).
 
 ## Inställningar
 
@@ -45,7 +50,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 
 | Variabel             | Standard           | Beskrivning |
 |----------------------|--------------------|-------------|
-| `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. |
+| `VARMLANDSINFO_PORT` | `7799`             | Port på värdmaskinen. `127.0.0.1:7799` gör att appen bara nås från värden själv (rekommenderas bakom en omvänd proxy, se [Säkerhet](sakerhet.md)). |
 | `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.11.0`). |
 | `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
 | `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
