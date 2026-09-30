@@ -83,12 +83,12 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.30.1)
+## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.30.2)
 
-Läs detta först i en ny session. Senaste releasen är **v0.30.1**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.30.2**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
-- **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0 och v0.30.1, `docs/sakerhet.md` med status per paket). Åtta
+- **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0–v0.30.2, `docs/sakerhet.md` med status per paket). Åtta
   åtgärdspaket, ett issue per paket. Användarens prioritet: webbservern och det besökarna når via
   hemsidan ska inte vara en säkerhetsrisk, utan att appen låses ned i onödan. Klara: #85 (FastAPI 0.142.2/Starlette
   1.7.0, låsta beroenden i `app/constraints.txt`), #86 och #93 (råd för drift bakom Nginx Proxy Manager, appen litar
@@ -103,11 +103,10 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt** (under `[Unreleased]`, bara dokumentation): råden för Ollama och SearXNG (#92). Användaren vill ha
-  dokumentation pushad direkt, utan release. v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`,
-  `apt-get upgrade` i `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Blir
-  *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release (ett nytt bygge får Debians
-  rättningar).
+- **Inte släppt:** inget. v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i
+  `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`) och v0.30.2 råden för
+  Ollama och SearXNG (#92). Blir *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release
+  (ett nytt bygge får Debians rättningar).
 - **Öppet:** inga issues. Säkerhetsanalysens alla paket (#85–#93) är klara.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.

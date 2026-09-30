@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.30.2] - 2026-09-30
+
 ### Dokumentation
 - Råd för Ollama och SearXNG i `docs/sakerhet.md` och `docs/installation.md`: Ollama har ingen inloggning, så
   använd minst 0.17.1 (CVE-2026-7482 "Bleeding Llama", CVE-2025-63389, CVE-2024-37032), släpp bara in appens värd
@@ -453,7 +455,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.2...HEAD
+[0.30.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.1...v0.30.2
 [0.30.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.0...v0.30.1
 [0.30.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.29.0...v0.30.0
 [0.29.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.28.2...v0.29.0
