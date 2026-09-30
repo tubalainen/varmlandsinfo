@@ -151,3 +151,21 @@ def test_visit_stats_are_capped(tmp_path, monkeypatch):
     assert len(d["visitors"]) == 3 and d["visits"] == 6
     summary = visits.VisitStats.summarize(d)
     assert summary["referrer"] == {"site0.example": 1, "site1.example": 1, "Övriga": 1}
+
+
+# ---------------------------------------------------------------- säkerhetshuvuden (#88)
+
+def test_security_headers_on_all_responses():
+    client = TestClient(main.app)
+    for path in ("/", "/api/events", "/static/app.js", "/img/" + "0" * 32, "/finns-inte"):
+        r = client.get(path)
+        for name, value in main.SECURITY_HEADERS.items():
+            assert r.headers[name] == value, (path, name)
+
+
+def test_strict_csp_on_the_page():
+    csp = TestClient(main.app).get("/").headers["content-security-policy"]
+    for part in ("default-src 'self'", "script-src 'self'", "object-src 'none'", "base-uri 'none'",
+                 "frame-ancestors 'none'", "img-src 'self' data:"):
+        assert part in csp
+    assert "unsafe" not in csp

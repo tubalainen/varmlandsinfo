@@ -391,10 +391,27 @@ class BodyLimit:
 app.add_middleware(BodyLimit)
 
 
+# Säkerhetshuvuden på alla svar (#88). Sidan får dessutom en strikt CSP (PAGE_CSP).
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+}
+# Bara appens egna skript, stilar, bilder och anrop. Webbläsaren hämtar aldrig något från källorna (bilderna visas via
+# appen), och sidan kan inte bäddas in i andra sidor.
+PAGE_CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; "
+            "manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+
+
 @app.middleware("http")
-async def cache_headers(request: Request, call_next):
-    """Filer med version i adressen cachas länge. Allt annat kontrolleras mot servern varje gång."""
+async def response_headers(request: Request, call_next):
+    """Säkerhetshuvuden på alla svar. Filer med version i adressen cachas länge, allt annat kontrolleras mot servern
+    varje gång."""
     response = await call_next(request)
+    for name, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(name, value)
     # Den råa sökvägen, inte request.url.path, som byggs av Host-huvudet (jfr CVE-2026-48710, #85)
     path = request.scope["path"]
     if path.startswith("/api/"):
@@ -425,16 +442,16 @@ async def index(request: Request):
     if visits.store and request.method == "GET" and "prefetch" not in request.headers.get("sec-purpose", ""):
         visits.store.record(access.client_ip(request), request.headers.get("user-agent", ""),
                             request.headers.get("referer"), request.headers.get("host"), datetime.now(TZ))
-    # Bilder bara från appen själv: webbläsaren ska aldrig hämta något från källorna
     return HTMLResponse(INDEX_HTML[chat.CHAT_ENABLED], headers={"Cache-Control": "no-cache",
-                                             "Content-Security-Policy": "img-src 'self' data:"})
+                                                                 "Content-Security-Policy": PAGE_CSP})
 
 
 # ---------------------------------------------------------------- besöksstatistik (dold sida)
 
 login_limiter = access.IpLimiter(limit=10, window=15 * 60)    # felaktiga lösenord per IP-adress
 PRIVATE_HEADERS = {"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow", "Referrer-Policy": "no-referrer",
-                   "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"}
+                   "Content-Security-Policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+                                              "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"}
 
 
 def _password_ok(authorization: str | None) -> bool | None:
