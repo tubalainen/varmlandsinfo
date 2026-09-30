@@ -6,6 +6,15 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- Varje bygge av imagen får Debians säkerhetsuppdateringar (`apt-get upgrade`), även när basimagen inte hunnit
+  byggas om. Imagen för v0.30.0 har två rättade sårbarheter i OpenSSL (CVE-2026-75804 och CVE-2026-84782, som appen
+  inte använder: QUIC och DTLS) som försvinner med nästa release (#91).
+- Containern startar med `no-new-privileges`, bara de capabilities som entrypointen behöver och skrivskyddat
+  filsystem utom `/data` och `/tmp` (`docker-compose.yaml`) (#91).
+- Nytt flöde, *Säkerhetskontroll*: `pip-audit` av de låsta Python-beroendena och Trivy-skanning av imagen varje
+  vecka och vid ändringar. CI har bara läsrättigheter, och `SECURITY.md` beskriver hur sårbarheter rapporteras (#91).
+
 ## [0.30.0] - 2026-09-30
 
 ### Säkerhet

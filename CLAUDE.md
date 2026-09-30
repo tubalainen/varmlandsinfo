@@ -104,9 +104,10 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget.
-- **Öppet:** säkerhetspaketen #91 (härdad container och leveranskedja) och #92 (råd för Ollama och SearXNG). De rör
-  inte det besökarna når via hemsidan och kan vänta. Fråga användaren innan de påbörjas.
+- **Inte släppt:** #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i `Dockerfile`, flödet
+  `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`). Imagen för v0.30.0 har två rättade
+  OpenSSL-sårbarheter som nästa release rättar (PATCH), och *Säkerhetskontroll* blir röd på måndag tills dess.
+- **Öppet:** #92 (råd för Ollama och SearXNG). Rör inte hemsidan och kan vänta. Fråga användaren innan det påbörjas.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
@@ -315,6 +316,13 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   ett utvecklingslag (seniorer). Klubbar i Värmland: Arvika HK, Forshaga HK, HK Brukspôjkera, HK Grums, IF Hellton,
   IFK Hammarö, IFK Kristinehamn, Karlskoga HK, Kils AIKs HF, Skåre HK och Torsby IF. 2026/27 har bara Hellton, Hammarö
   och Kristinehamn seniorlag i serierna.
+- **Docker går att köra i molnmiljön** (#91): starta daemonen med `(timeout 1800 dockerd > <scratchpad>/dockerd.log 2>&1 &)`.
+  `docker pull` fungerar genom proxyn (Docker Hub kan svara 429, använd då ghcr.io, t.ex.
+  `ghcr.io/aquasecurity/trivy`). Containrar når inte internet, så appen i en container belastar aldrig källorna.
+  Bygga imagen: kopiera `Dockerfile`, `docker-entrypoint.sh`, `app/` och `/root/.ccr/ca-bundle.crt` (som `ca.crt`)
+  till scratchpaden, lägg `COPY ca.crt /ca.crt` och `ENV PIP_CERT=/ca.crt SSL_CERT_FILE=/ca.crt` efter `FROM` i
+  kopian och kör `docker build --network host` med `--build-arg` för `HTTP_PROXY`/`HTTPS_PROXY` (och gemener).
+  Trivy: `docker run --network host` med proxyvariablerna, `SSL_CERT_FILE=/ca.crt` och docker-socketen.
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
 - **Archify** finns inte installerat: `git clone --depth 1 https://github.com/tt-a1i/archify` till scratchpaden och kör
   `archify/bin/archify.mjs`. I kopian av repot måste `origin` vara `https://github.com/tubalainen/varmlandsinfo`

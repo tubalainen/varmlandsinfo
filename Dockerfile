@@ -7,6 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PUID=1000 \
     PGID=1000
 
+# Debians säkerhetsuppdateringar vid varje bygge, även när basimagen inte hunnit byggas om (#91)
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 # Låsta versioner av alla beroenden (constraints.txt), även indirekta
 COPY app/requirements.txt app/constraints.txt ./

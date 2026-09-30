@@ -59,6 +59,11 @@ imagen aldrig en äldre, sårbar version bara för att ett beroende råkar lösa
 `requirements.txt`: installera den i en ren venv med Python 3.12 och ersätt versionerna i `constraints.txt` med
 `pip freeze --all --exclude pip`.
 
+Flödet *Säkerhetskontroll* (`.github/workflows/security.yml`) kör `pip-audit` mot `constraints.txt` och Trivy mot
+imagen: varje måndag mot den publicerade imagen, och vid ändringar i beroendena eller `Dockerfile` mot en image
+byggd från commiten. Lokalt: `pip install pip-audit && pip-audit -r app/constraints.txt --no-deps --disable-pip`.
+Dependabot används inte, eftersom projektet arbetar direkt på `main` utan PR:er (#91).
+
 ## Versioner och releaser
 
 Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i menyn

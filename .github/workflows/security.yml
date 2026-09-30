@@ -1,0 +1,47 @@
+name: Säkerhetskontroll
+
+# Kända sårbarheter i de låsta Python-beroendena och i imagen (#91). Körs varje måndag, vid ändringar i beroendena
+# eller imagen, och manuellt. Rött betyder att något har en känd sårbarhet med rättning: ofta räcker en ny release,
+# eftersom varje bygge får Debians säkerhetsuppdateringar. Flödet ligger utanför releasen och stoppar aldrig en release.
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - app/requirements.txt
+      - app/constraints.txt
+      - .github/workflows/security.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python-beroenden (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit==2.10.1
+      - run: pip-audit -r app/constraints.txt --no-deps --disable-pip --progress-spinner off
+
+  image:
+    name: Imagen (Trivy)
+    runs-on: ubuntu-latest
+    env:
+      # Vid push: imagen byggd från commiten. Annars: den publicerade imagen, som användarna kör.
+      IMAGE: ${{ github.event_name == 'push' && 'varmlandsinfo:scan' || 'ghcr.io/tubalainen/varmlandsinfo:latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bygg imagen
+        if: github.event_name == 'push'
+        run: docker build -t varmlandsinfo:scan .
+      - name: Skanna med Trivy (HIGH och CRITICAL som har en rättning)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/aquasecurity/trivy:0.74.0 \
+            image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress "$IMAGE"

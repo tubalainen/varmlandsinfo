@@ -14,6 +14,15 @@ services:
       - ${VARMLANDSINFO_DATA:-./data}:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Härdning (#91): inga nya rättigheter i containern, bara de capabilities som entrypointen behöver för att ge
+    # /data rätt ägare och byta till PUID:PGID (appen själv kör utan några), och skrivskyddat filsystem utom /data och /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID]
+    read_only: true
+    tmpfs:
+      - /tmp
     # Loggen roteras: högst 3 filer à 10 MB, äldre rader tas bort
     logging:
       driver: json-file

@@ -17,7 +17,7 @@ En säkerhetsgenomgång av koden, beroendena och driften gav åtta åtgärdspake
 | [#88](https://github.com/tubalainen/varmlandsinfo/issues/88) Säkerhetshuvuden och strikt CSP | Låg–medel | Klart |
 | [#89](https://github.com/tubalainen/varmlandsinfo/issues/89) Gränser för anropens storlek, besöksstatistiken och bildhämtningen | Medel | Klart |
 | [#90](https://github.com/tubalainen/varmlandsinfo/issues/90) Fråga AI länkar bara till underlaget, bildproxyn kontrollerar serverns adress | Låg–medel | Klart |
-| [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Planerat |
+| [#91](https://github.com/tubalainen/varmlandsinfo/issues/91) Härdad container och leveranskedja | Låg | Klart |
 | [#92](https://github.com/tubalainen/varmlandsinfo/issues/92) Råd för Ollama och SearXNG (CVE-2026-7482 m.fl.) | Hög om Ollama nås från nätet | Planerat |
 
 ## Råd: nå appen från internet via Nginx Proxy Manager
@@ -122,6 +122,14 @@ så att den ersätter adressen med besökarens (`real_ip_header`), annars räkna
   efter anslutningen) och bara riktiga bildfiler.
 - **Beroenden:** alla beroenden är låsta till kända versioner i `app/constraints.txt`, se
   [Utveckling](utveckling.md#beroenden).
+- **Containern** (`docker-compose.yaml`) startar med `no-new-privileges`, utan andra capabilities än de som
+  entrypointen behöver för att ge `/data` rätt ägare och byta till `PUID:PGID`, och med skrivskyddat filsystem utom
+  `/data` och `/tmp`. Appen själv kör som vanlig användare utan några capabilities. Varje bygge av imagen får
+  Debians säkerhetsuppdateringar, även när basimagen inte hunnit byggas om.
+- **Säkerhetskontroll varje vecka** (flödet *Säkerhetskontroll*): `pip-audit` kontrollerar de låsta
+  Python-beroendena och Trivy den publicerade imagen mot kända sårbarheter. Rött betyder att något behöver
+  uppdateras, oftast räcker en ny release. Kontrollen stoppar aldrig en release. Sårbarheter rapporteras enligt
+  [SECURITY.md](../SECURITY.md).
 - **Ingen API-dokumentation**, ingen åtkomstlogg, inga cookies, appen körs som vanlig användare i containern, och
   bilderna visas via appen så att källorna aldrig ser besökarna.
 
