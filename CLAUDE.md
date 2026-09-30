@@ -82,15 +82,18 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-09-29, efter v0.29.0)
+## Återuppta arbetet (senast uppdaterat 2026-09-30, efter v0.29.0)
 
 Läs detta först i en ny session. Senaste releasen är **v0.29.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Senaste arbetet:** snabbvalen i Fråga AI borttagna (#77, v0.27.0), källorna Säffle och Kil som gruppen
-  Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1) och arkitekturbilden med 13 källor och
-  aktuella kodhänvisningar (#80, v0.28.2) och källan Handboll med arkitekturbilden med 14 källor (#82, v0.29.0), och skärmdumparna med Handboll (#83, inte
-  släppt, dokumentation).
+  Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
+  aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
+  skärmdumparna med Handboll (#83).
+- **Inte släppt** (under `[Unreleased]` i CHANGELOG, bara dokumentation): skärmdumparna (#83) och det här avsnittet
+  (#84). Nästa release blir en PATCH om inget annat tillkommer. Användaren vill ha dokumentation pushad direkt,
+  utan release.
 - **Öppet:** inga issues.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
@@ -259,6 +262,11 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - **Skärmdumpar med riktiga bilder:** bilderna visas via appen, och appen hämtar dem genom miljöns proxy (httpx
   följer `HTTPS_PROXY`). Kör `NODE_PATH=$(npm root -g) node tools/readme-screenshots.mjs http://localhost:8080`.
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
+- **Utan att belasta källorna** (#82, #83): efter morgonkörningen (05:00) räknas gårdagens data som gammal, och appen
+  hämtar då alla källor vid start. Kopiera i stället den sparade datakatalogen (med `images/`) och sätt `updated` till
+  nu. Loggen ska säga "Sparad data är aktuell, ingen hämtning vid start". För kontrastkontrollen, som laddar många
+  bilder, startas appen med en trasig proxy (`HTTPS_PROXY=http://127.0.0.1:9`, samma för `HTTP_PROXY` och gemener), så
+  att inga bilder hämtas från källorna. Visit Värmlands bildserver svarade 429 även dagen efter.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`
   i en `until`-loop tills CI, Publicera Docker-image och Release är klara.
 - **Grenar kan inte tas bort från molnmiljön** (#78): `git push origin --delete` bryter anslutningen ("remote end hung

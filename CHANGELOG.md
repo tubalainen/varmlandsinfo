@@ -8,6 +8,7 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ### Dokumentation
 - Skärmdumparna visar källan och kategorin Handboll (#83).
+- CLAUDE.md beskriver läget för att återuppta arbetet och hur appen körs utan att belasta källorna (#84).
 
 ## [0.29.0] - 2026-09-29
 
