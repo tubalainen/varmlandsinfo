@@ -354,7 +354,8 @@ async def chat_session_reset(session_id: str | None = SessionHeader):
 async def cache_headers(request: Request, call_next):
     """Filer med version i adressen cachas länge. Allt annat kontrolleras mot servern varje gång."""
     response = await call_next(request)
-    path = request.url.path
+    # Den råa sökvägen, inte request.url.path, som byggs av Host-huvudet (jfr CVE-2026-48710, #85)
+    path = request.scope["path"]
     if path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
     elif path.startswith("/static/") and request.query_params.get("v") == __version__:

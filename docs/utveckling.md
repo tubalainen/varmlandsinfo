@@ -51,6 +51,14 @@ cd app && DATA_DIR=/tmp/data uvicorn main:app --port 8080
 
 Kontrastkontrollen och skärmdumparna beskrivs i [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+## Beroenden
+
+De direkta beroendena står i `app/requirements.txt`. Alla beroenden, även de indirekta, är låsta till kända versioner
+i `app/constraints.txt`, som både imagen (`Dockerfile`) och CI (`requirements-dev.txt`) installerar med. Så får
+imagen aldrig en äldre, sårbar version bara för att ett beroende råkar lösas annorlunda (#85). Efter en ändring i
+`requirements.txt`: installera den i en ren venv med Python 3.12 och ersätt versionerna i `constraints.txt` med
+`pip freeze --all --exclude pip`.
+
 ## Versioner och releaser
 
 Projektet använder semantisk versionering. Versionen står i `app/version.py`. Den visas i menyn

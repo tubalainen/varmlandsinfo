@@ -8,8 +8,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PGID=1000
 
 WORKDIR /app
-COPY app/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Låsta versioner av alla beroenden (constraints.txt), även indirekta
+COPY app/requirements.txt app/constraints.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 
 COPY app/ .
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

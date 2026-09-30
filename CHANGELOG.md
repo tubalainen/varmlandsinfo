@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- FastAPI 0.142.2 med Starlette 1.7.0 (från 0.41.3) och uvicorn 0.54.0. Rättar CVE-2025-62727 (ett Range-huvud
+  med många intervall kunde låsa processorn via `/static`) och CVE-2026-48710 (ett ogiltigt Host-huvud kunde ge
+  svar från `/api/` lång cachetid). Cachehuvudena väljs nu efter den råa sökvägen. Alla beroenden, även indirekta,
+  är låsta i `app/constraints.txt` (#85).
+
 ### Dokumentation
 - Skärmdumparna visar källan och kategorin Handboll (#83).
 - CLAUDE.md beskriver läget för att återuppta arbetet och hur appen körs utan att belasta källorna (#84).
