@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "865b072a5c703f9ab132788cb306ae94ca8f1dcb"
+      "revision": "90eb7f95740b649a5a8389002ade0c4a39631afa"
     }
   },
   "components": [
@@ -333,7 +333,7 @@
         },
         {
           "path": "app/merge.py",
-          "line": 83,
+          "line": 122,
           "label": "merge"
         },
         {
@@ -391,8 +391,8 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 17,
-          "end_line": 18,
+          "line": 18,
+          "end_line": 19,
           "label": "källorna"
         }
       ]
@@ -433,7 +433,7 @@
     {
       "id": "sources",
       "type": "external",
-      "label": "Källorna (14 st)",
+      "label": "Källorna (15 st)",
       "sublabel": "API (JSON) och webbsidor (HTML)",
       "sources": [
         {
@@ -449,8 +449,8 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 17,
-          "end_line": 18,
+          "line": 18,
+          "end_line": 19,
           "label": "alla källor"
         }
       ],
