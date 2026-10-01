@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-10-01
+
 ### Tillagt
 - Ny källa, *Skoghalls Folkets Hus*: pubkvällar, konserter, teater och föreläsningar i Skoghall (Hammarö), men inte
   film eller sändningar på bioduken. Ger bland annat pubkvällar och evenemang utanför huset (Bygdegården Svenshult) som
@@ -476,7 +478,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.3...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.31.0...HEAD
+[0.31.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.3...v0.31.0
 [0.30.3]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.2...v0.30.3
 [0.30.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.1...v0.30.2
 [0.30.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.0...v0.30.1
