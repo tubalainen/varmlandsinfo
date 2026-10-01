@@ -70,6 +70,13 @@ def test_visitvarmland_uses_the_place_before_the_organizers_city():
     by_id = vv_event({**base, "organizers": [{"title": "X", "municipality_id": 9, "city": "Stockholm"}]},
                      municipalities)
     assert by_id["municipality"] == "Karlstad"
+    # Platsen går före arrangörens kommun: Karlstads Riksteaterförening arrangerar i Skoghall (#95)
+    skoghall = vv_event({**base, "title": "Rent Hus",
+                         "organizers": [{"title": "Karlstads riksteaterförening", "municipality_id": 9, "city": "Karlstad"}],
+                         "places": [{"title": "Skoghall Folkets hus",
+                                     "address": {"street_1": "Skogåsvägen 3", "zip_code": "66330", "city": ""}}]},
+                        municipalities)
+    assert skoghall["municipality"] == "Hammarö"
 
 
 def test_chat_understands_places():

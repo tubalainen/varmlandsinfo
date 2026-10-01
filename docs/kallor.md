@@ -18,7 +18,11 @@
 | [Kils kommun](https://kil.se/arkiv/evenemang) | Kommunens evenemangskalender (HTML) | Evenemang i Kil: biblioteket, konserter, barnaktiviteter … |
 
 Samma evenemang från flera källor slås ihop och visas en gång, med länkar till alla källor. Källornas ordning i
-tabellen är också deras prioritet vid sammanslagningen.
+tabellen är också deras prioritet vid sammanslagningen. Har en källa samma evenemang två gånger (Visit Värmland har
+ibland en post från arrangören och en från lokalen) slås de ihop när dag, starttid och plats är desamma.
+
+**Visit Värmland:** kommunen bestäms av platsens adress och namn, i andra hand av arrangörens kommun och sist av
+arrangörens ort. Karlstads Riksteaterförening arrangerar till exempel föreställningar i Skoghall (Hammarö).
 
 **Motorsport:** SBF och Svemo visas som **en** källa, *Motorsport*. Med kommer publika tävlingar och prova på-dagar i
 Värmland och Karlskoga (som Visit Värmland), men inte träningstillstånd, kurser, besiktningar och tävlingar utan publik.

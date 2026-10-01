@@ -160,7 +160,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte
   som ett tillfälle över flera dagar), sedan tid och titel.
 - **Sammanslagning** (`merge.py`): samma dag (varje dag i perioder ≤ 7 dagar), samma kommun och liknande titlar, eller
-  `same_race` för motorsport med olika titlar. "loppis" och "konsert" m.fl. räknas inte som gemensamma ord.
+  `same_race` för motorsport med olika titlar. "loppis" och "konsert" m.fl. räknas inte som gemensamma ord. Inom samma
+  källa bara `duplicate_listing` (samma dag, starttid och plats, #95): Visit Värmland har ibland en post från
+  arrangören och en från lokalen. Visit Värmlands kommun: platsens adress och namn först, sedan arrangören (#95).
 - **Beskrivningen** i korten (`descriptionBlock` i `app.js`, #67): stycken av källans rader (en lång rad som avslutar en
   mening blir ett eget stycke, korta rader hålls ihop), långa textmassor delas vid meningsgränser, webb- och
   e-postadresser blir länkar, och ingressen döljs när beskrivningen är utfälld om beskrivningen börjar med den.

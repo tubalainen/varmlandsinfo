@@ -148,3 +148,19 @@ def test_merge_keeps_source_only_categories():
     merged = merge([[a], [b]])
     assert len(merged) == 1
     assert [c["title"] for c in merged[0]["categories"]] == ["Sport, motion och hälsa", "SHL", "Bandy"]  # inte Musik
+
+
+def test_merge_duplicate_listings_from_the_same_source():
+    """Visit Värmland har ibland samma evenemang två gånger (#95): samma dag, tid och plats slås ihop, men aldrig
+    samma titel på olika platser eller tider."""
+    def vv(id_, title, time, place, address):
+        return normalize_event({"id": id_, "title": title, "slug": f"e/{id_}", "categories": [{"title": "Teater"}],
+                             "places": [{"title": place, "address": {"street_1": address, "zip_code": "66330"}}],
+                             "occasions": [{"date_start": FUTURE, "date_end": FUTURE, "time_start": time}]}, {})
+    a = vv(1, "Musikteater: Rent Hus", "14:00:00", "Skoghalls Folkets hus", "Skogåsvägen 3")
+    b = vv(2, "Rent Hus", "14:00:00", "Skoghall Folkets hus", "Skogåsvägen 3")
+    later = vv(3, "Rent Hus", "19:00:00", "Skoghall Folkets hus", "Skogåsvägen 3")
+    elsewhere = vv(4, "Rent Hus", "14:00:00", "Hammarö kulturhus", "Kulturvägen 1")
+    merged = merge([[a, b, later, elsewhere]])
+    assert [e["id"] for e in merged] == ["vv-1", "vv-3", "vv-4"]
+    assert merged[0]["municipality"] == "Hammarö"

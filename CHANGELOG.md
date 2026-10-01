@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Visit Värmland: platsens kommun går före arrangörens, så att till exempel Karlstads Riksteaterförenings
+  föreställningar i Skoghall hamnar i Hammarö och inte i Karlstad. Samma evenemang två gånger hos en källa (samma
+  dag, starttid och plats) visas en gång: Rent Hus, Shakespeares Dotter och 123 Schtunk i Skoghall var dubbletter (#95).
+
 ## [0.30.3] - 2026-09-30
 
 ### Dokumentation

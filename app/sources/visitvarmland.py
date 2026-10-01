@@ -118,8 +118,10 @@ def normalize_event(ev: dict, municipalities: dict[int, str]) -> dict | None:
         "summary": strip_html(ev.get("sales_text") or ev.get("description"), 300),
         "description": strip_html(ev.get("presentation") or ev.get("description")),
         "categories": categories,
-        # Arrangörens kommun, annars platsens adress och namn, sist arrangörens ort (#81)
-        "municipality": org_municipality or kommun((place or {}).get("address"), (place or {}).get("title"), org_city),
+        # Platsens adress och namn, annars arrangörens kommun, sist arrangörens ort (#81, #95). Platsen går först:
+        # Karlstads Riksteaterförening arrangerar t.ex. i Skoghall (Hammarö)
+        "municipality": kommun((place or {}).get("address"), (place or {}).get("title")) or org_municipality
+                        or kommun(org_city),
         "place": place,
         "organizer": (ev.get("organizers") or [{}])[0].get("title"),
         "url": f"{SITE_BASE}/{slug}" if slug else None,

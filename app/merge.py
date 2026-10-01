@@ -47,6 +47,23 @@ def _same_place(a: dict, b: dict) -> bool:
     return not a.get("municipality") or not b.get("municipality") or a["municipality"] == b["municipality"]
 
 
+def _norm(text: str | None) -> str:
+    return re.sub(r"[^\wåäöéü]+", "", unicodedata.normalize("NFKC", text or "").lower())
+
+
+def duplicate_listing(a: dict, b: dict) -> bool:
+    """Samma evenemang två gånger hos samma källa: Visit Värmland har ibland en post från arrangören och en från
+    lokalen ("Rent Hus" och "Musikteater: Rent Hus" i Skoghall). Kräver samma dag och starttid och samma plats
+    (gatuadressen eller lokalens namn), så att olika evenemang med samma titel aldrig slås ihop (#95)."""
+    times = {(o["date_start"], o["time_start"]) for o in a["occasions"] if o.get("time_start")}
+    if not times & {(o["date_start"], o["time_start"]) for o in b["occasions"] if o.get("time_start")}:
+        return False
+    pa, pb = a.get("place") or {}, b.get("place") or {}
+    street_a, street_b = (_norm((p.get("address") or "").split(",")[0]) for p in (pa, pb))
+    name_a, name_b = _norm(pa.get("title")), _norm(pb.get("title"))
+    return bool(street_a and street_a == street_b) or bool(name_a and name_a == name_b)
+
+
 def _absorb(primary: dict, other: dict) -> None:
     """Lägger till den andra källans länk och fyller i det som saknas hos den primära."""
     known = {s["name"] for s in primary["sources"]}
@@ -90,8 +107,8 @@ def merge(per_source: list[list[dict]]) -> list[dict]:
             match = None
             for day in (d for o in ev["occasions"] for d in _days(o)):
                 for cand in by_day.get(day, []):
-                    if (cand["source"] != ev["source"] and _same_place(cand, ev)
-                            and (similar(cand["title"], ev["title"]) or same_race(cand, ev))):
+                    if (_same_place(cand, ev) and (similar(cand["title"], ev["title"]) or same_race(cand, ev))
+                            and (cand["source"] != ev["source"] or duplicate_listing(cand, ev))):
                         match = cand
                         break
                 if match:
