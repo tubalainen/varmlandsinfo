@@ -52,7 +52,8 @@ aktuella när något ändras.
   ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
-  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA, Profixio, Säffle och Kil är vanliga
+  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA, Profixio, Säffle, Kil och
+  Skoghalls Folkets Hus är vanliga
   webbplatser).
   Profixio (bandy och handboll): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
   sedan bara serierna med lag från Värmland.
@@ -119,7 +120,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
   #82), Great Event, Karlstad Loppis + loppisar.com
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
-  **Kommunerna**, `sources/kommunerna.py`, #79). En källas `group` gör att
+  **Kommunerna**, `sources/kommunerna.py`, #79), Skoghalls Folkets Hus (`sources/skoghall.py`, #96). En källas
+  `group` gör att
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
   i `/api/health` är per källa.
 - **Motorsport:** publika tävlingar och prova på-dagar i Värmland + Karlskoga. Läget avgörs av banans namn (`PLACES`
@@ -133,6 +135,12 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   ger året när den stämmer). Kil: `registerInitialState` i sidan, 25 per sida (`?start=25`), utan plats och kategori
   (`KIL_RULES` och `CHILD_RE` ur titeln). Samma titel (och plats) blir ett evenemang med flera tillfällen. Karlstad,
   Hammarö, Sunne (Sagolika Sunne) och Grums visar Visit Värmlands data.
+- **Skoghalls Folkets Hus** (#96): WordPress med tillägget Theater. REST-API:t `wp-json/wp/v2/wp_theatre_prod`
+  (produktionerna) och `categories`, sedan produktionssidan bara för de som inte är film (`is_live`: levande kategori
+  eller titelprefix, och inget som säger "på bio", Seniorbio, Knattebio eller "livesänds till biografer"; användaren
+  vill inte ha film eller sändningar på bioduken). Datum och tid ur biljettlänken (`tomovie@salongnr=N&tid=…&datum=…`,
+  salong 6 = restaurangen), reserv i tabellraden. Andra platser (`PLACES`): Tingvallakyrkan (Karlstad) och Bygdegården
+  Svenshult (Hammarö). Det mesta finns också hos Visit Värmland och slås ihop (`merge.same_slot`).
 - **Analys av källor som saknas** (2026-09-29): möjligt nästa steg är Tickster (Event Dump API, en fil per dygn,
   kräver nyckel). Handboll är gjord (#82). Avfärdade: Svenska kyrkan
   (användarens beslut), Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
@@ -163,6 +171,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `same_race` för motorsport med olika titlar. "loppis" och "konsert" m.fl. räknas inte som gemensamma ord. Inom samma
   källa bara `duplicate_listing` (samma dag, starttid och plats, #95): Visit Värmland har ibland en post från
   arrangören och en från lokalen. Visit Värmlands kommun: platsens adress och namn först, sedan arrangören (#95).
+  Mellan källor dessutom `same_slot` (#96): samma dag och starttid, ett gemensamt ord i lokalens namn (utom
+  `PLACE_STOP`) och ett gemensamt ord i titeln eller den andras ingress. Mot sparad data slog den bara ihop riktiga
+  dubbletter (Skoghall och Nötknäpparen på CCC).
 - **Beskrivningen** i korten (`descriptionBlock` i `app.js`, #67): stycken av källans rader (en lång rad som avslutar en
   mening blir ett eget stycke, korta rader hålls ihop), långa textmassor delas vid meningsgränser, webb- och
   e-postadresser blir länkar, och ingressen döljs när beskrivningen är utfälld om beskrivningen börjar med den.
@@ -325,6 +336,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   till scratchpaden, lägg `COPY ca.crt /ca.crt` och `ENV PIP_CERT=/ca.crt SSL_CERT_FILE=/ca.crt` efter `FROM` i
   kopian och kör `docker build --network host` med `--build-arg` för `HTTP_PROXY`/`HTTPS_PROXY` (och gemener).
   Trivy: `docker run --network host` med proxyvariablerna, `SSL_CERT_FILE=/ca.crt` och docker-socketen.
+- **Skoghalls Folkets Hus** svarar långsamt (en hämtning tar cirka 60 s), och via molnmiljöns proxy bryts
+  förbindelsen ibland efter cirka 12 s (`ws_closed_mid_exchange`). Försök igen med `curl --retry 3 --retry-delay 10
+  --retry-all-errors`, en förfrågan i taget.
 - Uvicorn läser `index.html` vid start: starta om servern efter ändringar i HTML eller Python.
 - **Archify** finns inte installerat: `git clone --depth 1 https://github.com/tt-a1i/archify` till scratchpaden och kör
   `archify/bin/archify.mjs`. I kopian av repot måste `origin` vara `https://github.com/tubalainen/varmlandsinfo`

@@ -101,7 +101,9 @@ def test_merge_shl_into_visit_varmland():
         "occasions": [{"date_start": FUTURE, "date_end": FUTURE, "time_start": "00:00:00"}],
     }, {9: "Karlstad"})
     game = shl.normalize_game(shl_game())
-    other = shl.normalize_game(shl_game(uuid="zzz", awayTeamInfo={"code": "HV", "names": {"long": "HV71"}}))
+    # Samma dag men en annan tid (samma tid på samma arena vore samma evenemang, se merge.same_slot)
+    other = shl.normalize_game(shl_game(uuid="zzz", startDateTime=f"{FUTURE} 15:15:00",
+                                        awayTeamInfo={"code": "HV", "names": {"long": "HV71"}}))
     merged = merge([[vv], [], [game, other]])
     assert len(merged) == 2
     fbk = merged[0]

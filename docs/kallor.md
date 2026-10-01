@@ -16,6 +16,7 @@
 | [Svemo](https://ta.svemo.se) | Tävlingskalendern Svemo TA (HTML) | MC- och snöskotersport: motocross, enduro, speedway, trial … |
 | [Säffle kommun](https://saffle.se/uppleva-och-gora/visit-saffle/evenemang.html) | Kommunens evenemangskalender (JSON) | Evenemang i Säffle som inte finns hos Visit Värmland: Medis, Sagabiografen, biblioteket, Silvénska villan, bygdegårdar … |
 | [Kils kommun](https://kil.se/arkiv/evenemang) | Kommunens evenemangskalender (HTML) | Evenemang i Kil: biblioteket, konserter, barnaktiviteter … |
+| [Skoghalls Folkets Hus](https://skoghallsfolketshus.se/) | WordPress REST-API och produktionssidorna (HTML) | Pubkvällar, konserter, teater och föreläsningar i Skoghall (Hammarö), men inte film. |
 
 Samma evenemang från flera källor slås ihop och visas en gång, med länkar till alla källor. Källornas ordning i
 tabellen är också deras prioritet vid sammanslagningen. Har en källa samma evenemang två gånger (Visit Värmland har
@@ -54,6 +55,14 @@ tillfällen som inte är slut). Kils kalender saknar plats och kategori, så kat
 tillfällen (t.ex. Babytorsdag) blir ett evenemang med flera tillfällen. Karlstads och Hammarö kommuns kalendrar
 visar Visit Värmlands evenemang och behövs inte, och det gäller även Sunne (Sagolika Sunne) och Grums.
 
+**Skoghalls Folkets Hus:** de flesta produktionerna är filmer, och sajtens kategori Bio används inte konsekvent. Med
+kommer bara produktioner med en kategori som inte är film (Teater, Föreläsning, Pubkväll, konsert …) eller en titel
+som börjar med till exempel Pubkväll, Teater eller Författarbesök. Sändningar på bioduken (Opera på Bio, Musikal på
+Bio, André Rieu) räknas som bio och kommer inte med. Datum och tid tas ur biljettlänken på produktionssidan. Det mesta
+finns också hos Visit Värmland, men pubkvällar och evenemang utanför huset (Bygdegården Svenshult, Tingvallakyrkan)
+saknas ofta där. Samma evenemang hos båda slås ihop även med olika titlar, när dag, tid och lokal är desamma och
+titlarna har ett ord gemensamt ("Konsert: The Hebbe Family" och "Säg det med ett leende" om The Hebbe Sisters).
+
 **Webbsidor utan API:** Profixio (bandy och handboll), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
@@ -78,6 +87,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Svemo | cirka 3 | Datumfiltret fungerar inte där, så bara första sidan, sista sidan och sidorna bakåt till dagens datum läses. |
 | Säffle kommun | 1 | Kalenderns lista som JSON, alla kommande tillfällen i ett anrop. |
 | Kils kommun | 1–2 | Kalendersidan, 25 evenemang per sida. |
+| Skoghalls Folkets Hus | cirka 14 | REST-API:t (produktionerna och kategorierna) och sidan för varje produktion som inte är film, 1 s paus mellan anropen. |
 
 Evenemangens **bilder** hämtas inte vid uppdateringen, utan först när någon visar dem. De sparas sedan på servern,
 och högst 4 bilder hämtas samtidigt. Se [Bilder via appen](data-och-integritet.md#bilder-via-appen).

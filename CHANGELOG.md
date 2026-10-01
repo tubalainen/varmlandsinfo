@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa, *Skoghalls Folkets Hus*: pubkvällar, konserter, teater och föreläsningar i Skoghall (Hammarö), men inte
+  film eller sändningar på bioduken. Ger bland annat pubkvällar och evenemang utanför huset (Bygdegården Svenshult) som
+  saknas hos Visit Värmland. Samma evenemang från två källor slås nu ihop även med olika titlar, när dag, starttid och
+  lokal är desamma och titlarna har ett ord gemensamt (#96).
+
 ### Rättat
 - Visit Värmland: platsens kommun går före arrangörens, så att till exempel Karlstads Riksteaterförenings
   föreställningar i Skoghall hamnar i Hammarö och inte i Karlstad. Samma evenemang två gånger hos en källa (samma

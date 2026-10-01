@@ -64,6 +64,28 @@ def duplicate_listing(a: dict, b: dict) -> bool:
     return bool(street_a and street_a == street_b) or bool(name_a and name_a == name_b)
 
 
+# Vanliga ord i lokalers namn som inte säger vilken lokal det är
+PLACE_STOP = {"folkets", "hus", "huset", "kyrka", "kyrkan", "scen", "scenen", "stora", "lilla", "salen", "arena",
+              "centrum", "kulturhus", "teater", "teatern", "bio", "restaurang", "restaurangen"}
+
+
+def _place_words(e: dict) -> set[str]:
+    return {w for w in _words((e.get("place") or {}).get("title") or "") if len(w) > 3 and w not in PLACE_STOP}
+
+
+def same_slot(a: dict, b: dict) -> bool:
+    """Samma evenemang med olika titlar hos två källor: samma dag och starttid på samma lokal (ett gemensamt ord i
+    lokalens namn) och minst ett gemensamt ord i titeln eller i den andras ingress. Skoghalls Folkets Hus "Konsert:
+    The Hebbe Family & Hammarö manskör" är Visit Värmlands "Säg det med ett leende" (som nämner Hebbe) (#96)."""
+    times = {(o["date_start"], o["time_start"]) for o in a["occasions"] if o.get("time_start")}
+    if not times & {(o["date_start"], o["time_start"]) for o in b["occasions"] if o.get("time_start")}:
+        return False
+    if not _place_words(a) & _place_words(b):
+        return False
+    ta, tb = ({w for w in _words(e["title"]) if len(w) > 2} for e in (a, b))
+    return bool(ta & (tb | _words(b.get("summary") or "")) or tb & _words(a.get("summary") or ""))
+
+
 def _absorb(primary: dict, other: dict) -> None:
     """Lägger till den andra källans länk och fyller i det som saknas hos den primära."""
     known = {s["name"] for s in primary["sources"]}
@@ -107,8 +129,11 @@ def merge(per_source: list[list[dict]]) -> list[dict]:
             match = None
             for day in (d for o in ev["occasions"] for d in _days(o)):
                 for cand in by_day.get(day, []):
-                    if (_same_place(cand, ev) and (similar(cand["title"], ev["title"]) or same_race(cand, ev))
-                            and (cand["source"] != ev["source"] or duplicate_listing(cand, ev))):
+                    if not _same_place(cand, ev):
+                        continue
+                    alike = similar(cand["title"], ev["title"]) or same_race(cand, ev)
+                    if (cand["source"] != ev["source"] and (alike or same_slot(cand, ev))
+                            or cand["source"] == ev["source"] and alike and duplicate_listing(cand, ev)):
                         match = cand
                         break
                 if match:
