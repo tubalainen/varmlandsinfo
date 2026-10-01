@@ -25,10 +25,11 @@ Klicka på bilden för den interaktiva, animerade översikten, eller ändra
 
 ## Funktioner
 
-- **Evenemang från femton källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
+- **Evenemang från sexton källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
   Karlstad CCC, Scalateatern, SHL, Bandy (Svenska Bandyförbundets matcher i Profixio), Handboll (Svenska
   Handbollförbundets matcher i Profixio), Great Event, Loppisar (Karlstad Loppis och loppisar.com), Motorsport (SBF och
-  Svemo), Kommunerna (Säffles och Kils evenemangskalendrar) och Skoghalls Folkets Hus (allt utom film).
+  Svemo), Kommunerna (Säffles och Kils evenemangskalendrar), Skoghalls Folkets Hus (allt utom film) och
+  Riksteatern (föreställningarna i Värmland).
 - **Lista och kalender** dag för dag, med filter på kategori, kommun, källa och datum.
 - **Fråga AI:** sökfrågor besvaras direkt, och frågor som kräver en bedömning besvaras av din egen Ollama.
   Valfri webbsökning via SearXNG.

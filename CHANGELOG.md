@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Ny källa, *Riksteatern*: Riksteaterföreningarnas publika föreställningar i Värmland, bland annat i Folkets Hus och
+  bygdegårdar som inte har egna evenemangslistor (t.ex. Oleby Folkets Hus). Ett anrop per hämtning, utan slutna
+  föreställningar och bio. Fråga AI känner igen källornas namn (#98).
+
 ### Dokumentation
 - Skärmdumparna visar v0.31.0 och källan Skoghalls Folkets Hus (#97).
 

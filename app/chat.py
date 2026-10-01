@@ -478,10 +478,12 @@ def _fold(text: str) -> str:
 
 
 def _index(events: list[dict]) -> dict:
-    """Ord och texter i evenemangens titlar, platser och arrangörer, samt kommunerna."""
+    """Ord och texter i evenemangens titlar, platser, arrangörer och källor (t.ex. Riksteatern, #98), samt
+    kommunerna."""
     words, texts, munis = set(), set(), set()
     for e in events:
-        for text in (e.get("title"), (e.get("place") or {}).get("title"), e.get("organizer")):
+        sources = [s.get("name") for s in e.get("sources") or [] if isinstance(s, dict)]
+        for text in (e.get("title"), (e.get("place") or {}).get("title"), e.get("organizer"), *sources):
             if text:
                 folded = " ".join(re.findall(r"[^\W_][\w-]*", _fold(text)))
                 texts.add(folded)

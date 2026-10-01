@@ -17,6 +17,7 @@
 | [Säffle kommun](https://saffle.se/uppleva-och-gora/visit-saffle/evenemang.html) | Kommunens evenemangskalender (JSON) | Evenemang i Säffle som inte finns hos Visit Värmland: Medis, Sagabiografen, biblioteket, Silvénska villan, bygdegårdar … |
 | [Kils kommun](https://kil.se/arkiv/evenemang) | Kommunens evenemangskalender (HTML) | Evenemang i Kil: biblioteket, konserter, barnaktiviteter … |
 | [Skoghalls Folkets Hus](https://skoghallsfolketshus.se/) | WordPress REST-API och produktionssidorna (HTML) | Pubkvällar, konserter, teater och föreläsningar i Skoghall (Hammarö), men inte film. |
+| [Riksteatern](https://www.riksteatern.se/forestallningar/) | Föreställningslistans JSON-API, Värmlands län | Riksteaterföreningarnas föreställningar i Folkets Hus, bygdegårdar och teatrar i hela Värmland. |
 
 Samma evenemang från flera källor slås ihop och visas en gång, med länkar till alla källor. Källornas ordning i
 tabellen är också deras prioritet vid sammanslagningen. Har en källa samma evenemang två gånger (Visit Värmland har
@@ -63,6 +64,12 @@ finns också hos Visit Värmland, men pubkvällar och evenemang utanför huset (
 saknas ofta där. Samma evenemang hos båda slås ihop även med olika titlar, när dag, tid och lokal är desamma och
 titlarna har ett ord gemensamt ("Konsert: The Hebbe Family" och "Säg det med ett leende" om The Hebbe Sisters).
 
+**Riksteatern:** Riksteaterföreningarna turnerar till Folkets Hus, bygdegårdar och teatrar, och deras föreställningar
+finns ofta inte hos andra källor (t.ex. i Oleby Folkets Hus i Torsby). Med kommer bara publika föreställningar:
+slutna (skolföreställningar och liknande), inställda och flyttade tas bort, och inte heller bio eller sändningar på
+bioduken tas med. De flesta finns också hos Visit Värmland och slås ihop. De mindre Folkets Hus i Värmland har inga
+egna evenemangslistor (de hyrs mest ut), och det som spelas där finns hos Visit Värmland eller Riksteatern (#98).
+
 **Webbsidor utan API:** Profixio (bandy och handboll), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
@@ -88,6 +95,7 @@ Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En no
 | Säffle kommun | 1 | Kalenderns lista som JSON, alla kommande tillfällen i ett anrop. |
 | Kils kommun | 1–2 | Kalendersidan, 25 evenemang per sida. |
 | Skoghalls Folkets Hus | cirka 14 | REST-API:t (produktionerna och kategorierna) och sidan för varje produktion som inte är film, 1 s paus mellan anropen. |
+| Riksteatern | 1 | Alla föreställningar i Värmlands län i ett anrop (200 per sida). |
 
 Evenemangens **bilder** hämtas inte vid uppdateringen, utan först när någon visar dem. De sparas sedan på servern,
 och högst 4 bilder hämtas samtidigt. Se [Bilder via appen](data-och-integritet.md#bilder-via-appen).

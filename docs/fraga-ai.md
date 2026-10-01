@@ -43,7 +43,7 @@ AI:n svarar bara på frågor om evenemangen i appen.
   - *Godkänd:* frågan nämner ett evenemang, en plats eller en arrangör som finns i appen ("Hur många besökare har
     Arvikamarten årligen?"). Godkänd är också en fråga om evenemang i allmänhet (typ, barn och familj, eller ord som
     evenemang, aktiviteter och tips) som inte nämner något namn som saknas i appen.
-  - *Stoppad:* frågan nämner ett namn som inte finns bland appens evenemang, platser, arrangörer och kommuner
+  - *Stoppad:* frågan nämner ett namn som inte finns bland appens evenemang, platser, arrangörer, källor och kommuner
     ("Hur många besökare har Liseberg en helg under högsäsong?", "Vad händer i Göteborg?"). Stoppad är också en
     fråga som inte rör evenemang alls ("Skriv en dikt", "Hur blir vädret i morgon?").
   - Namn med flera ord ("Håkan Hellström") måste stå tillsammans i samma evenemang.

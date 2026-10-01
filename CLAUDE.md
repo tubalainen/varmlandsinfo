@@ -104,7 +104,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt** (bara dokumentation): skärmdumparna med v0.31.0 (#97). v0.31.0 innehåller den nya källan Skoghalls Folkets Hus och `merge.same_slot` (#96),
+- **Inte släppt:** skärmdumparna med v0.31.0 (#97) och den nya källan Riksteatern (#98, Fråga AI känner igen
+  källornas namn). v0.31.0 innehåller den nya källan Skoghalls Folkets Hus och `merge.same_slot` (#96),
   Visit Värmlands kommun ur platsen först och `merge.duplicate_listing` (#95) och arkitekturbilden med 15 källor.
   v0.30.3 innehåller arkitekturbilden och skärmdumparna efter säkerhetsarbetet (#94). v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i
   `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`) och v0.30.2 råden för
@@ -122,7 +123,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
   #82), Great Event, Karlstad Loppis + loppisar.com
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
-  **Kommunerna**, `sources/kommunerna.py`, #79), Skoghalls Folkets Hus (`sources/skoghall.py`, #96). En källas
+  **Kommunerna**, `sources/kommunerna.py`, #79), Skoghalls Folkets Hus (`sources/skoghall.py`, #96), Riksteatern
+  (`sources/riksteatern.py`, #98). En källas
   `group` gör att
   flera källor visas som en i gränssnittet (menyn, filtret Källa, korten, sidan Om), medan hämtning, lagring och status
   i `/api/health` är per källa.
@@ -143,11 +145,19 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   vill inte ha film eller sändningar på bioduken). Datum och tid ur biljettlänken (`tomovie@salongnr=N&tid=…&datum=…`,
   salong 6 = restaurangen), reserv i tabellraden. Andra platser (`PLACES`): Tingvallakyrkan (Karlstad) och Bygdegården
   Svenshult (Hammarö). Det mesta finns också hos Visit Värmland och slås ihop (`merge.same_slot`).
+- **Riksteatern** (#98): öppet JSON-API, ett anrop: `riksteatern.se/api/performance/filter/all?region=17`
+  (Värmlands län, filtren i `/api/performance/filteritems/all`). Bort: `isPrivate` (skolföreställningar, matiné för
+  kommunen), `isCanceled`, `isPostponed` och bio. Sist i prioritetsordningen, det mesta slås ihop med Visit Värmland
+  och Skoghall. Undersökningen av Folkets Hus (2026-10-01): de små husen (Årjäng, Högboda, Oleby …) har inga egna
+  evenemangslistor, hyrs mest ut, och det som spelas där finns hos Visit Värmland eller Riksteatern. varmland.bio
+  är bara bio (användaren vill inte ha bio i nya källor, befintliga källors filmvisningar får vara kvar).
 - **Analys av källor som saknas** (2026-09-29): möjligt nästa steg är Tickster (Event Dump API, en fil per dygn,
   kräver nyckel). Handboll är gjord (#82). Avfärdade: Svenska kyrkan
   (användarens beslut), Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
   (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
-  Storfors (fritext) och Karlstads universitet (mest för studenter).
+  Storfors (fritext) och Karlstads universitet (mest för studenter). 2026-10-01 (#98): Folkets Hus med egna sajter
+  (Årjäng, Högboda, Oleby) saknar evenemangslistor, Karlskoga kommuns kalender länkar bara till Visit Värmland,
+  varmland.bio (bara bio), danskalendern.se (skräpblogg), ABF Värmland och bygdegardarna.se (inga listor).
 - **Kommuner** (`kommuner.py`, #81): filtret Kommun har bara `KOMMUNER` (Värmlands 16 + Karlskoga och Degerfors, som
   Visit Värmlands kommunlista). `common.finalize` sätter kommunen med `kommun()` ur källans kommun, platsens adress
   och namn: kommunnamn, orter (`ORTER`, t.ex. Väse → Karlstad) och postnummerprefix som bara används i en kommun
