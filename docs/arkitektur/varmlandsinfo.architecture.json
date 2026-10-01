@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "90eb7f95740b649a5a8389002ade0c4a39631afa"
+      "revision": "e67f16fd82a1e3b791549cd7211ebc782e053014"
     }
   },
   "components": [
@@ -187,18 +187,18 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 840,
+          "line": 842,
           "label": "chat_stream"
         },
         {
           "path": "app/chat.py",
-          "line": 940,
+          "line": 942,
           "label": "kön till Ollama"
         },
         {
           "path": "app/chat.py",
-          "line": 694,
-          "end_line": 697,
+          "line": 696,
+          "end_line": 699,
           "label": "tillåtna länkar"
         }
       ]
@@ -219,7 +219,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 961,
+          "line": 963,
           "label": "POST /api/chat"
         }
       ]
@@ -240,7 +240,7 @@
       "sources": [
         {
           "path": "app/chat.py",
-          "line": 929,
+          "line": 931,
           "label": "webbsökning"
         },
         {
@@ -391,8 +391,8 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 18,
-          "end_line": 19,
+          "line": 19,
+          "end_line": 21,
           "label": "källorna"
         }
       ]
@@ -433,7 +433,7 @@
     {
       "id": "sources",
       "type": "external",
-      "label": "Källorna (15 st)",
+      "label": "Källorna (16 st)",
       "sublabel": "API (JSON) och webbsidor (HTML)",
       "sources": [
         {
@@ -449,8 +449,8 @@
         },
         {
           "path": "app/sources/__init__.py",
-          "line": 18,
-          "end_line": 19,
+          "line": 19,
+          "end_line": 21,
           "label": "alla källor"
         }
       ],
