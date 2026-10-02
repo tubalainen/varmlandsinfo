@@ -104,7 +104,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.32.1 innehåller skärmdumparna med v0.32.0 (#99). v0.32.0 innehåller den nya källan Riksteatern med arkitekturbilden med 16 källor (#98,
+- **Inte släppt** (bara dokumentation): skärmdumparna med v0.32.1 och arkitekturbilden på revision 64b8774 (#100).
+  v0.32.1 innehåller skärmdumparna med v0.32.0 (#99). v0.32.0 innehåller den nya källan Riksteatern med arkitekturbilden med 16 källor (#98,
   Fråga AI känner igen källornas namn) och skärmdumparna med v0.31.0 (#97). v0.31.0 innehåller den nya källan Skoghalls Folkets Hus och `merge.same_slot` (#96),
   Visit Värmlands kommun ur platsen först och `merge.duplicate_listing` (#95) och arkitekturbilden med 15 källor.
   v0.30.3 innehåller arkitekturbilden och skärmdumparna efter säkerhetsarbetet (#94). v0.30.1 innehåller #91 (härdad container i `docker-compose.yaml`, `apt-get upgrade` i

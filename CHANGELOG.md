@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Skärmdumparna visar v0.32.1, och arkitekturbilden pekar på aktuell kod (#100).
+
 ## [0.32.1] - 2026-10-02
 
 ### Dokumentation
