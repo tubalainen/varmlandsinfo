@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-10-02
+
 ### Tillagt
 - Ny källa, *Riksteatern*: Riksteaterföreningarnas publika föreställningar i Värmland, bland annat i Folkets Hus och
   bygdegårdar som inte har egna evenemangslistor (t.ex. Oleby Folkets Hus). Ett anrop per hämtning, utan slutna
@@ -487,7 +489,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.31.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.0...HEAD
+[0.32.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.3...v0.31.0
 [0.30.3]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.2...v0.30.3
 [0.30.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.1...v0.30.2
