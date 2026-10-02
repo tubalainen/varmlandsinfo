@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.32.1] - 2026-10-02
+
 ### Dokumentation
 - Skärmdumparna visar v0.32.0 och källan Riksteatern (#99).
 
@@ -492,7 +494,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.1...HEAD
+[0.32.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.0...v0.32.1
 [0.32.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.3...v0.31.0
 [0.30.3]: https://github.com/tubalainen/varmlandsinfo/compare/v0.30.2...v0.30.3
