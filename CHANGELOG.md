@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-10-09
+
 ### Tillagt
 - Platshållarbild per kategori när ett evenemang saknar bild eller bilden inte går att hämta: ett tecknat värmländskt
   landskap i kategorins färg med kategorins symbol, i ljust och mörkt läge. Trasiga miniatyrer döljs (#101).
@@ -506,7 +508,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.2...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.0...HEAD
+[0.33.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.2...v0.33.0
 [0.32.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.1...v0.32.2
 [0.32.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.0...v0.32.1
 [0.32.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.31.0...v0.32.0
