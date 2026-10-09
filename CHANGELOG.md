@@ -10,6 +10,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Platshållarbild per kategori när ett evenemang saknar bild eller bilden inte går att hämta: ett tecknat värmländskt
   landskap i kategorins färg med kategorins symbol, i ljust och mörkt läge. Trasiga miniatyrer döljs (#101).
 
+### Dokumentation
+- Skärmdumparna visar v0.33.0 med platshållarbilderna (#102).
+
 ## [0.32.2] - 2026-10-02
 
 ### Dokumentation
