@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-10-09
+
 ### Ändrat
 - Källorna hämtas inte längre alla samtidigt kl. 05:00. Varje källa hämtas en gång om dagen vid en egen slumpad tid
   mellan 08:00 och 13:00 (`REFRESH_WINDOW`), som dras på nytt varje dag, och pauserna mellan anropen till en källa är
@@ -520,7 +522,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.0...HEAD
+[0.34.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.1...v0.34.0
 [0.33.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.0...v0.33.1
 [0.33.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.2...v0.33.0
 [0.32.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.32.1...v0.32.2
