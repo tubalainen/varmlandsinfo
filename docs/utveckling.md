@@ -26,8 +26,9 @@ app/
   version.py       Versionsnummer
   static/          Webbgränssnittet (HTML/CSS/JS)
   static/icons/    Appens ikon (SVG och PNG i flera storlekar)
+  static/placeholders/  Platshållarbilderna per kategori (SVG, ritas med python tools/placeholders.py)
 tests/             Tester (pytest)
-tools/             Kontrastkontroll i ljust och mörkt läge, och skärmdumparna till dokumentationen
+tools/             Kontrastkontroll i ljust och mörkt läge, skärmdumparna till dokumentationen och platshållarbilderna
 docs/              Dokumentationen
 docs/arkitektur/   Arkitekturbilden: Archify-källan, det interaktiva diagrammet och bilden (publiceras med GitHub Pages)
 docs/screenshots/  Skärmdumparna i README och docs/

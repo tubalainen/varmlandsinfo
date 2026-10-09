@@ -189,6 +189,8 @@ body.cal-mode .list-only { display: none; }
 .card { display: grid; grid-template-columns: 208px 1fr; gap: 18px; background: var(--card); border: 1px solid var(--line);
         border-radius: var(--radius); padding: 14px; margin: 10px 0; box-shadow: var(--shadow); }
 .card .img { width: 208px; height: 148px; object-fit: cover; border-radius: 10px; cursor: zoom-in; background: var(--surface-2); }
+/* Platshållaren (#101) fyller ut åt sidorna (landskapet är bredare än bilden), så att motivet aldrig beskärs */
+.card .img.placeholder { object-fit: fill; cursor: default; }
 .card h3 { margin: 2px 0 6px; font-size: 1.08rem; }
 .card h3 a { color: var(--text); text-decoration: none; }
 .card h3 a:hover { color: var(--accent-text); text-decoration: underline; }

@@ -177,6 +177,11 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   **Bandy och innebandy är olika sporter** (bandy på is med skridskor) och får aldrig blandas ihop: varken i
   kategorier, sökrutan (`matches` i `app.js`) eller Fråga AI (#71). Kategorier i `categories.SOURCE_ONLY` följer med vid sammanslagning (`merge._absorb`),
   eftersom Visit Värmland och Ticketmaster har högre prioritet och annars skulle ta bort dem.
+- **Platshållarbilder** (#101): saknas bilden eller går den inte att ladda visas `app/static/placeholders/<kategori>.svg`
+  (`placeholder()` i `app.js`, första kategorin utom Gratis, annars Övrigt). Trasiga miniatyrer tas bort (`dropThumb`).
+  SVG:erna ritas av `tools/placeholders.py` (landskapet är bredare än viewBox, `object-fit: fill`, så att motivet inte
+  beskärs på mobilen, och har eget mörkt läge). Ny kategori: lägg till ett motiv i `MOTIFS`, kör verktyget och lägg
+  till namnet i `PLACEHOLDERS` i `app.js` (testet `test_placeholders.py` kontrollerar båda).
 - **Ordning i listan och kalendern** (`multiDay` i `app.js`): under varje dag står evenemang som bara äger rum en dag
   före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte
   som ett tillfälle över flera dagar), sedan tid och titel.

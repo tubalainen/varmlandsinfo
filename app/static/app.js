@@ -443,6 +443,38 @@ function mapUrl(e) {
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null;
 }
 
+// Platshållarbild per kategori när bilden saknas eller inte går att ladda (#101), ritad med tools/placeholders.py.
+// Filnamnet är kategorins namn i gemener utan å, ä och ö (samma regel som slug() i verktyget). Gratis säger inget om
+// innehållet och kommer därför sist.
+const PLACEHOLDERS = new Set([
+  "musik", "teater-och-underhallning", "dans", "utstallning", "forelasning-och-workshop", "sport-motion-och-halsa",
+  "barn", "marknad-massa-och-auktion", "shl", "bandy", "handboll", "motorsport", "loppis", "mat-och-dryck",
+  "guidning", "motortraffar", "pa-vatten", "film", "spel-och-quiz", "traffar-och-cafeer", "bocker-och-litteratur",
+  "gratis", "ovrigt"
+]);
+const slug = (t) => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-|-$/g, "");
+
+function placeholder(e) {
+  const cats = [...e.categories].sort((a, b) => (a.title === "Gratis") - (b.title === "Gratis"));
+  const s = cats.map((c) => slug(c.title)).find((x) => PLACEHOLDERS.has(x)) || "ovrigt";
+  return `/static/placeholders/${s}.svg`;
+}
+
+/** Byter en bild som inte gick att ladda mot platshållaren. Den går inte att förstora. */
+function usePlaceholder(n, src) {
+  n.classList.add("placeholder");
+  n.alt = "";
+  n.src = src;
+}
+
+/** Tar bort en miniatyr som inte gick att ladda, och hela "Beskrivning och bilder" om inget annat finns kvar där. */
+function dropThumb(n) {
+  const d = n.closest("details");
+  n.remove();
+  if (d && !d.querySelector(".thumbs img, :scope > :not(summary):not(.thumbs)")) d.remove();
+}
+
 function card(e, o, occ, expand) {
   const img = e.images[0];
   const cats = e.categories;
@@ -451,8 +483,10 @@ function card(e, o, occ, expand) {
   const others = occ.filter((x) => x !== o);
 
   return el("article", { class: "card" },
-    img ? el("img", { class: "img", src: img.medium, alt: img.alt, loading: "lazy", onclick: () => openImage(img) })
-        : el("div", { class: "img" }),
+    img ? el("img", { class: "img", src: img.medium, alt: img.alt, loading: "lazy",
+                      onclick: (ev) => ev.target.classList.contains("placeholder") || openImage(img),
+                      onerror: (ev) => usePlaceholder(ev.target, placeholder(e)) })
+        : el("img", { class: "img placeholder", src: placeholder(e), alt: "", loading: "lazy" }),
     el("div", {},
       el("h3", {}, e.url ? el("a", { href: e.url, target: "_blank", rel: "noopener" }, e.title) : e.title),
       el("div", { class: "meta" },
@@ -470,7 +504,8 @@ function card(e, o, occ, expand) {
         el("summary", {}, "Beskrivning och bilder"),
         e.description ? descriptionBlock(e.description) : null,
         e.place?.address ? el("p", { class: "muted" }, "Adress: " + e.place.address) : null,
-        el("div", { class: "thumbs" }, e.images.map((i) => el("img", { src: i.small, alt: i.alt, loading: "lazy", onclick: () => openImage(i) })))) : null,
+        el("div", { class: "thumbs" }, e.images.map((i) => el("img", { src: i.small, alt: i.alt, loading: "lazy", onclick: () => openImage(i),
+                                                      onerror: (ev) => dropThumb(ev.target) })))) : null,
       el("div", { class: "links" },
         e.url ? ext(e.url, "Mer information", "btn btn-sm btn-primary") : null,
         e.booking_link ? ext(e.booking_link, "Biljetter", "btn btn-sm", "ticket") : null,

@@ -12,6 +12,9 @@
   bilder (klicka för att förstora) och länkar till evenemanget hos källan, biljetter och webbplats. Den längre
   beskrivningen visas i stycken: långa texter utan radbrytningar delas vid meningsgränser, webb- och e-postadresser
   blir länkar, och sammanfattningen döljs när beskrivningen är utfälld om beskrivningen börjar med samma text.
+- **Platshållarbilder:** saknas bilden, eller går den inte att hämta (källans bildserver svarar inte), visas en
+  tecknad bild för evenemangets typ i stället: ett värmländskt landskap i typens färg med typens symbol, i ljust och
+  mörkt läge. Bilderna ritas av `tools/placeholders.py` (`app/static/placeholders/`). Trasiga miniatyrer döljs.
 - **Återkommande evenemang** visas en gång, på första datumet, med övriga datum i kortet. Med reglaget
   *Ett kort per datum* visas de i stället som ett eget kort på varje datum.
 - **Kalender:** en månad med en vecka per rad (mån–sön, med veckonummer) och evenemangen färgkodade per typ. Klicka
