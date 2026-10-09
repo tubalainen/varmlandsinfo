@@ -16,13 +16,12 @@ Matcherna har ingen kommun. Läget avgörs av arenan och i andra hand hemmalaget
 för motorsporten). Ungdomslag (U17, F15 …) räknas inte.
 """
 
-import asyncio
 import re
 from datetime import date, datetime, timedelta
 
 import httpx
 
-from common import TZ, SourceError, category, finalize, get_text, today
+from common import TZ, SourceError, category, finalize, get_text, pause, today
 from sources.motorsport import MUNICIPALITIES, municipality as motor_municipality
 from sources.profixio import (BASE, HEADERS, load_lazy, next_page, parse_checked, parse_leagues,  # noqa: F401
                               parse_matches, parse_teams)
@@ -76,7 +75,7 @@ class Bandy:
         """Alla kommande matcher i en serie: första sidan och sedan nästa sida tills listan är slut."""
         url = f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule"
         if page is None:
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await get_text(client, url, self.title, HEADERS)
         matches = parse_checked(page, self.title)
         first = page                     # csrf-token och Livewire-adressen finns bara på första sidan
@@ -84,7 +83,7 @@ class Bandy:
             nxt = next_page(page)
             if not nxt:
                 break
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await load_lazy(client, first, url, nxt, self.title)
             found = parse_checked(page, self.title)
             if not found:
@@ -100,7 +99,7 @@ class Bandy:
             raise SourceError(f"Hittade inga serier hos {self.title}, sidans struktur kan ha ändrats")
         found, first_pages = [], {}
         for league in leagues:
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await get_text(client, f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule", self.title, HEADERS)
             teams = [t for t in parse_teams(page) if not youth(t) and municipality(None, t)]
             arenas = any(municipality(m["arena"], None) for m in parse_checked(page, self.title))

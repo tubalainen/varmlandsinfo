@@ -6,12 +6,11 @@ alla föreställningar i länet. Slutna föreställningar (skolföreställningar
 inte med, och inte heller bio eller sändningar på bioduken.
 """
 
-import asyncio
 import re
 
 import httpx
 
-from common import SourceError, category, clean_text, finalize, get_json, https_url
+from common import SourceError, category, clean_text, finalize, get_json, https_url, pause
 
 BASE = "https://www.riksteatern.se"
 API = f"{BASE}/api/performance/filter/all"
@@ -35,7 +34,7 @@ class Riksteatern:
         performances = []
         for page in range(1, MAX_PAGES + 1):
             if page > 1:
-                await asyncio.sleep(1)
+                await pause(1)
             items = await get_json(client, API, self.title, onlyNationalProductions="false",
                                    showSubscribedPerformances="true", region=REGION, page=page, itemsPerPage=PER_PAGE)
             if not isinstance(items, list):

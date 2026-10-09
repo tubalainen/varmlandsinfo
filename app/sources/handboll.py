@@ -13,13 +13,12 @@ stället för hela seriers spelscheman hämtas lagens egna sidor:
 Bara matcher som spelas i Värmland (eller Karlskoga) tas med: arenan avgör kommunen, och i andra hand hemmalaget.
 """
 
-import asyncio
 import re
 from datetime import date, datetime, timedelta
 
 import httpx
 
-from common import TZ, SourceError, category, finalize, get_text, today
+from common import TZ, SourceError, category, finalize, get_text, pause, today
 from kommuner import KOMMUNER, kommun
 from sources.profixio import (BASE, HEADERS, lazy_component, load_lazy, parse_checked, parse_leagues,
                               parse_team_links)
@@ -81,7 +80,7 @@ class Handboll:
             raise SourceError(f"Hittade inga serier hos {self.title}, sidans struktur kan ha ändrats")
         teams = []
         for league in leagues:
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await get_text(client, f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule", self.title,
                                   HEADERS)
             for t in parse_team_links(page):
@@ -92,12 +91,12 @@ class Handboll:
     async def _team_matches(self, client: httpx.AsyncClient, team: dict) -> list[dict]:
         """Lagets kommande matcher: lagsidan och sedan komponenten med schemat."""
         url = f"{BASE}/lx/competition/leagueid{team['league_id']}/teams/{team['id']}"
-        await asyncio.sleep(PAGE_DELAY)
+        await pause(PAGE_DELAY)
         page = await get_text(client, url, self.title, HEADERS)
         component = lazy_component(page, "lx.team.schedule")
         if not component:
             raise SourceError(f"Hittade inte lagets matcher hos {self.title}, sidans struktur kan ha ändrats")
-        await asyncio.sleep(PAGE_DELAY)
+        await pause(PAGE_DELAY)
         return parse_checked(await load_lazy(client, page, url, component, self.title), self.title)
 
     async def fetch(self, client: httpx.AsyncClient, previous: dict | None) -> dict:

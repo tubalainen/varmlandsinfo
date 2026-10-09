@@ -6,13 +6,12 @@ produktionssida har en tabell med visningarna, där biljettlänken har exakt dat
 film tas med (`is_live`), och bara deras sidor hämtas.
 """
 
-import asyncio
 import html
 import re
 
 import httpx
 
-from common import SourceError, category, clean_text, finalize, get_json, get_text, https_url, log, strip_html, today
+from common import SourceError, category, clean_text, finalize, get_json, get_text, https_url, log, pause, strip_html, today
 
 BASE = "https://skoghallsfolketshus.se"
 API = f"{BASE}/wp-json/wp/v2"
@@ -54,7 +53,7 @@ class SkoghallsFolketsHus:
     async def fetch(self, client: httpx.AsyncClient, previous: dict | None) -> dict:
         prods = await get_json(client, f"{API}/wp_theatre_prod", self.title, per_page=100,
                                _fields="id,title,link,categories,content")
-        await asyncio.sleep(1)
+        await pause(1)
         cats = await get_json(client, f"{API}/categories", self.title, per_page=100, _fields="id,name")
         if not isinstance(prods, list) or not isinstance(cats, list):
             raise SourceError(f"{self.title} svarade inte med produktioner, API:t kan ha ändrats")
@@ -66,7 +65,7 @@ class SkoghallsFolketsHus:
         live = [p for p in productions if is_live(p) and p["link"].startswith(BASE)]
         pages = {}
         for p in live:
-            await asyncio.sleep(1)
+            await pause(1)
             try:
                 pages[p["link"]] = trim(await get_text(client, p["link"], self.title))
             except SourceError as exc:

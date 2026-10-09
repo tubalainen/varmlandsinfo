@@ -1,13 +1,12 @@
 """Visit Värmland (Turid API v8). Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar,
 som visar ett urval ur samma API."""
 
-import asyncio
 import os
 from datetime import datetime, timedelta
 
 import httpx
 
-from common import TZ, category, finalize, get_json, https_url, log, now_iso, price_is_free, strip_html
+from common import TZ, category, finalize, get_json, https_url, log, now_iso, pause, price_is_free, strip_html
 from kommuner import kommun
 
 API_BASE = os.getenv("VISITVARMLAND_API", "https://turid.visitvarmland.com/api/v8")
@@ -52,7 +51,7 @@ class VisitVarmland:
             raw.extend(data.get("data", []))
             total_pages = int(data.get("total_pages") or 1)
             page += 1
-            await asyncio.sleep(0.5)
+            await pause(0.5)
         return {"municipalities": municipalities, "municipalities_updated": municipalities_updated, "events": raw}
 
     def normalize(self, payload: dict) -> list[dict]:

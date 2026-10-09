@@ -5,12 +5,11 @@ import base64
 import binascii
 import logging
 import math
-import os
 import json
 import re
 import secrets
 from contextlib import aclosing, asynccontextmanager
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -25,15 +24,11 @@ import events
 import geoip
 import images
 import sessions
+import timetable
 import visits
 from common import TZ, stats
 from version import RELEASE_URL, REPO_URL, __version__
 
-DAILY_REFRESH_TIME = os.getenv("DAILY_REFRESH_TIME", "05:00")
-MIN_REFRESH_MINUTES = 30
-# Var snäll mot källorna (#76): nya försök görs bara vid morgonkörningen, aldrig under resten av dygnet.
-MORNING_RETRIES = 2                           # nya försök vid morgonkörningen innan gammal data tas bort …
-MORNING_RETRY_DELAY = timedelta(minutes=15)   # … med så här lång paus
 STATIC_DIR = Path(__file__).parent / "static"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -42,69 +37,16 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("varmlandsinfo")
 
 
-def _refresh_minutes() -> int:
-    """REFRESH_MINUTES: 0 (eller tomt) = bara daglig körning, annars minst 30 minuter."""
-    try:
-        value = int(os.getenv("REFRESH_MINUTES") or 0)
-    except ValueError:
-        log.warning("Ogiltigt REFRESH_MINUTES=%r, använder 0 (av)", os.getenv("REFRESH_MINUTES"))
-        return 0
-    if 0 < value < MIN_REFRESH_MINUTES:
-        log.warning("REFRESH_MINUTES=%d är för tätt för API:et, använder %d", value, MIN_REFRESH_MINUTES)
-        return MIN_REFRESH_MINUTES
-    return max(value, 0)
-
-
-REFRESH_MINUTES = _refresh_minutes()
-
+plan = timetable.Timetable()   # dagens slumpade hämtschema (#104), sparas när schemaläggaren startat
 schedule: dict = {"next_refresh": None}
-
-
-def _daily_at(now: datetime) -> datetime:
-    h, m = (int(x) for x in DAILY_REFRESH_TIME.split(":"))
-    return datetime.combine(now.date(), time(h, m), tzinfo=TZ)
-
-
-def last_daily_run(now: datetime) -> datetime:
-    """Tidpunkten för den senaste morgonkörningen (i dag eller i går)."""
-    last = _daily_at(now)
-    return last - timedelta(days=1) if last > now else last
-
-
-def needs_refresh(updated: str | None, now: datetime) -> bool:
-    """Sparad data räcker om den hämtats efter den senaste schemalagda uppdateringen."""
-    if not updated:
-        return True
-    try:
-        fetched = datetime.fromisoformat(updated)
-    except ValueError:
-        return True
-    if fetched < last_daily_run(now):
-        return True
-    return REFRESH_MINUTES > 0 and now - fetched >= timedelta(minutes=REFRESH_MINUTES)
-
-
-def next_run(now: datetime) -> datetime:
-    """Nästa schemalagda uppdatering: dagligen vid DAILY_REFRESH_TIME, eventuellt tätare."""
-    daily = _daily_at(now)
-    if daily <= now:
-        daily += timedelta(days=1)
-    if REFRESH_MINUTES > 0:
-        return min(daily, now + timedelta(minutes=REFRESH_MINUTES))
-    return daily
-
-
-def failed_sources() -> list[str]:
-    """Källor som fallerade och får ett nytt försök. Pausade källor (nekade åtkomst) får inga nya försök."""
-    return [k for k, v in events.state["sources"].items() if v["enabled"] and v["error"] and not v.get("paused")]
 
 
 def cleanup(now: datetime, conversations: bool = False) -> None:
     """Städar bort inaktuell data. Körs efter varje hämtning från källorna och vid start:
-    källdata från före den senaste morgonkörningen (och från avstängda källor), inaktuella AI-svar, bilder som inte
-    hör till något evenemang, samtal som inte använts på 2 timmar, IP-adresser som inte längre räknas i spärren för
-    Fråga AI och, efter morgonkörningen, gårdagens chattsamtal."""
-    events.purge_old(last_daily_run(now))
+    källdata som är äldre än dagens hämtning av källan (och från avstängda källor), inaktuella AI-svar, bilder som
+    inte hör till något evenemang, samtal som inte använts på 2 timmar, IP-adresser som inte längre räknas i spärren
+    för Fråga AI och, när dagens hämtningar är klara, alla chattsamtal."""
+    events.purge_old(lambda key: plan.cutoff(key, now))
     chat.prune_cache(events.today(), events.state["updated"])
     if n := image_proxy.prune(events.state["events"]):
         log.info("Rensade %d bilder som inte hör till något evenemang", n)
@@ -123,46 +65,64 @@ async def update_geoip() -> None:
         await visits.store.geo.ensure(events.today())
 
 
-async def morning_run(keys: list[str] | None = None) -> None:
-    """Morgonkörningen: hämtar allt (även pausade källor, en gång), gör nya försök med källor som fallerar och
-    städar sedan bort gammal data."""
-    await events.refresh(keys, include_paused=True)
-    for attempt in range(1, MORNING_RETRIES + 1):
-        failed = failed_sources()
-        if not failed:
-            break
-        log.info("Nytt försök %d av %d om %d minuter: %s", attempt, MORNING_RETRIES,
-                 MORNING_RETRY_DELAY.total_seconds() // 60, ", ".join(failed))
-        await asyncio.sleep(MORNING_RETRY_DELAY.total_seconds())
-        await events.refresh(failed)
-    cleanup(datetime.now(TZ), conversations=True)
-    await update_geoip()
+def enabled_sources() -> list[str]:
+    return [k for k, v in events.state["sources"].items() if v["enabled"]]
+
+
+async def fetch(key: str, attempt: int) -> tuple[datetime, str, int] | None:
+    """Dagens hämtning av en källa. Första försöket även när källan är pausad (nekade åtkomst), och högst två nya
+    försök när den fallerar (inte när den är pausad). Returnerar nästa försök, eller None när källan är klar för
+    dagen. När alla källor är klara städas även chattsamtalen bort."""
+    await events.refresh([key], include_paused=attempt == 0)
+    now = datetime.now(TZ)
+    info = events.state["sources"][key]
+    if info["error"] and not info["paused"] and attempt < timetable.RETRIES:
+        when = timetable.retry_time(now, timetable.RETRIES - attempt - 1)
+        log.info("Nytt försök %d av %d med %s kl. %s", attempt + 1, timetable.RETRIES, info["title"],
+                 when.strftime("%H.%M"))
+        cleanup(now)
+        return when, key, attempt + 1
+    plan.mark_done(key, now)
+    if plan.all_done(enabled_sources(), now):
+        plan.complete(now)
+        log.info("Dagens hämtningar är klara")
+        cleanup(now, conversations=True)
+        await update_geoip()
+    else:
+        cleanup(now)
+    return None
 
 
 async def scheduler() -> None:
+    """Hämtar varje källa en gång per dag vid dess slumpade tid (timetable), med nya försök. Vid midnatt dras
+    nya tider."""
     await asyncio.to_thread(events.load_cache)
+    plan.path = events.DATA_DIR / "schema.json"
+    plan.load()
+    if not plan.completed:     # före #104: den senaste hämtningen
+        plan.completed = events.state["updated"]
     now = datetime.now(TZ)
-    stale = events.stale_sources(lambda updated: needs_refresh(updated, now))
-    if stale:
-        # Datan är från före den senaste morgonkörningen: gör den i efterhand
-        log.info("Hämtar vid start: %s", ", ".join(stale))
-        await morning_run(stale)
+    jobs = plan.jobs_at_start(now, {k: events.state["sources"][k]["updated"] for k in enabled_sources()})
+    if due := [key for when, key, _ in jobs if when <= now]:
+        log.info("Hämtar vid start: %s", ", ".join(due))
     else:
         log.info("Sparad data är aktuell, ingen hämtning vid start")
         cleanup(now)
         await update_geoip()
     while True:
         now = datetime.now(TZ)
-        target = next_run(now)
-        daily = target == _daily_at(target)
-        schedule["next_refresh"] = target.isoformat(timespec="minutes")
-        log.info("Nästa schemalagda uppdatering: %s", schedule["next_refresh"])
-        await asyncio.sleep(max(1, (target - datetime.now(TZ)).total_seconds()))
-        if daily:
-            await morning_run()
-        else:
-            await events.refresh()          # REFRESH_MINUTES: alla källor utom pausade, inga nya försök
-            cleanup(datetime.now(TZ))
+        if plan.day != now.date():     # nytt dygn: nya slumpade tider
+            jobs = plan.jobs_at_start(now, {k: events.state["sources"][k]["updated"] for k in enabled_sources()})
+        jobs.sort()
+        schedule["next_refresh"] = jobs[0][0].isoformat(timespec="minutes") if jobs else None
+        if jobs and jobs[0][0] <= now:
+            _, key, attempt = jobs.pop(0)
+            if not plan.done_today(key, now) and (retry := await fetch(key, attempt)):
+                jobs.append(retry)
+            continue
+        tomorrow = timetable.midnight(now.date() + timedelta(days=1)) + timedelta(seconds=1)
+        wake = min(jobs[0][0], tomorrow) if jobs else tomorrow
+        await asyncio.sleep(max(1.0, (wake - datetime.now(TZ)).total_seconds()))
 
 
 @asynccontextmanager
@@ -207,15 +167,19 @@ def status(detail: bool = False) -> dict:
         "version": __version__,
         "release_url": RELEASE_URL,
         "events": len(s["events"]),
-        "updated": s["updated"],
+        "updated": s["updated"],             # senaste hämtningen av någon källa
+        "completed": plan.completed,         # när alla källor senast var hämtade (visas i appen, #104)
         "refreshing": s["refreshing"],
-        "next_refresh": schedule["next_refresh"],
         "error": s["error"],
         "api_calls": stats["api_calls"],
         "sources": s["sources"],
         "storage": storage,
         "chat": chat.chat_config(),
         "visit_stats": visits.enabled(),
+        # Hämtschemat visas bara lokalt, aldrig för besökarna (#104)
+        **({"schedule": {"window": "–".join(t.strftime("%H:%M") for t in timetable.WINDOW),
+                         "next_refresh": schedule["next_refresh"], "day": plan.day and plan.day.isoformat(),
+                         "slots": plan.slots, "done": plan.done}} if detail else {}),
     }
 
 
@@ -256,8 +220,14 @@ async def health():
 @app.post("/api/refresh", dependencies=[Depends(access.require_local)])
 async def refresh():
     message = await events.manual_refresh()
-    if not message:                     # städningen görs efter varje hämtning
-        cleanup(datetime.now(TZ))
+    if not message:
+        # Källorna som hämtades räknas som dagens hämtning, och städningen görs efter varje hämtning
+        now = datetime.now(TZ)
+        for key in enabled_sources():
+            if not events.state["sources"][key]["error"]:
+                plan.mark_done(key, now)
+        plan.complete(now)
+        cleanup(now)
     return {**status(detail=True), "message": message}
 
 

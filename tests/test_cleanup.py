@@ -1,4 +1,4 @@
-"""Städning av gammal data vid morgonkörningen (#42)."""
+"""Städning av gammal data efter hämtningarna (#42, #104)."""
 
 import asyncio
 import json
@@ -13,9 +13,13 @@ from test_events import raw_event
 from test_events import use_tmp_data as _use_tmp_data
 
 TZ = events.TZ
-MORNING = datetime(2026, 9, 25, 5, 0, tzinfo=TZ)
-YESTERDAY = "2026-09-24T05:10:00+02:00"
-TODAY = "2026-09-25T05:01:00+02:00"
+MIDNIGHT = datetime(2026, 9, 25, 0, 0, tzinfo=TZ)
+YESTERDAY = "2026-09-24T09:10:00+02:00"
+TODAY = "2026-09-25T09:01:00+02:00"
+
+
+def before_today(key):
+    return MIDNIGHT
 
 
 def use_tmp_data(tmp_path, monkeypatch):
@@ -32,12 +36,7 @@ def vv_payload():
     return {"municipalities": {9: "Karlstad"}, "municipalities_updated": None, "events": [raw_event()]}
 
 
-def test_last_daily_run():
-    assert main.last_daily_run(datetime(2026, 9, 25, 14, 0, tzinfo=TZ)) == MORNING
-    assert main.last_daily_run(datetime(2026, 9, 25, 3, 0, tzinfo=TZ)) == datetime(2026, 9, 24, 5, 0, tzinfo=TZ)
-
-
-def test_purge_removes_data_older_than_the_morning_run(tmp_path, monkeypatch):
+def test_purge_removes_data_older_than_the_cutoff(tmp_path, monkeypatch):
     use_tmp_data(tmp_path, monkeypatch)
     events.save_cache("visitvarmland", vv_payload(), TODAY)
     events.save_cache("scala", {"pages": []}, YESTERDAY)
@@ -46,22 +45,21 @@ def test_purge_removes_data_older_than_the_morning_run(tmp_path, monkeypatch):
     events.load_cache()
     monkeypatch.setitem(events.state["sources"]["scala"], "error", "Kunde inte nå Scalateatern")
 
-    assert events.purge_old(MORNING) == ["scala"]
+    assert events.purge_old(before_today) == ["scala"]
     files = sorted(p.name for p in (tmp_path / "data").iterdir())
     assert files == ["annat.json", "visitvarmland.json"]
     assert "scala" not in events._payloads and events.state["sources"]["scala"]["updated"] is None
     assert events.state["sources"]["scala"]["error"] == "Kunde inte nå Scalateatern"
     assert events.state["sources"]["visitvarmland"]["count"] == 1
-    assert events.purge_old(MORNING) == []                                # inget kvar att städa
+    assert events.purge_old(before_today) == []                                # inget kvar att städa
 
 
 def test_purge_sets_error_so_the_source_is_retried(tmp_path, monkeypatch):
     use_tmp_data(tmp_path, monkeypatch)
     events.save_cache("ccc", {"html": ""}, YESTERDAY)
     events.load_cache()
-    events.purge_old(MORNING)
-    assert events.state["sources"]["ccc"]["error"].startswith("Ingen aktuell data")
-    assert "ccc" in main.failed_sources()
+    events.purge_old(before_today)
+    assert events.state["sources"]["ccc"]["error"] == "Ingen aktuell data: källan kunde inte hämtas i dag"
 
 
 def test_disabled_source_is_neither_loaded_nor_kept(tmp_path, monkeypatch):
@@ -70,7 +68,7 @@ def test_disabled_source_is_neither_loaded_nor_kept(tmp_path, monkeypatch):
     events.save_cache("visitvarmland", vv_payload(), TODAY)
     events.load_cache()
     assert events.state["sources"]["visitvarmland"]["count"] == 0          # visas inte
-    assert events.purge_old(MORNING) == ["visitvarmland"]
+    assert events.purge_old(before_today) == ["visitvarmland"]
     assert not events.cache_file("visitvarmland").exists()
 
 
@@ -96,26 +94,58 @@ def test_clear_sessions_keeps_the_one_answering():
     assert store.get(a.id) is None and store.get(b.id) is b
 
 
-def test_morning_run_retries_then_cleans_up(monkeypatch, tmp_path):
+def test_cleanup_keeps_yesterdays_data_until_todays_fetch_is_done(monkeypatch, tmp_path):
+    """Gårdagens data visas tills källan hämtats i dag. Misslyckas dagens hämtning tas den bort (#104)."""
+    use_tmp_data(tmp_path, monkeypatch)
+    plan = main.timetable.Timetable()
+    monkeypatch.setattr(main, "plan", plan)
+    events.save_cache("ccc", {"html": ""}, YESTERDAY)
+    events.save_cache("scala", {"pages": []}, "2026-09-23T09:00:00+02:00")   # från i förrgår
+    events.load_cache()
+    now = datetime(2026, 9, 25, 9, 30, tzinfo=TZ)
+    plan.plan(now, ["ccc", "scala"])
+    main.cleanup(now)
+    assert events.cache_file("ccc").exists() and not events.cache_file("scala").exists()
+    plan.mark_done("ccc", now)                                          # dagens hämtning misslyckades
+    main.cleanup(now)
+    assert not events.cache_file("ccc").exists()
+
+
+def test_fetch_retries_then_cleans_up(monkeypatch, tmp_path):
+    """Högst två nya försök per källa och dag, inga när källan är pausad. När alla källor är klara är
+    informationen uppdaterad i sin helhet och chattsamtalen städas bort."""
     calls = []
 
     async def fake_refresh(keys=None, include_paused=False):
         calls.append((keys, include_paused))
-        # Scalateatern svarar först på tredje försöket, CCC aldrig, och SBF nekar åtkomst (pausas, inga nya försök)
-        for key, info in events.state["sources"].items():
-            if keys is None or key in keys:
-                ok = key not in ("ccc", "sbf") and not (key == "scala" and len(calls) < 3)
-                info["error"] = None if ok else "fel"
-                info["paused"] = key == "sbf"
+        info = events.state["sources"][keys[0]]
+        info["error"] = None if keys == ["scala"] and len(calls) >= 3 else "fel"
+        info["paused"] = keys == ["sbf"]
+
+    async def no_geoip():
+        pass
 
     cleaned = []
-    monkeypatch.setattr(main, "MORNING_RETRY_DELAY", main.timedelta(0))
-    monkeypatch.setattr(main.events, "refresh", fake_refresh)
-    monkeypatch.setattr(main, "cleanup", lambda now, conversations=False: cleaned.append(conversations))
     use_tmp_data(tmp_path, monkeypatch)
-    asyncio.run(main.morning_run())
-    assert calls == [(None, True), (["ccc", "scala"], False), (["ccc", "scala"], False)]
-    assert cleaned == [True]                                               # städning och rensade samtal efteråt
+    for key, info in events.state["sources"].items():
+        monkeypatch.setitem(info, "paused", False)
+        monkeypatch.setitem(info, "enabled", key in ("scala", "sbf"))
+    plan = main.timetable.Timetable()
+    monkeypatch.setattr(main, "plan", plan)
+    monkeypatch.setattr(main.events, "refresh", fake_refresh)
+    monkeypatch.setattr(main, "update_geoip", no_geoip)
+    monkeypatch.setattr(main, "cleanup", lambda now, conversations=False: cleaned.append(conversations))
+    now = datetime.now(TZ)
+    plan.plan(now, ["scala", "sbf"])
+
+    first = asyncio.run(main.fetch("scala", 0))
+    assert first[1:] == ("scala", 1) and first[0] >= now + main.timetable.RETRY_DELAY
+    assert asyncio.run(main.fetch("scala", 1))[1:] == ("scala", 2)
+    assert asyncio.run(main.fetch("scala", 2)) is None                  # lyckades på tredje försöket
+    assert asyncio.run(main.fetch("sbf", 0)) is None                    # pausad: inga nya försök
+    assert calls == [(["scala"], True), (["scala"], False), (["scala"], False), (["sbf"], True)]
+    assert cleaned == [False, False, False, True]                       # samtalen städas när allt är klart
+    assert plan.completed and plan.all_done(["scala", "sbf"], datetime.now(TZ))
 
 
 def test_cleanup_prunes_everything(monkeypatch, tmp_path):
@@ -127,7 +157,7 @@ def test_cleanup_prunes_everything(monkeypatch, tmp_path):
     sessions.store.get_or_create(None)
     monkeypatch.setattr(events, "today", lambda: date(2026, 9, 25))
     monkeypatch.setitem(events.state, "updated", TODAY)
-    main.cleanup(datetime(2026, 9, 25, 5, 3, tzinfo=TZ), conversations=True)
+    main.cleanup(datetime(2026, 9, 25, 9, 3, tzinfo=TZ), conversations=True)
     assert c.presets == {} and len(sessions.store) == 0
 
 
@@ -169,6 +199,8 @@ def test_manual_refresh_cleans_up(monkeypatch):
     monkeypatch.setattr(events, "manual_refresh", refresh)
     monkeypatch.setattr(main, "cleanup", lambda now, conversations=False: calls.append(now))
     monkeypatch.setattr(main.access, "is_local", lambda r: True)
+    monkeypatch.setattr(main, "plan", main.timetable.Timetable())
     from fastapi.testclient import TestClient
-    TestClient(main.app).post("/api/refresh")
+    data = TestClient(main.app).post("/api/refresh").json()
     assert len(calls) == 1
+    assert data["completed"] == main.plan.completed is not None              # allt hämtades nyss

@@ -1,11 +1,10 @@
 """Scalateatern: föreställningslistan på scalateatern.se (WordPress, föreställningarna finns inte i REST-API:et)."""
 
-import asyncio
 import re
 
 import httpx
 
-from common import SourceError, category, clean_text, finalize, get_text, https_url, today
+from common import SourceError, category, clean_text, finalize, get_text, https_url, pause, today
 
 BASE = "https://www.scalateatern.se"
 LIST_URL = f"{BASE}/forestallningar/"
@@ -56,7 +55,7 @@ class Scala:
             pages.append(page)
             if f"/forestallningar/page/{n + 1}" not in page:
                 break
-            await asyncio.sleep(1)
+            await pause(1)
         if not pages:
             raise SourceError(f"Hittade inga föreställningar hos {self.title}, sidans struktur kan ha ändrats")
         return {"pages": pages}

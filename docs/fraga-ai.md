@@ -72,7 +72,7 @@ Varje webbläsarflik har ett eget samtal (session), och servern äger historiken
   och i fliken, när du trycker *Nytt samtal* eller lämnar sidan Fråga AI (går till Evenemang, Kalender eller Om
   applikationen). En pågående fråga avbryts då. En ny flik ger ett nytt samtal.
 - Samtalen finns bara i minnet. Samtal som inte använts på 2 timmar tas bort vid nästa städning (efter varje hämtning
-  från källorna), och alla samtal tas bort efter morgonkörningen och vid omstart.
+  från källorna), och alla samtal tas bort när dagens hämtningar är klara och vid omstart.
 - Varje samtal ställer en fråga i taget.
 - **Spärrar:** högst 5 frågor till AI:n per 30 minuter och samtal, och 20 per 30 minuter och IP-adress (rullande
   fönster), så att ingen kan belasta Ollama genom att öppna nya flikar eller börja nya samtal. Meddelandet säger hur

@@ -1,12 +1,11 @@
 """SHL: hemmamatcher för ett lag (standard Färjestad BK) från SHL:s öppna spelschema-API."""
 
-import asyncio
 import os
 
 import httpx
 
 from categories import SHL as SHL_CATEGORY
-from common import category, finalize, get_json
+from common import category, finalize, get_json, pause
 
 API_BASE = "https://www.shl.se/api/sports-v2"
 TEAM_CODE = os.getenv("SHL_TEAM_CODE", "FBK").strip().upper()
@@ -40,7 +39,7 @@ class SHL:
             for g in data.get("gameInfo") or []:
                 if (g.get("homeTeamInfo") or {}).get("code", "").upper() == TEAM_CODE:
                     games[g["uuid"]] = g
-            await asyncio.sleep(0.5)
+            await pause(0.5)
         return {"team": TEAM_CODE, "season": season, "games": list(games.values())}
 
     def normalize(self, payload: dict) -> list[dict]:

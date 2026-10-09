@@ -61,8 +61,12 @@ aktuella när något ändras.
   Hämta inte oftare än nödvändigt, varken i appen eller under utveckling. Testa mot sparad data (se Lärdomar).
 - **Var VÄLDIGT snäll mot källorna** (användarens beslut, #76): källorna uppdateras sällan, så hellre vänta till nästa
   hämtning än riskera att bli spärrad. Högst ett nytt försök per anrop (429 och 5xx, aldrig tidigare än
-  `Retry-After`, aldrig om källan ber om mer än 60 s), 401/403 pausar källan till nästa morgonkörning, och nya
-  försök görs bara vid morgonkörningen (2 st, 15 min emellan). Lägg aldrig till tätare försök.
+  `Retry-After`, aldrig om källan ber om mer än 60 s), 401/403 pausar källan till nästa dags hämtning, och nya
+  försök görs bara efter källans dagliga hämtning (2 st, 15–25 min emellan). Lägg aldrig till tätare försök.
+- **Slumpade hämtningar** (användarens beslut, #104): varje källa hämtas en gång om dagen vid en egen slumpad tid
+  mellan 08:00 och 13:00 (`REFRESH_WINDOW`, `app/timetable.py`), ny varje dag, så att det inte syns att appen pollar
+  varje dygn. Aldrig alla källor på samma klockslag eller samma tid dag efter dag. Pauser mellan anrop till en källa
+  via `common.pause` (slumpad, 1–2 gånger pausen). Hämtschemat visas bara i `/api/health`, aldrig för besökarna.
 - Nycklar (t.ex. `TICKETMASTER_API_KEY`) får aldrig loggas eller synas i felmeddelanden. httpx-loggningen
   är därför avstängd.
 
@@ -104,7 +108,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
+- **Inte släppt:** slumpade hämtningar per källa mellan 08:00 och 13:00 och "allt uppdaterat" i menyn (#104,
+  MINOR). v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
   platshållarbilderna (#103). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
   v0.33.0 (#102). v0.32.2 innehåller skärmdumparna med v0.32.1 och arkitekturbilden på revision 64b8774
   (#100). v0.32.1 innehåller skärmdumparna med v0.32.0 (#99). v0.32.0 innehåller den nya källan Riksteatern med arkitekturbilden med 16 källor (#98,
@@ -114,7 +119,7 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`) och v0.30.2 råden för
   Ollama och SearXNG (#92). Blir *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release
   (ett nytt bygge får Debians rättningar).
-- **Öppet:** inga issues. Säkerhetsanalysens alla paket (#85–#93) är klara.
+- **Öppet:** #104 tills den släppts. Säkerhetsanalysens alla paket (#85–#93) är klara.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
@@ -225,10 +230,13 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   samtidigt. Sidan har `Content-Security-Policy: img-src 'self' data:` och `referrer` `no-referrer`, så webbläsaren
   kontaktar aldrig källorna. Nya källor med bilder behöver inget extra.
 - **Städning** (`main.cleanup`, `events.purge_old`): körs efter varje hämtning från källorna (även `POST /api/refresh`)
-  och vid start, aldrig oftare (användarens beslut). Rensar källdata från före morgonkörningen (05:00) och från
+  och vid start, aldrig oftare (användarens beslut). Rensar källdata som är äldre än källans hämtning i dag
+  (`timetable.cutoff`: gårdagens data visas tills källan hämtats i dag, aldrig data från före i går) och från
   avstängda källor, inaktuella AI-svar, bilder utan evenemang och `.tmp`-filer, utgångna samtal, IP-adresser i
-  spärren och, efter morgonkörningen, alla chattsamtal. En källa som fallerar på morgonen får två nya försök (15 min)
-  innan dess data tas bort. Inga nya försök under resten av dygnet (#76). Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
+  spärren och, när dagens hämtningar är klara, alla chattsamtal. En källa som fallerar får två nya försök (15–25 min
+  isär, inom fönstret) innan dess data tas bort. Inga nya försök under resten av dygnet (#76). Dagens schema, klara
+  källor och `completed` (när alla källor senast var hämtade, visas som "allt uppdaterat" i menyn) sparas i
+  `data/schema.json` (#104). `POST /api/refresh` räknas som dagens hämtning för källorna som lyckades. Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
   Ny lagrad data ska rensas där när den blir inaktuell, och läggas till i tabellen i `docs/data-och-integritet.md`.
 - **Besöksstatistik** (#66, `visits.py`, `besoksinfo.py`, `geoip.py`): av som standard, på med `BESOKSINFO_PASSWORD`.
   `GET /` räknas (inte robotar, `HeadlessChrome` eller prefetch). Unika per dygn: sha256 av dygnets salt + IP +
@@ -236,7 +244,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `daily` (summerat). `cleanup` summerar dygn som är slut (IP-adresserna och saltet tas bort) och rensar dagar äldre än
   13 månader. Sparas högst en gång i minuten och vid avslut. `/besoksinfo`: HTTP Basic (valfritt användarnamn),
   `login_limiter` 10 fel per 15 min och IP, `noindex`, `no-store`, egen CSP, ingen JavaScript. Plats: DB-IP City Lite
-  (`data/geoip/dbip-city-lite.mmdb`, hämtas vid start och efter morgonkörningen om den saknas eller är äldre än 32
+  (`data/geoip/dbip-city-lite.mmdb`, hämtas vid start och när dagens hämtningar är klara om den saknas eller är äldre än 32
   dagar, cirka 60 MB), kräver länken till DB-IP på sidan. Kontrastkontrollen tar med sidan när `BESOKSINFO_PASSWORD`
   finns i miljön. Sidan Om beskriver statistiken när den är på (`visit_stats` i `/api/events`).
 - **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`) och `sessionStorage` (`chat-session`).
@@ -274,7 +282,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `CATEGORY_WORDS`, `EVENT_WORDS` och ord i spärren.
 - Fråga AI har inga snabbval (borttagna i #77). Förslagskorten (`SUGGESTIONS`) finns kvar.
 - Integritet: texterna i appen ska vara sanna om vart frågor skickas (lokal Ollama, och SearXNG när den är på).
-- Ingen gammal data efter morgonkörningen.
+- Ingen gammal data: en källas data från i går visas bara tills källan hämtats i dag (#104).
 - Närliggande källor ska visas som **en** källa i gränssnittet när användaren ber om det (Loppisar, Motorsport).
 - Motorsport: både bil- (SBF) och MC-sport (Svemo), publika tävlingar och prova på-dagar, Värmland + Karlskoga.
 - Användaren vill att efterforskning görs ordentligt och att frågor ställs när vägval är oklara.
@@ -319,9 +327,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 - **Skärmdumpar med riktiga bilder:** bilderna visas via appen, och appen hämtar dem genom miljöns proxy (httpx
   följer `HTTPS_PROXY`). Kör `NODE_PATH=$(npm root -g) node tools/readme-screenshots.mjs http://localhost:8080`.
   Kör om vid varningen "alla bilder laddades inte" och granska bilderna innan de checkas in.
-- **Utan att belasta källorna** (#82, #83): efter morgonkörningen (05:00) räknas gårdagens data som gammal, och appen
-  hämtar då alla källor vid start. Kopiera i stället den sparade datakatalogen (med `images/`) och sätt `updated` till
-  nu. Loggen ska säga "Sparad data är aktuell, ingen hämtning vid start". För kontrastkontrollen, som laddar många
+- **Utan att belasta källorna** (#82, #83, #104): appen hämtar vid start källor utan data, med data från före i går
+  eller vars tid i dag har passerat. Kopiera i stället den sparade datakatalogen (med `images/`), sätt `updated` till
+  nu och lägg en `schema.json` där alla källor står som klara i dag (`day`, `slots`, `done`, `completed`). Loggen ska säga "Sparad data är aktuell, ingen hämtning vid start". För kontrastkontrollen, som laddar många
   bilder, startas appen med en trasig proxy (`HTTPS_PROXY=http://127.0.0.1:9`, samma för `HTTP_PROXY` och gemener), så
   att inga bilder hämtas från källorna. Visit Värmlands bildserver svarade 429 även dagen efter.
 - **CI-status** utan `gh`: `curl -s "https://api.github.com/repos/tubalainen/varmlandsinfo/actions/runs?head_sha=<sha>"`

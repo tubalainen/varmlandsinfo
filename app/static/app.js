@@ -200,8 +200,11 @@ function showStatus(data) {
   else if (data.storage?.error) flash(data.storage.error);
   else flash("");
   const upd = $("#updated");
-  upd.textContent = data.updated ? `uppdaterad ${fmtUpdated(data.updated)}` : "";
-  upd.title = data.updated ? `Evenemangen hämtades senast ${fmtTime(data.updated)}` : "";
+  // När informationen senast uppdaterades i sin helhet, alltså när alla källor hade hämtats (#104)
+  upd.textContent = data.completed ? `allt uppdaterat ${fmtUpdated(data.completed)}` : "";
+  upd.title = data.completed
+    ? `Alla källor hämtades senast ${fmtTime(data.completed)}. Varje källa hämtas en gång om dagen, vid en slumpad tid på förmiddagen.`
+    : "";
   $("#nav-count").textContent = data.events.length ? String(data.events.length) : "";
   const v = $("#app-version");
   v.textContent = data.version ? `v${data.version}` : "";

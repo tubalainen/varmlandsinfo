@@ -6,6 +6,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Källorna hämtas inte längre alla samtidigt kl. 05:00. Varje källa hämtas en gång om dagen vid en egen slumpad tid
+  mellan 08:00 och 13:00 (`REFRESH_WINDOW`), som dras på nytt varje dag, och pauserna mellan anropen till en källa är
+  slumpade. Nya försök (högst två, 15–25 minuter isär) görs inom samma fönster. Gårdagens data visas tills källan
+  hämtats i dag. Menyn visar "allt uppdaterat" med tiden då alla källor senast var hämtade, och hämtschemat visas bara
+  i `/api/health`. `DAILY_REFRESH_TIME` och `REFRESH_MINUTES` används inte längre (#104).
+
 ## [0.33.1] - 2026-10-09
 
 ### Dokumentation

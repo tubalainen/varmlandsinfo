@@ -21,7 +21,7 @@ exportera bilden.
 | Fråga AI | Direktsökning, avgränsning, spärrar, kö till Ollama och valfri webbsökning. | `app/chat.py`, `app/websearch.py` |
 | Bildproxy | Hämtar evenemangens bilder från källorna vid första visningen och sparar dem. | `app/images.py` |
 | Evenemang i minnet | Källornas evenemang sammanslagna och kategoriserade. | `app/events.py`, `app/merge.py`, `app/categories.py` |
-| Schemaläggare | Hämtar varje morgon (05:00), gör nya försök och städar bort inaktuell data. | `app/main.py` |
+| Schemaläggare | Hämtar varje källa en gång om dagen vid en slumpad tid mellan 08:00 och 13:00, gör nya försök och städar bort inaktuell data. | `app/main.py`, `app/timetable.py` |
 | Hämtning | En modul per källa. API-källor som JSON, övriga som webbsidor (HTML). | `app/events.py`, `app/sources/` |
 | Källorna | Visit Värmland, Ticketmaster och SHL (API) samt Profixio (bandy och handboll), CCC, Scalateatern, Great Event, loppisarna, SBF, Svemo, Säffle och Kil (webbsidor). | se [Källor](kallor.md) |
 | `/data` | Volym på värden: källdata, sparade AI-svar och bilder. | se [Data och integritet](data-och-integritet.md) |

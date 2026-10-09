@@ -11,14 +11,13 @@ Listorna saknar län och kommun. Läget avgörs av banans namn (PLACES) och i an
 Källorna visas som en källa, Motorsport, i gränssnittet.
 """
 
-import asyncio
 import html
 import re
 from datetime import date, timedelta
 
 import httpx
 
-from common import SourceError, category, finalize, get_text, post_form, today
+from common import SourceError, category, finalize, get_text, pause, post_form, today
 
 GROUP = "Motorsport"
 COLUMNS = "FromDateShort,ToDateShort,Arena,Organizer,Branch,Name,CompetitionStatus,CompetitionInfo"
@@ -122,7 +121,7 @@ class _Competitions:
             data = _postback(page, "Last Page")
             if not data:
                 raise SourceError(f"Hittade inte sidväljaren hos {self.title}")
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await post_form(client, url, data, self.title)
             pages += 1
         rows += parse_rows(page)
@@ -132,7 +131,7 @@ class _Competitions:
             data = _postback(page, "Previous Page" if self.backwards else "Next Page")
             if not data:
                 break
-            await asyncio.sleep(PAGE_DELAY)
+            await pause(PAGE_DELAY)
             page = await post_form(client, url, data, self.title)
             pages += 1
             rows += parse_rows(page)

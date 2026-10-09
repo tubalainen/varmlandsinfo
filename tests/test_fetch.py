@@ -5,7 +5,6 @@ import httpx
 
 import common
 import events
-import main
 
 
 def run(coro):
@@ -131,12 +130,6 @@ def test_manual_refresh_is_throttled(monkeypatch):
     monkeypatch.setitem(events.state, "updated", old)
     assert run(events.manual_refresh()) is None
     assert called == [1]
-
-
-def test_refresh_minutes_has_floor(monkeypatch):
-    for raw, expected in [("0", 0), ("", 0), ("abc", 0), ("5", 30), ("45", 45), ("-3", 0)]:
-        monkeypatch.setenv("REFRESH_MINUTES", raw)
-        assert main._refresh_minutes() == expected, raw
 
 
 def test_errors_never_contain_query_string(monkeypatch):

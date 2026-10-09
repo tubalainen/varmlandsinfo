@@ -5,6 +5,7 @@ import email.utils
 import html
 import logging
 import os
+import random
 import re
 from datetime import date, datetime, timezone
 from urllib.parse import urlsplit
@@ -28,6 +29,12 @@ MAX_RETRY_WAIT = 60             # ber källan om längre väntan görs inget nyt
 log = logging.getLogger("varmlandsinfo")
 
 stats = {"api_calls": 0}
+
+
+async def pause(seconds: float) -> None:
+    """Paus mellan anropen till en källa: slumpad, mellan en och två gånger `seconds`, så att anropen inte kommer
+    i ett fast mönster (#104). Aldrig kortare än `seconds`, som är källans gräns."""
+    await asyncio.sleep(seconds * random.uniform(1, 2))
 
 
 def today() -> date:
@@ -89,10 +96,10 @@ class SourceError(RuntimeError):
 
 
 class AccessDenied(SourceError):
-    """HTTP 401/403: nyckeln är fel eller appen är spärrad. Källan pausas till nästa morgonkörning (events)."""
+    """HTTP 401/403: nyckeln är fel eller appen är spärrad. Källan pausas till nästa dags hämtning (events)."""
 
 
-PAUSED = "Källan pausas till nästa morgonkörning."
+PAUSED = "Källan pausas till nästa dags hämtning."
 
 
 def retry_after(r: httpx.Response, default: float) -> float | None:

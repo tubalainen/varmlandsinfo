@@ -19,7 +19,8 @@ Vill du bygga imagen själv i stället: `docker compose up -d --build`.
 Första hämtningen tar ungefär 10–30 sekunder, eftersom Visit Värmlands API ger max 50 evenemang per sida.
 Därefter sparas datan och laddas direkt vid omstart.
 
-Evenemangen hämtas automatiskt en gång per dygn (standard 05:00). Vill du uppdatera direkt anropar du
+Evenemangen hämtas automatiskt en gång per dygn, från varje källa vid en egen slumpad tid mellan 08:00 och 13:00
+(`REFRESH_WINDOW`). Vill du uppdatera direkt anropar du
 `POST /api/refresh` från samma dator eller det lokala nätverket, till exempel
 `curl -X POST http://localhost:7799/api/refresh` (se [API](api.md)).
 
@@ -61,8 +62,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `SEARXNG_RESULTS`    | `5`                | Max antal webbträffar per fråga (1–20). |
 | `SEARXNG_LANGUAGE`   | `sv`               | Språk för webbsökningen. |
 | `BESOKSINFO_PASSWORD` | *(tom)*           | Lösenord till besöksstatistiken på `/besoksinfo`. Tom betyder att statistiken är avstängd och inga besök räknas. |
-| `DAILY_REFRESH_TIME` | `05:00`            | Tidpunkt för den dagliga uppdateringen. |
-| `REFRESH_MINUTES`    | `0`                | Extra uppdatering var N:e minut (0 = av, minst 30). |
+| `REFRESH_WINDOW`     | `08:00-13:00`      | Tidsfönstret för den dagliga hämtningen. Varje källa hämtas vid en slumpad tid i fönstret, ny varje dag (minst 31 minuter, så att nya försök ryms). Ersätter `DAILY_REFRESH_TIME` och `REFRESH_MINUTES`, som inte längre används. |
 | `VARMLANDSINFO_DATA` | `./data`           | Katalog på värden där hämtad data sparas. |
 | `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |

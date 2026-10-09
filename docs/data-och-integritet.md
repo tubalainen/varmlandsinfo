@@ -21,16 +21,18 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 | `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
 | `data/saffle.json`         | Kommande evenemang i Säffle kommuns kalender. |
 | `data/kil.json`            | Kommande evenemang i Kils kommuns kalender. |
+| `data/schema.json`         | Dagens hämtschema: varje källas slumpade tid, vilka källor som är klara och när alla källor senast var hämtade. Skrivs över varje dag. |
 | `data/chat_cache.json`     | Sparade AI-svar (fördefinierade frågor och de 10 senaste egna frågorna). |
 | `data/images/`             | Evenemangens bilder, hämtade första gången någon visade dem. |
 | `data/besoksinfo.json`     | Besöksstatistiken, när den är påslagen (se nedan). |
 | `data/geoip/`              | DB-IP:s geodatabas för besöksstatistiken, när den är påslagen. |
 
-- **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om dess data är
-  äldre än den senaste schemalagda uppdateringen, till exempel om containern varit avstängd över natten.
+- **Vid start** läses filerna in och evenemangen visas direkt. En källa anropas bara om den saknar data, om datan är
+  från före i går eller om appen var avstängd vid källans tid i dag (se [Källor](kallor.md#hur-källorna-anropas)).
 - **Vid uppdatering** skrivs filen atomärt (först till en temporär fil som sedan byter namn), så att
   en krasch inte lämnar en trasig fil.
-- **Om en hämtning misslyckas** behålls data från samma dag, men aldrig data från före den senaste morgonkörningen.
+- **Om en hämtning misslyckas** behålls data från samma dag. Gårdagens data visas tills dagens hämtning av källan är
+  klar, och tas bort om den misslyckas (även de nya försöken).
 - Eftersom rådata sparas kan en ny version av appen tolka om den utan att hämta allt på nytt.
 - Filerna ägs av användaren `PUID`/`PGID` (standard 1000). Kör `id` på värden för att se dina värden
   och sätt dem i `.env`.
@@ -40,16 +42,17 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 ## Städning av inaktuell data
 
 All data som appen lagrar rensas när den blivit inaktuell. Städningen görs efter varje hämtning från källorna
-(morgonkörningen, extra uppdateringar, nya försök och `POST /api/refresh`) och när appen startar, inte oftare än så.
-Regeln är att data som hämtats före den senaste morgonkörningen (`DAILY_REFRESH_TIME`) varken används eller sparas.
+(varje källas dagliga hämtning, nya försök och `POST /api/refresh`) och när appen startar, inte oftare än så.
+Regeln är att en källas data från i går bara används tills dagens hämtning av källan är klar, och att data från före
+i går aldrig används eller sparas.
 
 | Vad | Rensas vid städningen |
 |-----|--------|
-| Källdata (`data/<källa>.json`) | Från före morgonkörningen, när källan inte kunde hämtas trots nya försök. Evenemangen tas bort ur appen och filen raderas. Källan visar ett fel och försöks igen var 30:e minut. |
+| Källdata (`data/<källa>.json`) | Från före i dag, när dagens hämtning av källan misslyckades trots nya försök, och alltid från före i går. Evenemangen tas bort ur appen och filen raderas. Källan visar ett fel och hämtas igen nästa dag. |
 | Data från avstängda källor | Direkt, till exempel Ticketmaster när API-nyckeln tagits bort. |
 | Sparade AI-svar (`chat_cache.json`) | När de inte gäller dagens datum, aktuell evenemangsdata och modell. |
 | Bilder (`data/images/`) | När de inte längre hör till något evenemang, liksom halvfärdiga filer från en avbruten hämtning. |
-| Chattsamtal (bara i minnet) | Direkt vid *Nytt samtal* och när man lämnar sidan Fråga AI. Annars samtal som inte använts på 2 timmar (t.ex. när fliken stängts), och alla samtal efter morgonkörningen. Vid omstart försvinner alla. |
+| Chattsamtal (bara i minnet) | Direkt vid *Nytt samtal* och när man lämnar sidan Fråga AI. Annars samtal som inte använts på 2 timmar (t.ex. när fliken stängts), och alla samtal när dagens hämtningar är klara. Vid omstart försvinner alla. |
 | IP-adresser i spärren för Fråga AI (bara i minnet) | Adresser vars senaste AI-fråga är äldre än 30 minuter. Vid omstart försvinner alla. |
 | Besöksstatistikens besökare med IP-adresser (`besoksinfo.json`) | Dygn som är slut: de summeras och IP-adresserna tas bort. |
 | Besöksstatistikens summerade dagar | Dagar äldre än 13 månader. |

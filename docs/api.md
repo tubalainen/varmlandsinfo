@@ -4,11 +4,11 @@ API:t är till för appens eget gränssnitt.
 
 | Metod | Sökväg             | Beskrivning |
 |-------|--------------------|-------------|
-| GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. Bildadresserna pekar på appen (`/img/…`). |
+| GET   | `/api/events`      | Alla aktuella evenemang i JSON, sorterade på nästa tillfälle. Bildadresserna pekar på appen (`/img/…`). `completed` är när alla källor senast var hämtade (visas i menyn). |
 | GET   | `/besoksinfo`      | Besöksstatistiken (HTML). Bara när `BESOKSINFO_PASSWORD` är satt (annars 404), och bara med lösenordet (HTTP Basic, annars 401). Efter 10 felaktiga försök på 15 minuter 429. Se [Besöksstatistik](data-och-integritet.md#besöksstatistik). |
 | GET   | `/img/<nyckel>`    | En evenemangsbild via appen. Bara bilder som finns i appens evenemang, annars 404. 503 med `Retry-After` när för många nya bilder har hämtats från källorna nyss. Se [Bilder via appen](data-och-integritet.md#bilder-via-appen). |
-| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste och nästa uppdatering, lagringsstatus. **Bara lokalt.** |
-| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt, städar bort inaktuell data och svarar när det är klart. Hämtar inte om datan är yngre än 5 minuter. **Bara lokalt.** |
+| GET   | `/api/health`      | Version, antal evenemang, status per källa, senaste hämtning, lagringsstatus och dagens hämtschema (`schedule`: fönstret, varje källas slumpade tid, källorna som är klara och nästa hämtning). **Bara lokalt.** |
+| POST  | `/api/refresh`     | Hämtar alla evenemang på nytt, städar bort inaktuell data och svarar när det är klart. Hämtar inte om datan är yngre än 5 minuter. Källorna som hämtades hämtas inte igen samma dag. **Bara lokalt.** |
 | GET   | `/api/chat/presets` | De fördefinierade frågorna i Fråga AI. |
 | GET   | `/api/chat/status` | Om AI-chatten är konfigurerad och om Ollama går att nå (utan Ollamas adress eller felets detaljer). |
 | POST  | `/api/chat`        | Ny fråga: `{"question": "…"}` med sessions-id i huvudet `X-Chat-Session`. Svaret strömmas som NDJSON och börjar med `{"type": "session", "id": …}`. 409 om en fråga redan pågår. 413 om anropet är större än 32 KB. För många frågor till AI:n (5 per 30 minuter och session, 20 per 30 minuter och IP-adress) ger en händelse `{"type": "error"}` i svaret. |

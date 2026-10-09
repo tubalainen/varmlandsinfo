@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -24,7 +25,7 @@ state: dict = {
     "refreshing": False,
     "storage_error": None,
     # per källa: {"title", "enabled", "count", "updated", "error", "paused"}
-    # paused: källan nekade åtkomst (401/403) och hämtas inte igen förrän vid nästa morgonkörning (#76)
+    # paused: källan nekade åtkomst (401/403) och hämtas inte igen förrän vid nästa dags hämtning (#76)
     # group: namnet som visas i gränssnittet. Källor med samma grupp (t.ex. Loppisar) visas som en källa.
     "sources": {s.key: {"title": s.title, "group": getattr(s, "group", s.title), "homepage": s.homepage, "enabled": s.config_error() is None,
                         "config_error": s.config_error(), "count": 0, "updated": None, "error": None,
@@ -33,6 +34,7 @@ state: dict = {
 }
 _payloads: dict[str, dict] = {}
 _refresh_task: asyncio.Task | None = None
+_refresh_keys: list[str] | None = None
 
 
 def cache_file(key: str) -> Path:
@@ -135,7 +137,7 @@ async def _refresh(keys: list[str] | None, include_paused: bool = False) -> None
                 if not info["enabled"] or (keys is not None and s.key not in keys):
                     continue
                 if info["paused"] and not include_paused:
-                    log.info("%s är pausad (nekade åtkomst) och hämtas vid nästa morgonkörning", s.title)
+                    log.info("%s är pausad (nekade åtkomst) och hämtas vid nästa dags hämtning", s.title)
                     continue
                 try:
                     payload = await s.fetch(client, _payloads.get(s.key))
@@ -163,12 +165,16 @@ async def _refresh(keys: list[str] | None, include_paused: bool = False) -> None
 
 
 async def refresh(keys: list[str] | None = None, include_paused: bool = False) -> None:
-    """Hämtar angivna källor (alla om None), eller väntar in en hämtning som redan pågår. Pausade källor
-    (nekade åtkomst) hämtas bara med `include_paused` (morgonkörningen)."""
-    global _refresh_task
-    if _refresh_task is None or _refresh_task.done():
-        _refresh_task = asyncio.create_task(_refresh(keys, include_paused))
-    # shield: en klient som kopplar ner ska inte avbryta hämtningen
+    """Hämtar angivna källor (alla om None). En hämtning som redan pågår väntas in, och räcker när den omfattar
+    källorna. Pausade källor (nekade åtkomst) hämtas bara med `include_paused` (dagens första försök)."""
+    global _refresh_task, _refresh_keys
+    while _refresh_task is not None and not _refresh_task.done():
+        covered = _refresh_keys is None or (keys is not None and set(keys) <= set(_refresh_keys))
+        # shield: en klient som kopplar ner ska inte avbryta hämtningen
+        await asyncio.shield(_refresh_task)
+        if covered:
+            return
+    _refresh_task, _refresh_keys = asyncio.create_task(_refresh(keys, include_paused)), keys
     await asyncio.shield(_refresh_task)
 
 
@@ -196,9 +202,10 @@ def _fetched_before(iso: str | None, cutoff: datetime) -> bool:
         return True
 
 
-def purge_old(cutoff: datetime) -> list[str]:
-    """Tar bort data som hämtats före `cutoff` (den senaste morgonkörningen) och data från avstängda källor,
-    både ur minnet och från disken. Kvarglömda temporära filer raderas också. Returnerar källorna som städades."""
+def purge_old(cutoff: Callable[[str], datetime]) -> list[str]:
+    """Tar bort data som hämtats före `cutoff(källa)` (i dag när dagens hämtning av källan är klar, annars i går)
+    och data från avstängda källor, både ur minnet och från disken. Kvarglömda temporära filer raderas också.
+    Returnerar källorna som städades."""
     purged = []
     for s in SOURCES:
         info = state["sources"][s.key]
@@ -207,7 +214,7 @@ def purge_old(cutoff: datetime) -> list[str]:
             path.with_suffix(".json.tmp").unlink(missing_ok=True)
         except OSError as exc:
             log.warning("Kunde inte radera %s: %s", path.with_suffix(".json.tmp"), exc)
-        if info["enabled"] and not _fetched_before(info["updated"], cutoff):
+        if info["enabled"] and not _fetched_before(info["updated"], cutoff(s.key)):
             continue
         had_data = _payloads.pop(s.key, None) is not None or path.exists()
         try:
@@ -218,7 +225,7 @@ def purge_old(cutoff: datetime) -> list[str]:
             purged.append(s.key)
         info["updated"] = None
         if info["enabled"] and not info["error"]:
-            info["error"] = "Ingen aktuell data: källan kunde inte hämtas vid morgonkörningen"
+            info["error"] = "Ingen aktuell data: källan kunde inte hämtas i dag"
     if purged:
         rebuild()
         log.info("Städade bort gammal data: %s", ", ".join(state["sources"][k]["title"] for k in purged))

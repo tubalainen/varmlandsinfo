@@ -76,7 +76,18 @@ deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, vis
 
 ## Hur källorna anropas
 
-Alla källor hämtas tillsammans en gång per dygn (`DAILY_REFRESH_TIME`). En normal dag blir det ungefär:
+Varje källa hämtas en gång per dygn, på förmiddagen (#104):
+
+- **Slumpade tider:** varje dag dras en ny tid för varje källa mellan 08:00 och 12:30 (`REFRESH_WINDOW`, standard
+  `08:00-13:00`; sista halvtimmen är plats för nya försök). Källorna anropas alltså varken på samma klockslag dag
+  efter dag eller alla på en gång. Dagens schema sparas i `data/schema.json`, så att en omstart inte ger nya tider
+  eller extra hämtningar, och syns bara i `/api/health` (lokalt), aldrig för besökarna.
+- **Slumpade pauser:** pauserna mellan anropen till en källa (sidbyten och liknande) är slumpade, mellan en och två
+  gånger källans paus nedan, så att anropen inte kommer i ett fast mönster.
+- **I appen** visas när informationen senast uppdaterades i sin helhet, alltså när alla källor senast var hämtade
+  (vid versionen i menyn och på sidan *Om applikationen*).
+
+En normal dag blir det ungefär:
 
 | Källa | Anrop | Kommentar |
 |-------|-------|-----------|
@@ -102,9 +113,10 @@ och högst 4 bilder hämtas samtidigt. Se [Bilder via appen](data-och-integritet
 
 Skydden gäller alla källor:
 
-- **Vid start** används sparad data, och bara källor vars data är inaktuell hämtas.
-- **`POST /api/refresh`** hämtar inte om datan är yngre än 5 minuter.
-- **`REFRESH_MINUTES`** kan inte sättas tätare än 30 minuter.
+- **Vid start** används sparad data. Bara källor utan data (eller med data från före i går) hämtas direkt. Har appen
+  varit avstängd vid en källas tid dras en ny tid i fönstret, eller hämtas källan direkt om fönstret har passerat.
+- **`POST /api/refresh`** hämtar inte om datan är yngre än 5 minuter. Källorna som hämtades räknas som dagens
+  hämtning och hämtas inte igen samma dag.
 - **Appen är mycket försiktig med nya försök**, så att den aldrig riskerar att bli spärrad av en källa (#76).
   Källorna uppdateras sällan, så det är bättre att vänta till nästa hämtning än att försöka igen och igen:
   - **`429 Too Many Requests`:** högst ett nytt försök, och aldrig tidigare än källan ber om (`Retry-After`, i
@@ -113,15 +125,12 @@ Skydden gäller alla källor:
   - **Serverfel (HTTP 500–599):** ett nytt försök efter 60 sekunder (eller efter `Retry-After` om den anges och är
     högst 60 sekunder). Misslyckas även det visas felet för källan.
   - **`401`/`403` (nekad åtkomst):** kan betyda att nyckeln är fel eller att appen är spärrad. Källan **pausas till
-    nästa morgonkörning**: den hoppas över vid `POST /api/refresh` och `REFRESH_MINUTES`, och vid morgonkörningen
-    provas den en gång, utan nya försök.
+    nästa dags hämtning**: den hoppas över vid `POST /api/refresh`, och vid källans tid nästa dag provas den en gång,
+    utan nya försök.
   - **Andra fel** (t.ex. 404 eller nätverksfel) ger inga nya försök.
-- **Om en källa fallerar vid morgonkörningen** görs två nya försök med 15 minuters mellanrum (05.15 och 05.30).
+- **Om en källa fallerar** görs högst två nya försök, 15–25 minuter isär och inom fönstret (senast 13:00).
   Lyckas inte de heller tas källans gamla data bort (se [Städning](data-och-integritet.md#städning-av-inaktuell-data)),
-  och källan hämtas igen först vid nästa morgonkörning (eller vid `POST /api/refresh`).
-- **Om en källa fallerar vid en senare uppdatering** under dagen behålls dagens data, och inga nya försök görs förrän
-  vid nästa hämtning.
-- **Totalt:** en källa som är nere hela dygnet hämtas högst 3 gånger per dygn (morgonkörningen), och en som nekar
-  åtkomst högst 1 gång.
+  och källan hämtas igen först nästa dag (eller vid `POST /api/refresh`).
+- **Totalt:** en källa som är nere hela dygnet hämtas högst 3 gånger per dygn, och en som nekar åtkomst högst 1 gång.
 - **Anrop:** antalet anrop sedan start syns som `api_calls` i `/api/health`, och status per källa under `sources`.
 - **API-nycklar** loggas aldrig och syns aldrig i felmeddelanden.

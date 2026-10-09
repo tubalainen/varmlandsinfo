@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 import events
 import main
@@ -90,22 +89,6 @@ def test_stale_sources_only_enabled(monkeypatch):
                      "sbf", "svemo", "saffle", "kil", "skoghall", "riksteatern"]   # SHL är aktuell, Ticketmaster avstängd
 
 
-def test_needs_refresh():
-    tz = events.TZ
-    now = datetime(2026, 9, 24, 14, 0, tzinfo=tz)
-    assert main.needs_refresh(None, now)
-    assert not main.needs_refresh("2026-09-24T06:00:00+02:00", now)  # efter dagens 05:00
-    assert main.needs_refresh("2026-09-24T04:00:00+02:00", now)      # före dagens 05:00
-    early = datetime(2026, 9, 24, 3, 0, tzinfo=tz)
-    assert not main.needs_refresh("2026-09-23T06:00:00+02:00", early)  # efter gårdagens 05:00
-
-
-def test_next_run_daily():
-    tz = events.TZ
-    assert main.next_run(datetime(2026, 9, 24, 4, 0, tzinfo=tz)) == datetime(2026, 9, 24, 5, 0, tzinfo=tz)
-    assert main.next_run(datetime(2026, 9, 24, 6, 0, tzinfo=tz)) == datetime(2026, 9, 25, 5, 0, tzinfo=tz)
-
-
 def test_index_references_versioned_assets():
     from version import __version__
     html = main.INDEX_HTML[True]
@@ -126,7 +109,7 @@ def test_cache_headers():
 
 
 def test_refresh_pauses_sources_that_deny_access(monkeypatch):
-    """401/403 kan betyda att appen är spärrad: källan hämtas inte igen förrän vid morgonkörningen (#76)."""
+    """401/403 kan betyda att appen är spärrad: källan hämtas inte igen förrän vid nästa dags hämtning (#76)."""
     import asyncio
     from common import AccessDenied
 
@@ -137,7 +120,7 @@ def test_refresh_pauses_sources_that_deny_access(monkeypatch):
         async def fetch(self, client, previous):
             Denied.calls += 1
             if Denied.calls == 1:
-                raise AccessDenied("Fejk nekade åtkomst (HTTP 403). Källan pausas till nästa morgonkörning.")
+                raise AccessDenied("Fejk nekade åtkomst (HTTP 403). Källan pausas till nästa dags hämtning.")
             return {"events": []}
 
         def normalize(self, payload):
@@ -154,5 +137,5 @@ def test_refresh_pauses_sources_that_deny_access(monkeypatch):
     assert info["paused"] and "pausas" in info["error"] and Denied.calls == 1
     asyncio.run(events._refresh(None))                       # manuell eller schemalagd uppdatering: hoppas över
     assert Denied.calls == 1
-    asyncio.run(events._refresh(None, include_paused=True))  # morgonkörningen: ett försök
+    asyncio.run(events._refresh(None, include_paused=True))  # dagens första försök
     assert Denied.calls == 2 and not info["paused"] and info["error"] is None

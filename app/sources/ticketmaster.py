@@ -4,13 +4,12 @@ Nyckeln skickas bara som parameter till Ticketmaster. Den loggas aldrig och syns
 (common.get_json tar bort frågesträngen, och httpx-loggningen är avstängd i main.py).
 """
 
-import asyncio
 import os
 from datetime import datetime, timezone
 
 import httpx
 
-from common import category, finalize, get_json, https_url, strip_html
+from common import category, finalize, get_json, https_url, pause, strip_html
 from kommuner import kommun
 
 API_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
@@ -93,7 +92,7 @@ class Ticketmaster:
                     events[ev["id"]] = ev
             total_pages = int((data.get("page") or {}).get("totalPages") or 0)
             page += 1
-            await asyncio.sleep(0.25)   # max 5 anrop per sekund
+            await pause(0.25)   # max 5 anrop per sekund
         return {"events": list(events.values())}
 
     def normalize(self, payload: dict) -> list[dict]:
