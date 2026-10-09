@@ -84,9 +84,9 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-10-09, efter v0.33.0)
+## Återuppta arbetet (senast uppdaterat 2026-10-09, efter v0.33.1)
 
-Läs detta först i en ny session. Senaste releasen är **v0.33.0**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.33.1**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0–v0.30.3, `docs/sakerhet.md` med status per paket). Åtta
@@ -104,8 +104,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** arkitekturbilden på revision 16ca8a8 (v0.33.0) med platshållarbilderna (#103, ren
-  dokumentation, GitHub Pages visar den direkt). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
+- **Inte släppt:** inget. v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
+  platshållarbilderna (#103). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
   v0.33.0 (#102). v0.32.2 innehåller skärmdumparna med v0.32.1 och arkitekturbilden på revision 64b8774
   (#100). v0.32.1 innehåller skärmdumparna med v0.32.0 (#99). v0.32.0 innehåller den nya källan Riksteatern med arkitekturbilden med 16 källor (#98,
   Fråga AI känner igen källornas namn) och skärmdumparna med v0.31.0 (#97). v0.31.0 innehåller den nya källan Skoghalls Folkets Hus och `merge.same_slot` (#96),
