@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "64b8774852574dab24ae22b36ae48332cced5d8c"
+      "revision": "16ca8a8ec38490a827246c05f5f9cc3992118754"
     }
   },
   "components": [
@@ -88,14 +88,14 @@
       "sources": [
         {
           "path": "app/static/app.js",
-          "line": 134,
-          "end_line": 139,
-          "label": "vyerna"
+          "line": 246,
+          "label": "hämtar /api/events"
         },
         {
           "path": "app/static/app.js",
-          "line": 246,
-          "label": "hämtar /api/events"
+          "line": 458,
+          "end_line": 469,
+          "label": "platshållarbilder"
         },
         {
           "path": "app/static/chat.js",
@@ -581,7 +581,7 @@
       "title": "Integritet",
       "items": [
         "Inga cookies eller externa skript",
-        "Bilder bara via appen",
+        "Bilder bara via appen, annars platshållare",
         "Frågor bara till egen Ollama",
         "Ingen åtkomstlogg"
       ]

@@ -104,7 +104,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
+- **Inte släppt:** arkitekturbilden på revision 16ca8a8 (v0.33.0) med platshållarbilderna (#103, ren
+  dokumentation, GitHub Pages visar den direkt). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
   v0.33.0 (#102). v0.32.2 innehåller skärmdumparna med v0.32.1 och arkitekturbilden på revision 64b8774
   (#100). v0.32.1 innehåller skärmdumparna med v0.32.0 (#99). v0.32.0 innehåller den nya källan Riksteatern med arkitekturbilden med 16 källor (#98,
   Fråga AI känner igen källornas namn) och skärmdumparna med v0.31.0 (#97). v0.31.0 innehåller den nya källan Skoghalls Folkets Hus och `merge.same_slot` (#96),
@@ -257,7 +258,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit med de citerade
   raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
   `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska i båda lägena och ta skärmbilden i
-  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). Gränsen
+  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). Diagramrutans
+  höjd följer fönstret: mät korten i ett 1000 px högt fönster (efter `document.fonts.ready`), öppna sidan på nytt med
+  den höjden och ta bildrutor var 150:e ms direkt efter laddningen (huvudvägen lyser bara under den första sekunden),
+  välj den som liknar förra bilden mest och beskär till korten. Högst 3 hänvisningar (`sources`) per del. Gränsen
   "Docker-container" (#65) är en Archify-boundary, som ritas som en rektangel runt sina delar: containerns sju delar
   ligger därför samlade i två kolumner i mitten, webbläsarens delar till vänster, externa tjänster och `/data` till
   höger och källorna (en nod) till vänster om Hämtning. Inget utanför containern får hamna innanför rektangeln.

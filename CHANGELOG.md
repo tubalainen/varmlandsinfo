@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Arkitekturbilden pekar på v0.33.0 och nämner platshållarbilderna (#103).
+
 ## [0.33.0] - 2026-10-09
 
 ### Tillagt
