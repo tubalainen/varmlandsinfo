@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Arkitekturbilden visar den nya schemaläggningen (en slumpad tid per källa mellan 08 och 13) och pekar på v0.34.0,
+  och skärmdumparna är tagna med v0.34.0 (#105).
+
 ## [0.34.0] - 2026-10-09
 
 ### Ändrat

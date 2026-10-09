@@ -54,7 +54,7 @@
       "url": "https://github.com/tubalainen/varmlandsinfo",
       "provider": "github",
       "link_mode": "web",
-      "revision": "16ca8a8ec38490a827246c05f5f9cc3992118754"
+      "revision": "d4dd84e4c0bbb891df69a5d0b9554768d5aad27c"
     }
   },
   "components": [
@@ -88,12 +88,12 @@
       "sources": [
         {
           "path": "app/static/app.js",
-          "line": 246,
+          "line": 249,
           "label": "hämtar /api/events"
         },
         {
           "path": "app/static/app.js",
-          "line": 458,
+          "line": 461,
           "end_line": 469,
           "label": "platshållarbilder"
         },
@@ -121,18 +121,18 @@
       "sources": [
         {
           "path": "app/main.py",
-          "line": 227,
+          "line": 191,
           "end_line": 248,
           "label": "/api/events och /img"
         },
         {
           "path": "app/main.py",
-          "line": 295,
+          "line": 265,
           "label": "/api/chat"
         },
         {
           "path": "app/main.py",
-          "line": 365,
+          "line": 335,
           "end_line": 422,
           "label": "högst 32 KB, säkerhetshuvuden och CSP"
         }
@@ -165,7 +165,7 @@
         },
         {
           "path": "app/main.py",
-          "line": 251,
+          "line": 215,
           "end_line": 257,
           "label": "health och refresh"
         }
@@ -327,7 +327,7 @@
       "sources": [
         {
           "path": "app/events.py",
-          "line": 42,
+          "line": 44,
           "end_line": 62,
           "label": "rebuild"
         },
@@ -338,7 +338,7 @@
         },
         {
           "path": "app/events.py",
-          "line": 228,
+          "line": 235,
           "label": "current_events"
         }
       ]
@@ -347,7 +347,7 @@
       "id": "scheduler",
       "type": "backend",
       "label": "Schemaläggare",
-      "sublabel": "05:00 · städning",
+      "sublabel": "slumpat 08–13 · städning",
       "pos": [
         510,
         760
@@ -359,12 +359,17 @@
       "sources": [
         {
           "path": "app/main.py",
-          "line": 142,
+          "line": 96,
           "label": "scheduler"
         },
         {
+          "path": "app/timetable.py",
+          "line": 114,
+          "label": "slumpade tider per källa"
+        },
+        {
           "path": "app/main.py",
-          "line": 102,
+          "line": 44,
           "label": "cleanup"
         }
       ]
@@ -385,7 +390,7 @@
       "sources": [
         {
           "path": "app/events.py",
-          "line": 127,
+          "line": 129,
           "end_line": 147,
           "label": "_refresh"
         },
@@ -413,7 +418,7 @@
       "sources": [
         {
           "path": "app/events.py",
-          "line": 65,
+          "line": 67,
           "end_line": 76,
           "label": "källdata (JSON)"
         },
@@ -438,12 +443,12 @@
       "sources": [
         {
           "path": "app/sources/visitvarmland.py",
-          "line": 51,
+          "line": 50,
           "label": "Visit Värmland"
         },
         {
           "path": "app/sources/motorsport.py",
-          "line": 116,
+          "line": 115,
           "end_line": 136,
           "label": "SBF och Svemo"
         },
@@ -544,7 +549,7 @@
       "id": "scheduler-fetch",
       "from": "scheduler",
       "to": "fetch",
-      "label": "05:00"
+      "label": "en gång om dagen"
     },
     {
       "id": "fetch-merge",
