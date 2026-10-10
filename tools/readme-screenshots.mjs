@@ -21,8 +21,8 @@ mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 
-async function page(name, { scheme = "light", width = 1400, height = 900, route, prepare }) {
-  const ctx = await browser.newContext({ colorScheme: scheme, viewport: { width, height },
+async function page(name, { scheme = "light", width = 1400, height = 900, route, prepare, userAgent }) {
+  const ctx = await browser.newContext({ colorScheme: scheme, viewport: { width, height }, userAgent,
                                          locale: "sv-SE", timezoneId: "Europe/Stockholm" });
   const p = await ctx.newPage();
   // Bilderna som syns ska vara laddade. Misslyckas någon laddas sidan om (högst tre försök).
@@ -61,6 +61,9 @@ await page("motorsport", {
     await p.waitForTimeout(300);
   },
 });
-await page("mobil", { scheme: "dark", width: 390, height: 844, route: "lista", prepare: (p) => p.waitForSelector(".card") });
+// Som iPhone, så att rutan om hemskärmen syns (#107)
+const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+await page("mobil", { scheme: "dark", width: 390, height: 844, route: "lista", userAgent: IPHONE,
+                      prepare: (p) => p.waitForSelector(".card") });
 
 await browser.close();

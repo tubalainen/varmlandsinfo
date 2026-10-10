@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Skärmdumparna är tagna med v0.35.0, och mobilbilden tas som iPhone så att rutan om hemskärmen syns (#108).
+
 ## [0.35.0] - 2026-10-10
 
 ### Tillagt

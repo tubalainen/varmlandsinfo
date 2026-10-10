@@ -108,7 +108,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
+- **Inte släppt:** skärmdumparna med v0.35.0, mobilbilden som iPhone med rutan om hemskärmen (#108, PATCH). Bandy,
+  Loppisar och Kommunerna står som fel i dem (användarens val). v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
   (v0.34.0) med den slumpade schemaläggningen (#105). v0.34.0 innehåller slumpade hämtningar per källa mellan 08:00 och 13:00 och "allt
   uppdaterat" i menyn (#104). v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
   platshållarbilderna (#103). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
@@ -120,7 +121,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   `Dockerfile`, flödet `security.yml` med pip-audit och Trivy varje måndag, `SECURITY.md`) och v0.30.2 råden för
   Ollama och SearXNG (#92). Blir *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release
   (ett nytt bygge får Debians rättningar).
-- **Öppet:** inga issues. Säkerhetsanalysens alla paket (#85–#93) är klara.
+- **Öppet:** inga issues. Men 2026-10-10 kunde Bandys matcher inte tolkas ("sidans struktur kan ha ändrats", dagen
+  innan fanns 16), troligen en bugg i `profixio.parse_matches` för seriernas spelschema (Handboll fungerade). Inget
+  issue ännu: fråga användaren. Säkerhetsanalysens alla paket (#85–#93) är klara.
 - **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
   registrerar). Fråga användaren innan det påbörjas.
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
@@ -260,7 +263,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   länkar, licens, Claude Code). Detaljerna finns i `docs/` (`README.md` är innehållsförteckningen): `arkitektur.md`,
   `installation.md`, `funktioner.md`, `kallor.md`, `fraga-ai.md`, `data-och-integritet.md`, `api.md`,
   `utveckling.md`. Nytt innehåll läggs i rätt dokument i `docs/`, inte i README. Skärmdumparna i `docs/screenshots/` skapas med
-  `tools/readme-screenshots.mjs` (lista, kalender, Fråga AI, Motorsport, mobil). Ta om dem när gränssnittet ändras
+  `tools/readme-screenshots.mjs` (lista, kalender, Fråga AI, Motorsport, mobil som iPhone med rutan om hemskärmen). Ta om dem när gränssnittet ändras
   synligt.
 - **Arkitekturbild** (#63, #64), gjord som i användarens repo `tubalainen/reforger-server-manager`: källan
   `docs/arkitektur/varmlandsinfo.architecture.json` (Archify, `meta.animation: "trace"`, svenska texter i
