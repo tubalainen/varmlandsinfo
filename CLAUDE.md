@@ -108,7 +108,7 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
+- **Inte släppt:** rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`, MINOR). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
   (v0.34.0) med den slumpade schemaläggningen (#105). v0.34.0 innehåller slumpade hämtningar per källa mellan 08:00 och 13:00 och "allt
   uppdaterat" i menyn (#104). v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
   platshållarbilderna (#103). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med
@@ -190,6 +190,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   SVG:erna ritas av `tools/placeholders.py` (landskapet är bredare än viewBox, `object-fit: fill`, så att motivet inte
   beskärs på mobilen, och har eget mörkt läge). Ny kategori: lägg till ett motiv i `MOTIFS`, kör verktyget och lägg
   till namnet i `PLACEHOLDERS` i `app.js` (testet `test_placeholders.py` kontrollerar båda).
+- **Hemskärmen** (#107): Android frågar själv (manifestet). Safari på iOS frågar aldrig och saknar API, så
+  `installHint()` i `app.js` visar rutan `#install-hint` på iPhone och iPad (även iPadOS som utger sig för att vara
+  Mac), inte i standalone, andra appars webbläsare eller på Fråga AI. Stängd ruta: `install-hint` = `closed`.
 - **Ordning i listan och kalendern** (`multiDay` i `app.js`): under varje dag står evenemang som bara äger rum en dag
   före dem med flera datum (utställningar och återkommande evenemang lagras oftast som ett tillfälle per dag, inte
   som ett tillfälle över flera dagar), sedan tid och titel.
@@ -248,7 +251,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   (`data/geoip/dbip-city-lite.mmdb`, hämtas vid start och när dagens hämtningar är klara om den saknas eller är äldre än 32
   dagar, cirka 60 MB), kräver länken till DB-IP på sidan. Kontrastkontrollen tar med sidan när `BESOKSINFO_PASSWORD`
   finns i miljön. Sidan Om beskriver statistiken när den är på (`visit_stats` i `/api/events`).
-- **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`) och `sessionStorage` (`chat-session`).
+- **Lagring hos besökaren:** inga cookies. `localStorage` (`route`, `sidebar`, `install-hint`) och `sessionStorage` (`chat-session`).
   Beskrivs i `docs/data-och-integritet.md` och på sidan Om (Cookies och lagring). Nya värden ska läggas till där.
 - **Licens:** MIT (`LICENSE`). README har avsnitten Licens och ansvar (inga anspråk på källornas innehåll, inget
   ansvar för funktionen) och Framtagen med Claude Code. Samma avsnitt finns på sidan Om applikationen (källistan där
