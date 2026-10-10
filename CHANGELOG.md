@@ -6,6 +6,12 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Besökare på iPhone och iPad får en ruta som förklarar hur appen läggs till på hemskärmen (Dela → Lägg till på
+  hemskärmen), som Android redan frågar om. Rutan visas inte när appen körs från hemskärmen eller i andra appars
+  inbyggda webbläsare och kommer inte tillbaka när den har stängts. iOS-taggarna gör att appen öppnas utan adressfält
+  och med namnet Värmlandsinfo (#107).
+
 ## [0.34.1] - 2026-10-09
 
 ### Dokumentation

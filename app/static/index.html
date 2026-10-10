@@ -9,6 +9,10 @@
 <link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Värmlandsinfo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#101a2c">
 <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -158,6 +162,18 @@
   <header><h2></h2><form method="dialog"><button class="icon-btn" aria-label="Stäng"><span data-icon="x"></span></button></form></header>
   <div class="daylist"></div>
 </dialog>
+
+<!-- iPhone och iPad: hur appen läggs till på hemskärmen (#107). Visas av installHint() i app.js -->
+<aside id="install-hint" class="install-hint" aria-label="Lägg till på hemskärmen" hidden>
+  <img class="logo" src="/static/icons/icon.svg" alt="" width="40" height="40">
+  <div>
+    <strong>Lägg till Värmlandsinfo på hemskärmen</strong>
+    <p>Tryck på Dela <span data-icon="share" class="inline"></span> (i nyare Safari under ⋯) och välj
+      Lägg till på hemskärmen <span data-icon="plussquare" class="inline"></span>. Då öppnas Värmlandsinfo som en
+      egen app, utan adressfält.</p>
+  </div>
+  <button id="install-hint-close" class="icon-btn" type="button" aria-label="Stäng"><span data-icon="x"></span></button>
+</aside>
 
 <dialog id="lightbox" class="lightbox"><img alt=""><p class="muted"></p><form method="dialog"><button class="btn">Stäng</button></form></dialog>
 

@@ -152,6 +152,7 @@ function navigate() {
   // Lämnar man Fråga AI rensas samtalet (sammanhanget för följdfrågor)
   if (r !== "fraga") window.chatView?.leave();
   state.route = r;
+  document.body.dataset.route = r;
   if (r === "lista" || r === "kalender") store("route", r);
   for (const id of ["view-events", "view-chat", "view-about"]) $(`#${id}`).hidden = ROUTES[r].view !== id;
   for (const a of document.querySelectorAll(".nav a")) {
@@ -549,4 +550,25 @@ $("#scrim").addEventListener("click", () => setNav(false));
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNav(false); });
 $("#lightbox").addEventListener("click", (ev) => { if (ev.target.id === "lightbox") ev.target.close(); });
 window.addEventListener("hashchange", navigate);
-document.addEventListener("DOMContentLoaded", () => { navigate(); load(); });
+// ---------------------------------------------------------------- hemskärmen på iOS
+
+// Android och datorn frågar själva om appen ska installeras (manifestet räcker). Safari på iPhone och iPad gör det
+// aldrig och har inget API för det, så där visas en egen ruta med instruktioner tills den stängs (#107).
+function installHint() {
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+  // Inbyggda webbläsare i andra appar (Facebook, Instagram, Google-appen …) kan inte lägga till på hemskärmen
+  const inApp = /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|Line\/|GSA\//.test(ua);
+  if (!ios || standalone || inApp || stored("install-hint", "") === "closed") return;
+  const hint = $("#install-hint");
+  hint.hidden = false;
+  document.body.classList.add("has-install-hint");
+  $("#install-hint-close").addEventListener("click", () => {
+    hint.hidden = true;
+    document.body.classList.remove("has-install-hint");
+    store("install-hint", "closed");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => { navigate(); load(); installHint(); });

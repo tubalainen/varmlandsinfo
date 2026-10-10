@@ -82,7 +82,12 @@ Hur statistiken räknas och hur länge den sparas står i [Data och integritet](
 - **Ljust och mörkt läge:** sidan följer webbläsarens tema, och all text klarar WCAG AA i båda lägena.
 - **Om applikationen:** beskriver funktionerna och visar källornas status, versionen, licensen och vad som lagras.
 - **Version:** versionen syns i menyn och länkar till releasen på GitHub.
-- **Hemskärmen:** appen kan läggas till på hemskärmen i mobilen.
+- **Hemskärmen:** appen kan läggas till på hemskärmen i mobilen och öppnas då som en egen app utan adressfält
+  (webbappmanifest och iOS-taggarna i `index.html`). Android och datorn frågar själva om appen ska installeras. Safari
+  på iPhone och iPad gör det aldrig, så där visas en egen ruta längst ned med instruktionerna (Dela → Lägg till på
+  hemskärmen, #107). Rutan visas inte när appen redan körs från hemskärmen, inte i inbyggda webbläsare i andra appar
+  (Facebook, Instagram …) och inte på sidan Fråga AI, och den visas aldrig igen när den har stängts (`install-hint` i
+  `localStorage`).
 
 ## Ikon
 

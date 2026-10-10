@@ -110,12 +110,13 @@ felaktiga lösenord på 15 minuter spärras IP-adressen en stund.
 ## Cookies och lagring hos besökaren
 
 Appen använder inga cookies, och servern sätter inga. Sidan laddar inga externa skript, typsnitt, bilder eller
-spårning. Tre små värden sparas i besökarens webbläsare:
+spårning. Fyra små värden sparas i besökarens webbläsare:
 
 | Lagring | Nyckel | Innehåll | Hur länge |
 |---|---|---|---|
 | `localStorage` | `route` | Om besökaren senast tittade på listan eller kalendern | Tills webbläsardatan rensas |
 | `localStorage` | `sidebar` | Om menyn är ihopfälld eller utfälld | Tills webbläsardatan rensas |
+| `localStorage` | `install-hint` | Att besökaren har stängt rutan om hemskärmen på iPhone eller iPad (sparas bara då) | Tills webbläsardatan rensas |
 | `sessionStorage` | `chat-session` | Samtalets slumpmässiga id i Fråga AI | Tills fliken stängs |
 
 Samtalen i Fråga AI (frågor och svar) sparas bara i serverns minne och rensas enligt tabellen ovan.
