@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-10-10
+
 ### Tillagt
 - Besökare på iPhone och iPad får en ruta som förklarar hur appen läggs till på hemskärmen (Dela → Lägg till på
   hemskärmen), som Android redan frågar om. Rutan visas inte när appen körs från hemskärmen eller i andra appars
@@ -534,7 +536,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.0...HEAD
+[0.35.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.1...v0.35.0
 [0.34.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.0...v0.34.1
 [0.34.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.1...v0.34.0
 [0.33.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.0...v0.33.1
