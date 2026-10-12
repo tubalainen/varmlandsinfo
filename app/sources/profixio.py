@@ -55,7 +55,11 @@ def parse_team_links(page: str) -> list[dict]:
 
 
 # Raden med datum och tid: "16 okt • 19:00" (svenska) eller "Oct 16 • 19:00" (engelska). Tiden tas ur tidsstämpeln.
-DATE_LINE = re.compile(r"•\s*\d{1,2}[:.]\d{2}$")
+# Matcher utan fastställd tid har bara datumet ("16 okt", "Oct 16", #109).
+_MONTH = r"(?:jan|feb|mar|apr|maj|may|jun|jul|aug|sep|okt|oct|nov|dec)[a-z]*\.?"
+DATE_LINE = re.compile(rf"•\s*\d{{1,2}}[:.]\d{{2}}$|^(?:\d{{1,2}}\s+{_MONTH}|{_MONTH}\s+\d{{1,2}})$", re.I)
+# Mellan lagen: bindestrecket, avsparkstiden eller resultatet ("3", "-", "2" eller "3 - 2", #109)
+BETWEEN = re.compile(r"^(?:[-–]|\d{1,3}|\d{1,2}[:.]\d{2}|\d{1,3}\s*[-–]\s*\d{1,3})$")
 ROUND_RE = re.compile(r"^(?:Omgång|Runde|Round)\s+(\d+)$", re.I)
 
 
@@ -72,12 +76,16 @@ def parse_matches(page: str) -> list[dict]:
         arena = re.search(r'/facility/\d+"\s*>\s*(.*?)\s*</a>', block, re.S)
         lines = _lines(block[block.find(">") + 1:])
         i = next((n for n, x in enumerate(lines) if DATE_LINE.search(x)), None)
-        if not kickoff or i is None or len(lines) < i + 5 or lines[i + 2] != "-":
+        if not kickoff or i is None:
+            continue
+        # Hemmalaget, sedan bindestreck, tid eller resultat och till sist bortalaget
+        j = next((n for n in range(i + 2, len(lines)) if not BETWEEN.match(lines[n])), None)
+        if j is None or j == i + 2 or BETWEEN.match(lines[i + 1]):
             continue
         rnd = next((m.group(1) for m in map(ROUND_RE.match, lines[:i]) if m), None)
         matches.append({"id": head.group(1), "kickoff": int(kickoff.group(1)),
                         "arena": " ".join(_lines(arena.group(1))) if arena else None,
-                        "home": lines[i + 1], "away": lines[i + 4], "round": rnd})
+                        "home": lines[i + 1], "away": lines[j], "round": rnd})
     return matches
 
 

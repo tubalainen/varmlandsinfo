@@ -16,6 +16,7 @@ Matcherna har ingen kommun. Läget avgörs av arenan och i andra hand hemmalaget
 för motorsporten). Ungdomslag (U17, F15 …) räknas inte.
 """
 
+import logging
 import re
 from datetime import date, datetime, timedelta
 
@@ -41,6 +42,8 @@ YOUTH_RE = re.compile(r"(?<![\wåäö])[UFPJ]\d{1,2}(?!\d)|flick|pojk|junior|ung
 # Arenor och klubbar (början av ett ord) → kommun, utöver motorsportens orter och kommunerna
 PLACES = {"tingvalla": "Karlstad", "boltic": "Karlstad", "västerstrand": "Karlstad", "slottsbron": "Grums"}
 PLACE_RE = re.compile(r"(?<![\wåäö])(" + "|".join(PLACES) + r")", re.I)
+
+log = logging.getLogger("varmlandsinfo")
 
 
 def municipality(arena: str | None, home: str | None) -> str | None:
@@ -102,7 +105,11 @@ class Bandy:
             await pause(PAGE_DELAY)
             page = await get_text(client, f"{BASE}/lx/competition/leagueid{league['id']}?t=schedule", self.title, HEADERS)
             teams = [t for t in parse_teams(page) if not youth(t) and municipality(None, t)]
-            arenas = any(municipality(m["arena"], None) for m in parse_checked(page, self.title))
+            try:
+                arenas = any(municipality(m["arena"], None) for m in parse_checked(page, self.title))
+            except SourceError as exc:   # en serie som inte går att tolka stoppar inte de andra (#109)
+                log.warning("%s: hoppar över arenorna i %s: %s", self.title, league["name"], exc)
+                arenas = False
             if teams or arenas:
                 found.append({**league, "teams": teams})
                 first_pages[league["id"]] = page
@@ -116,10 +123,17 @@ class Bandy:
             leagues, first_pages, discovered = prev["leagues"], {}, checked
         else:
             (leagues, first_pages), discovered = await self._discover(client), today().isoformat()
-        matches = []
+        matches, failed = [], []
         for league in leagues:
-            for m in await self._schedule(client, league, first_pages.get(league["id"])):
-                matches.append({**m, "league": league["name"]})
+            try:
+                found = await self._schedule(client, league, first_pages.get(league["id"]))
+            except SourceError as exc:   # en serie som inte går att tolka stoppar inte de andra (#109)
+                log.warning("%s: hoppar över %s: %s", self.title, league["name"], exc)
+                failed.append(exc)
+                continue
+            matches += [{**m, "league": league["name"]} for m in found]
+        if failed and len(failed) == len(leagues):
+            raise failed[0]
         return {"discovered": discovered, "leagues": leagues, "matches": matches}
 
     def normalize(self, payload: dict) -> list[dict]:

@@ -37,6 +37,9 @@ att läsa. Med kommer seniormatcher (nationella serier och cuper, och distrikt M
 dit Värmland hör) som spelas i Värmland: på en värmländsk arena (t.ex. Tingvalla Isstadion → Karlstad) eller med ett
 värmländskt hemmalag (lagets ort, t.ex. Slottsbron IF → Grums). Ungdoms- och juniorlag (U17, F15 …) räknas inte.
 Säsongen 2026/27 är det IF Boltic (Bandyallsvenskan herr) och Slottsbron IF (träningsmatcher).
+Matcher utan fastställd tid och matcher med resultat tolkas också, och en serie vars matcher inte går att tolka hoppas
+över (med en varning i loggen) i stället för att stoppa hela källan. Bara om ingen serie går att tolka blir källan röd
+(#109).
 
 **Handboll:** Svenska Handbollförbundets matcher finns också i Profixio. Värmland hör till Handbollförbundet Väst. Med
 kommer seniormatcher, herr och dam, i de nationella serierna (Handbollsligan, Allsvenskan, Dam/Herr 1, Svenska cupen)

@@ -113,6 +113,23 @@ def test_unparsable_matches_give_a_clear_error():
     assert bandy.parse_checked(schedule_page([]), "Bandy") == []        # inga matcher alls är inget fel
 
 
+def test_matches_without_time_or_with_result():
+    """Matcher utan fastställd tid ("16 okt") och med resultat ska också tolkas (#109)."""
+    for lang in ("sv", "en"):
+        no_time = match(1, DAY, "19:00", "IF Boltic", "Västerås SK", lang=lang).replace(" • 19:00</div>", "</div>") \
+            .replace("<div>-</div><div>19:00</div>", "<div>-</div>")
+        result = match(2, DAY, "19:00", "Slottsbron IF", "Ready", lang=lang) \
+            .replace("<div>-</div><div>19:00</div>", "<div>3</div><div>-</div><div>2</div>")
+        compact = match(3, DAY, "19:00", "IF Boltic", "Tranås BoIS", lang=lang) \
+            .replace("<div>-</div><div>19:00</div>", "<div>4 - 1</div>")
+        ms = parse_matches(schedule_page([no_time, result, compact]))
+        assert [(m["id"], m["home"], m["away"]) for m in ms] == [
+            ("1", "IF Boltic", "Västerås SK"), ("2", "Slottsbron IF", "Ready"), ("3", "IF Boltic", "Tranås BoIS")]
+    # Utan något mellan lagen är det inte en match
+    broken = match(4, DAY, "19:00", "IF Boltic", "Ready").replace("<div>-</div><div>19:00</div>", "")
+    assert parse_matches(schedule_page([broken])) == []
+
+
 def test_normalize_home_games_in_varmland_only():
     home, away = parse_matches(schedule_page([match(1, DAY, "19:00", "IF Boltic", "Djurgårdens IF Bandy"),
                                               match(2, DAY, "15:00", "Nässjö IF", "IF Boltic", arena="Stinsen Arena")]))
@@ -185,6 +202,33 @@ def test_fetch_discovers_leagues_and_reads_next_pages(monkeypatch):
     payload2, requests2 = run(handler, previous=payload)
     assert [r.method for r in requests2] == ["GET", "POST"] and "leagueid28502" in str(requests2[0].url)
     assert payload2["discovered"] == payload["discovered"]
+
+
+def test_one_unparsable_league_does_not_stop_the_source(monkeypatch):
+    """En serie vars matcher inte går att tolka hoppas över, de andra hämtas ändå (#109)."""
+    monkeypatch.setattr(bandy, "PAGE_DELAY", 0)
+    allsvenskan = schedule_page([match(1, DAY, "19:00", "IF Boltic", "Djurgårdens IF Bandy")], teams=["IF Boltic"])
+    odd = schedule_page([match(2, DAY, "13:30", "Slottsbron IF", "Ready").replace(" • ", " – ")], teams=["Slottsbron IF"])
+
+    def handler(request):
+        url = str(request.url)
+        if "t=competitions" in url:
+            return httpx.Response(200, text=LISTING)
+        return httpx.Response(200, text=allsvenskan if "leagueid28502" in url else odd if "leagueid28603" in url
+                              else schedule_page([]))
+
+    payload, _ = run(handler)
+    assert [x["name"] for x in payload["leagues"]] == ["Bandyallsvenskan Herr", "Träningsmatcher Mellansverige"]
+    assert [m["id"] for m in payload["matches"]] == ["1"]
+
+    # Går ingen serie att tolka är det ett fel
+    only_odd = {**payload, "leagues": payload["leagues"][1:]}
+    try:
+        run(handler, previous=only_odd)
+    except Exception as exc:
+        assert "tolka" in str(exc)
+    else:
+        raise AssertionError("inget fel")
 
 
 def test_rediscovers_after_a_week(monkeypatch):
