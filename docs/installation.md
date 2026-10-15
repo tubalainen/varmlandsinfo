@@ -67,6 +67,15 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `PUID` / `PGID`      | `1000` / `1000`    | Användare och grupp som äger filerna i datakatalogen. |
 | `TZ`                 | `Europe/Stockholm` | Tidszon, avgör bland annat vad som räknas som "idag". |
 
+### DNS
+
+`docker-compose.yaml` ger containern Cloudflares 1.1.1.1 som DNS, med Googles 8.8.8.8 som reserv (#112). Då påverkas
+appen inte av en filtrerande DNS på värden, som Cloudflare for Families (1.1.1.3) som spärrar Visit Värmlands
+bildserver (se [Bilderna visas inte](#bilderna-visas-inte)). Containrar i samma compose-projekt och
+`host.docker.internal` nås som förut. Namn i det lokala nätverket (till exempel `ollama.hemma.lan`) går däremot inte
+att slå upp, så ange IP-adresser i `OLLAMA_URL` och `SEARXNG_URL`. Vill du använda värdens DNS tar du bort raderna
+`dns:` i `docker-compose.yaml`.
+
 ## AI-chatten med Ollama
 
 1. Installera [Ollama](https://ollama.com) och hämta en modell, till exempel:

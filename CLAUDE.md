@@ -108,7 +108,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.35.1 innehåller datumrubriken i listan som klistrar sig fast under mobilraden
+- **Inte släppt:** bildproxyn varnar en gång per värd och timme med orsaken (`images.host_problem`, `ImageProxy._refused`,
+  #111, PATCH) och containern har DNS 1.1.1.1 med 8.8.8.8 som reserv (`dns:` i `docker-compose.yaml`, #112, PATCH).
+  v0.35.1 innehåller datumrubriken i listan som klistrar sig fast under mobilraden
   (`--mobilebar-h` i `style.css`, #110), Bandy som tolkar matcher utan tid och med resultat och hoppar över en serie
   som inte går att tolka (#109), skärmdumparna med v0.35.0 och mobilbilden som iPhone med rutan om hemskärmen (#108).
   Bandy, Loppisar och Kommunerna står som fel i dem (användarens val). v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
@@ -307,6 +309,9 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   med och utan omvänd proxy. Om och hur appen exponeras mot internet bestämmer den som driftar den. Proxyn är ett
   råd i `docs/sakerhet.md`, aldrig ett krav. Håll säkerhetsåtgärderna enkla och konkreta. Användaren kör själv Nginx
   Proxy Manager i en egen container på samma värd.
+- **Containerns DNS** (#112): 1.1.1.1 med 8.8.8.8 som reserv i `docker-compose.yaml`. Användarens värd har Cloudflare
+  for Families (1.1.1.3), som spärrar `img.turid.visitvarmland.com` (svarar `0.0.0.0`), och då stoppar bildproxyn
+  bilderna. Lokala värdnamn går inte att slå upp i containern (Ollama nås via IP-adress).
 - Säkerhetsfynd kopplas till CVE/CWE, och beroenden hålls låsta (`app/constraints.txt`) och uppdaterade.
 - Ingen proxykonfiguration eller nya inställningar för omvända proxyer i appen. Sådant hanterar användaren utanför
   appen. Lösningar ska fungera utan konfiguration både med och utan proxy.

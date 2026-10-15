@@ -14,6 +14,12 @@ services:
       - ${VARMLANDSINFO_DATA:-./data}:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Egen DNS (#112), så att en filtrerande DNS på värden (t.ex. Cloudflare for Families, 1.1.1.3, som spärrar Visit
+    # Värmlands bildserver) inte stoppar källorna eller bilderna. 8.8.8.8 är reserv. Lokala värdnamn går då inte att slå
+    # upp: använd IP-adresser eller host.docker.internal (t.ex. i OLLAMA_URL). Ta bort raderna för värdens DNS.
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     # Härdning (#91): inga nya rättigheter i containern, bara de capabilities som entrypointen behöver för att ge
     # /data rätt ägare och byta till PUID:PGID (appen själv kör utan några), och skrivskyddat filsystem utom /data och /tmp
     security_opt:

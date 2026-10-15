@@ -10,6 +10,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Bildproxyn skriver en varning per värd och timme i stället för en rad per bild när den inte får hämta bilder från en
   värd, och varningen säger orsaken: att DNS-uppslaget misslyckades, vilka adresser värden pekar på (med en ledtråd om
   DNS-spärrar när svaret är `0.0.0.0`) eller att servern inte var publik (#111).
+- Containern använder 1.1.1.1 som DNS, med 8.8.8.8 som reserv, så att en filtrerande DNS på värden inte stoppar
+  bilderna. Cloudflare for Families (1.1.1.3) spärrar Visit Värmlands bildserver (#112).
 
 ## [0.35.1] - 2026-10-15
 
