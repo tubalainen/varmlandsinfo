@@ -27,7 +27,8 @@ def proxy(tmp_path, handler, public=True, clock=None):
         return handler(request)
 
     async def check(url):
-        return public if isinstance(public, bool) else public(url)
+        ok = public if isinstance(public, bool) else public(url)
+        return None if ok else "pekar på 127.0.0.1, som inte är publik"
     p = images.ImageProxy(tmp_path / "images", check_host=check, clock=clock or (lambda: 0),
                           client_factory=lambda: httpx.AsyncClient(transport=httpx.MockTransport(wrapped)))
     return p, calls
@@ -69,6 +70,45 @@ def test_private_hosts_are_never_fetched(tmp_path):
     p, calls = proxy(tmp_path, lambda r: httpx.Response(200, content=JPEG), public=False)
     p.register([event("http://192.168.1.1/admin.jpg")])
     assert get(p, images.key("http://192.168.1.1/admin.jpg")) is None and calls == []
+
+
+def test_refused_host_is_logged_once_per_hour(tmp_path, caplog):
+    now = [0]
+    p, calls = proxy(tmp_path, lambda r: httpx.Response(200, content=JPEG), public=False, clock=lambda: now[0])
+    urls = [f"https://img.example.se/{i}.jpg" for i in range(50)]
+    p.register([event(*urls)])
+    with caplog.at_level("WARNING", logger="varmlandsinfo"):
+        for u in urls[:49]:
+            assert get(p, images.key(u)) is None
+        now[0] = images.RETRY_FAILED_AFTER
+        get(p, images.key(urls[49]))
+    lines = [r.getMessage() for r in caplog.records]
+    assert calls == [] and len(lines) == 2                         # 50 bilder: en rad, och en till efter en timme
+    assert lines[0].startswith("Bilder hämtas inte från img.example.se (pekar på 127.0.0.1, som inte är publik)")
+    p.prune([event(*urls)])
+    assert p.warned == {"img.example.se": images.RETRY_FAILED_AFTER}
+    now[0] = 2 * images.RETRY_FAILED_AFTER
+    p.prune([event(*urls)])
+    assert p.warned == {}
+
+
+def test_host_problem_names_the_reason(monkeypatch):
+    answers = {}
+
+    async def getaddrinfo(host, port):
+        if isinstance(answers[host], OSError):
+            raise answers[host]
+        return [(0, 0, 0, "", (a, port)) for a in answers[host]]
+    monkeypatch.setattr(asyncio.BaseEventLoop, "getaddrinfo", lambda self, h, p: getaddrinfo(h, p))
+    answers.update({"spärrad.se": ["0.0.0.0", "::"], "lan.se": ["192.168.1.5", "93.184.216.34"],
+                    "ok.se": ["93.184.216.34", "2606:4700::1"],
+                    "borta.se": OSError(-3, "Temporary failure in name resolution")})
+    problem = lambda host: asyncio.run(images.host_problem(f"https://{host}/x.jpg"))    # noqa: E731
+    assert problem("spärrad.se") == "pekar på 0.0.0.0, ::, troligen spärrad i DNS, t.ex. av Pi-hole eller AdGuard Home"
+    assert problem("lan.se") == "pekar på 192.168.1.5, som inte är publik"
+    assert problem("borta.se") == "DNS-uppslaget misslyckades: Temporary failure in name resolution"
+    assert problem("ok.se") is None
+    assert asyncio.run(images.host_problem("file:///etc/passwd")) == "ogiltig adress"
 
 
 def test_redirects_are_checked(tmp_path):

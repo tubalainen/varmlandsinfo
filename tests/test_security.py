@@ -119,7 +119,7 @@ def test_large_bodies_are_rejected():
 def test_image_downloads_are_paced(tmp_path, monkeypatch):
     now = [0.0]
     urls = [f"https://img.example.se/{i}.jpg" for i in range(images.DOWNLOAD_BURST + 5)]
-    p = images.ImageProxy(tmp_path / "images", check_host=lambda url: asyncio.sleep(0, True), clock=lambda: now[0],
+    p = images.ImageProxy(tmp_path / "images", check_host=lambda url: asyncio.sleep(0, None), clock=lambda: now[0],
                           client_factory=lambda: httpx.AsyncClient(
                               transport=httpx.MockTransport(lambda r: httpx.Response(200, content=JPEG))))
     p.register([{"id": "e", "title": "T", "images": [{"large": u} for u in urls]}])
@@ -216,7 +216,7 @@ class Stream:
 def test_image_proxy_checks_the_connected_server(tmp_path, monkeypatch):
     monkeypatch.setattr(images.urllib.request, "getproxies", lambda: {})
     for ip, ok in (("93.184.216.34", True), ("10.0.0.1", False), ("127.0.0.1", False), ("::ffff:192.168.1.1", False)):
-        p = images.ImageProxy(tmp_path / ip, check_host=lambda url: asyncio.sleep(0, True), clock=lambda: 0,
+        p = images.ImageProxy(tmp_path / ip, check_host=lambda url: asyncio.sleep(0, None), clock=lambda: 0,
                               client_factory=lambda: httpx.AsyncClient(transport=httpx.MockTransport(
                                   lambda r: httpx.Response(200, content=JPEG, extensions={"network_stream": Stream(ip)}))))
         url = "https://rebind.example/x.jpg"

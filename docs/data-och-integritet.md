@@ -79,7 +79,9 @@ Evenemangens bilder visas via appen, så att källornas bildservrar aldrig ser b
 - **Inga anrop in i det lokala nätverket:** bara http- och https-adresser vars värd pekar på publika IP-adresser
   hämtas, och det kontrolleras även vid omdirigeringar. Efter anslutningen kontrolleras också att servern som svarade
   har en publik adress, så att ett värdnamn som byter adress mellan kontrollen och hämtningen (DNS-rebinding) inte
-  når det lokala nätverket (#90).
+  når det lokala nätverket (#90). En värd som stoppas ger en varning i loggen, högst en gång i timmen per värd, med
+  orsaken: att DNS-uppslaget misslyckades, vilka adresser värden pekar på (`0.0.0.0` och `::` betyder att en DNS-spärr
+  stoppat värden) eller att servern inte var publik (#111). Se [Felsökning](installation.md#bilderna-visas-inte).
 - **Bara riktiga bilder:** JPEG, PNG, GIF, WebP och AVIF på högst 10 MB släpps igenom. Typen avgörs av filens innehåll,
   inte av vad servern påstår. SVG och annat innehåll stoppas.
 - **Webbläsaren** får bara visa bilder från appen själv (`img-src 'self' data:` i sidans Content-Security-Policy), och

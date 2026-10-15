@@ -117,3 +117,26 @@ När webben används beskrivs i [Fråga AI](fraga-ai.md#webbsökning).
 Första gången hämtar appen DB-IP:s fria geodatabas (cirka 60 MB, uppackad cirka 130 MB i `data/geoip/`) för att visa
 land och ort. Den uppdateras en gång i månaden. Vad som räknas och sparas står i
 [Data och integritet](data-och-integritet.md#besöksstatistik).
+
+## Felsökning
+
+### Bilderna visas inte
+
+Visas platshållarbilder i stället för evenemangens bilder, och loggen (`docker compose logs varmlandsinfo`) säger
+`Bilder hämtas inte från <värd> (…)`, står orsaken inom parentesen:
+
+- **`pekar på 0.0.0.0, ::, troligen spärrad i DNS`:** en filtrerande DNS stoppar bildservern, till exempel Pi-hole,
+  AdGuard Home eller Cloudflare for Families (1.1.1.3, som spärrar `img.turid.visitvarmland.com`). Appen hämtar bara
+  bilder från publika adresser, så bilden kommer aldrig fram. Släpp igenom värden i spärren eller ge containern en
+  annan DNS (se [DNS](#dns)).
+- **`DNS-uppslaget misslyckades`:** containern når ingen DNS-server.
+- **`pekar på 192.168.…, som inte är publik`:** värdnamnet pekar på det lokala nätverket, och sådana bilder hämtas
+  aldrig ([Bilder via appen](data-och-integritet.md#bilder-via-appen)).
+
+Så kontrollerar du vad containern får för svar:
+
+```bash
+docker exec varmlandsinfo python -c "import socket; print(sorted({a[4][0] for a in socket.getaddrinfo('img.turid.visitvarmland.com', 443)}))"
+```
+
+En bild som inte gick att hämta försöks igen tidigast efter en timme.

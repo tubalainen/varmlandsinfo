@@ -62,19 +62,33 @@ def key(url: str) -> str:
     return hashlib.sha256(url.encode()).hexdigest()[:32]
 
 
-async def is_public(url: str) -> bool:
-    """http(s)-adress vars värd bara pekar på publika IP-adresser."""
+async def host_problem(url: str) -> str | None:
+    """Varför bilder inte får hämtas från adressens värd, eller None om den är en http(s)-adress vars värd bara
+    pekar på publika IP-adresser. Orsaken hamnar i loggen, så att den som driftar appen kan felsöka (#111)."""
     parts = urlsplit(url)
     if parts.scheme not in ("http", "https") or not parts.hostname:
-        return False
+        return "ogiltig adress"
     try:
         infos = await asyncio.get_running_loop().getaddrinfo(parts.hostname, parts.port or 443)
-    except OSError:
-        return False
+    except OSError as exc:
+        return f"DNS-uppslaget misslyckades: {exc.strerror or type(exc).__name__}"
+    addrs = sorted({i[4][0].split("%")[0] for i in infos})
+    if not addrs:
+        return "DNS gav ingen adress"
     try:
-        return bool(infos) and all(ipaddress.ip_address(i[4][0].split("%")[0]).is_global for i in infos)
+        private = [a for a in addrs if not ipaddress.ip_address(a).is_global]
     except ValueError:
-        return False
+        return "DNS gav en ogiltig adress"
+    if not private:
+        return None
+    if all(ipaddress.ip_address(a).is_unspecified for a in private):    # 0.0.0.0 och :: är spärrsvar från DNS
+        return f"pekar på {', '.join(private)}, troligen spärrad i DNS, t.ex. av Pi-hole eller AdGuard Home"
+    return f"pekar på {', '.join(private)}, som inte är publik"
+
+
+async def is_public(url: str) -> bool:
+    """http(s)-adress vars värd bara pekar på publika IP-adresser."""
+    return await host_problem(url) is None
 
 
 def _proxied(url: str) -> bool:
@@ -99,10 +113,11 @@ def peer_is_public(r: httpx.Response, url: str) -> bool:
 
 
 class ImageProxy:
-    def __init__(self, directory: Path, client_factory=None, clock=time.monotonic, check_host=is_public):
+    def __init__(self, directory: Path, client_factory=None, clock=time.monotonic, check_host=host_problem):
         self.dir = directory
         self.urls: dict[str, str] = {}          # nyckel -> bildens adress hos källan
         self.failed: dict[str, float] = {}      # nyckel -> när hämtningen misslyckades
+        self.warned: dict[str, float] = {}      # värd -> när den senast varnades för (#111)
         self.clock = clock
         self.check_host = check_host
         self._client_factory = client_factory or (lambda: httpx.AsyncClient(
@@ -139,6 +154,7 @@ class ImageProxy:
         self.register(events)
         now = self.clock()
         self.failed = {k: t for k, t in self.failed.items() if k in self.urls and now - t < RETRY_FAILED_AFTER}
+        self.warned = {h: t for h, t in self.warned.items() if now - t < RETRY_FAILED_AFTER}
         removed = 0
         if self.dir.is_dir():
             for f in self.dir.iterdir():
@@ -151,6 +167,16 @@ class ImageProxy:
         return removed
 
     # ------------------------------------------------------------ hämtning
+
+    def _refused(self, url: str, reason: str) -> None:
+        """Varnar att bilder inte hämtas från värden, högst en gång per värd och RETRY_FAILED_AFTER (#111): annars
+        blir det en rad per bild, ett 70-tal för en sidvisning."""
+        host, now = urlsplit(url).hostname or "?", self.clock()
+        if host in self.warned and now - self.warned[host] < RETRY_FAILED_AFTER:
+            return
+        self.warned[host] = now
+        log.warning("Bilder hämtas inte från %s (%s). Nästa varning om värden tidigast om %d minuter.",
+                    host, reason, RETRY_FAILED_AFTER // 60)
 
     def _take(self) -> bool:
         """En ny hämtning från källorna ryms i takten (DOWNLOAD_BURST, sedan DOWNLOADS_PER_SECOND)."""
@@ -214,12 +240,12 @@ class ImageProxy:
         try:
             async with self._client_factory() as client:
                 for _ in range(MAX_REDIRECTS + 1):
-                    if not await self.check_host(url):
-                        log.warning("Bilden hämtades inte (värden är inte publik): %s", urlsplit(url).hostname)
+                    if problem := await self.check_host(url):
+                        self._refused(url, problem)
                         return None
                     async with client.stream("GET", url, headers={"Accept": "image/*"}) as r:
                         if not peer_is_public(r, url):
-                            log.warning("Bilden hämtades inte (servern är inte publik): %s", urlsplit(url).hostname)
+                            self._refused(url, "servern som anslutningen gick till är inte publik")
                             return None
                         if r.is_redirect and (location := r.headers.get("location")):
                             url = urljoin(url, location)
