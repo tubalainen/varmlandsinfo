@@ -88,9 +88,9 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-10-15, efter v0.35.0)
+## Återuppta arbetet (senast uppdaterat 2026-10-15, efter v0.35.1)
 
-Läs detta först i en ny session. Senaste releasen är **v0.35.0**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.35.1**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0–v0.30.3, `docs/sakerhet.md` med status per paket). Åtta
@@ -108,10 +108,10 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** datumrubriken i listan klistrar sig fast under mobilraden (`--mobilebar-h` i `style.css`, #110,
-  PATCH), Bandy tolkar matcher utan tid och med resultat och hoppar över en serie som inte går att tolka
-  (#109, PATCH), skärmdumparna med v0.35.0, mobilbilden som iPhone med rutan om hemskärmen (#108, PATCH). Bandy,
-  Loppisar och Kommunerna står som fel i dem (användarens val). v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
+- **Inte släppt:** inget. v0.35.1 innehåller datumrubriken i listan som klistrar sig fast under mobilraden
+  (`--mobilebar-h` i `style.css`, #110), Bandy som tolkar matcher utan tid och med resultat och hoppar över en serie
+  som inte går att tolka (#109), skärmdumparna med v0.35.0 och mobilbilden som iPhone med rutan om hemskärmen (#108).
+  Bandy, Loppisar och Kommunerna står som fel i dem (användarens val). v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
   (v0.34.0) med den slumpade schemaläggningen (#105). v0.34.0 innehåller slumpade hämtningar per källa mellan 08:00 och 13:00 och "allt
   uppdaterat" i menyn (#104). v0.33.1 innehåller arkitekturbilden på revision 16ca8a8 (v0.33.0) med
   platshållarbilderna (#103). v0.33.0 innehåller platshållarbilderna per kategori (#101) och skärmdumparna med

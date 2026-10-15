@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.35.1] - 2026-10-15
+
 ### Rättat
 - Bandy kunde stoppa helt med "Kunde inte tolka matcherna" vid veckans genomgång av serierna. Matcher utan fastställd
   tid och med resultat tolkas nu också (även för Handboll), och en serie som inte går att tolka hoppas över i stället
@@ -546,7 +548,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.1...HEAD
+[0.35.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.0...v0.35.1
 [0.35.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.1...v0.35.0
 [0.34.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.0...v0.34.1
 [0.34.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.33.1...v0.34.0
