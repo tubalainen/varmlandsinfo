@@ -11,6 +11,7 @@
   --danger: #b91c1c; --past: #eef1f4; --tint: 14%;
   --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 4px 16px rgba(15, 23, 42, .04);
   --radius: 14px;
+  --mobilebar-h: 58px;  /* raden överst på mobilen, datumrubrikerna klistrar sig fast under den (#110) */
   /* Sidomenyn är mörk i båda lägena */
   --side-bg: #101a2c; --side-text: #e6edf6; --side-muted: #9fb0c6; --side-line: #22314a;
   --side-hover: #18253b; --side-active: #1f3050; --side-accent: #5ee39a;
@@ -377,11 +378,12 @@ body[data-route="fraga"] .install-hint { display: none; }
   body.nav-open .sidebar { transform: none; }
   .side-close { display: inline-grid; }
   .mobilebar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--side-bg); color: var(--side-text);
-               position: sticky; top: 0; z-index: 20; }
+               position: sticky; top: 0; z-index: 20; height: var(--mobilebar-h); }
   .mobilebar .icon-btn { background: transparent; border-color: var(--side-line); color: var(--side-text); }
   .mobilebar .logo { border-radius: 8px; }
   .view { padding: 18px 16px 32px; }
-  .chat-view { height: calc(100vh - 58px); }
+  .chat-view { height: calc(100vh - var(--mobilebar-h)); }
+  .day { top: var(--mobilebar-h); }
   .suggestions { grid-template-columns: 1fr 1fr; }
   .filters, body.cal-mode .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filters > .select.list-only { grid-column: 1 / -1; }          /* Datum på egen rad */

@@ -88,7 +88,7 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-10-10, efter v0.35.0)
+## Återuppta arbetet (senast uppdaterat 2026-10-15, efter v0.35.0)
 
 Läs detta först i en ny session. Senaste releasen är **v0.35.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
@@ -108,7 +108,8 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** Bandy tolkar matcher utan tid och med resultat och hoppar över en serie som inte går att tolka
+- **Inte släppt:** datumrubriken i listan klistrar sig fast under mobilraden (`--mobilebar-h` i `style.css`, #110,
+  PATCH), Bandy tolkar matcher utan tid och med resultat och hoppar över en serie som inte går att tolka
   (#109, PATCH), skärmdumparna med v0.35.0, mobilbilden som iPhone med rutan om hemskärmen (#108, PATCH). Bandy,
   Loppisar och Kommunerna står som fel i dem (användarens val). v0.35.0 innehåller rutan om hemskärmen på iPhone och iPad (#107, `installHint()` i `app.js`). v0.34.1 innehåller skärmdumparna med v0.34.0 och arkitekturbilden på revision d4dd84e
   (v0.34.0) med den slumpade schemaläggningen (#105). v0.34.0 innehåller slumpade hämtningar per källa mellan 08:00 och 13:00 och "allt

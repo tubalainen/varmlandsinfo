@@ -10,6 +10,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 - Bandy kunde stoppa helt med "Kunde inte tolka matcherna" vid veckans genomgång av serierna. Matcher utan fastställd
   tid och med resultat tolkas nu också (även för Handboll), och en serie som inte går att tolka hoppas över i stället
   för att stoppa hela källan (#109).
+- Datumrubriken i listan stannar nu kvar överst när man scrollar även på mobilen (Android och iOS). Den låg dold bakom
+  raden med menyknappen (#110).
 
 ### Dokumentation
 - Skärmdumparna är tagna med v0.35.0, och mobilbilden tas som iPhone så att rutan om hemskärmen syns (#108).
