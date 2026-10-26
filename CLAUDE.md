@@ -110,8 +110,10 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
 - **Inte släppt:** inget. v0.36.0 innehåller Loppiskartan i stället för loppisar.com (#115), den nya källan
-  Tickster (#116), Fråga AI i Besöksinfo (#114) och certifi/opentelemetry-api med rättningar (#113). Skärmdumparna
-  och arkitekturbilden visar ännu inte Tickster och Loppiskartan (tas om när användaren ber om det). v0.35.2 innehåller bildproxyns varning en gång per värd och timme med orsaken
+  Tickster (#116), Fråga AI i Besöksinfo (#114) och certifi/opentelemetry-api med rättningar (#113). Efter
+  releasen: skärmdumparna med v0.36.0 och arkitekturbilden på revision 808bee0 (v0.36.0) med 17 källor (#117, inte
+  släppt). Great Event och Loppisar står som fel i skärmdumparna (Karlstad Loppis går inte att nå från molnmiljön).
+  v0.35.2 innehåller bildproxyns varning en gång per värd och timme med orsaken
   (`images.host_problem`, `ImageProxy._refused`, #111) och DNS 1.1.1.1 med 8.8.8.8 som reserv för containern (`dns:` i
   `docker-compose.yaml`, #112). v0.35.1 innehåller datumrubriken i listan som klistrar sig fast under mobilraden
   (`--mobilebar-h` i `style.css`, #110), Bandy som tolkar matcher utan tid och med resultat och hoppar över en serie
@@ -292,11 +294,12 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   (GitHub Pages från `main`, `/docs`, med `docs/.nojekyll`). Ta om den när delar, källor eller kopplingar ändras: läs
   Archifys `archify/SKILL.md`, uppdatera källan och `meta.repository.revision` (en pushad commit med de citerade
   raderna), kör `finalize` i en kopia i scratchpaden (så att kvittona inte hamnar i repot) med
-  `ARCHIFY_CHROME=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, granska i båda lägena och ta skärmbilden i
-  ljust läge med Playwright (1440 px bred, till och med korten, när animeringen lyser upp huvudvägen). Diagramrutans
+  `ARCHIFY_CHROME` satt till Playwrights Chromium (`ls /opt/pw-browsers/chromium-*/chrome-linux*/chrome`), granska i båda lägena och ta skärmbilden i
+  ljust läge med Playwright (1440 px bred, till och med korten). Sedan Archify 3.2 startar sidan i läget Stilla
+  (Rörelse ger bara slumpade ljuspunkter), så stillbilden används (#117). Diagramrutans
   höjd följer fönstret: mät korten i ett 1000 px högt fönster (efter `document.fonts.ready`), öppna sidan på nytt med
-  den höjden och ta bildrutor var 150:e ms direkt efter laddningen (huvudvägen lyser bara under den första sekunden),
-  välj den som liknar förra bilden mest och beskär till korten. Högst 3 hänvisningar (`sources`) per del. Gränsen
+  den höjden och ta bildrutor var 150:e ms efter laddningen (den första bildrutan är inte färdigritad), välj en som
+  liknar förra bilden och beskär till korten. Högst 3 hänvisningar (`sources`) per del. Gränsen
   "Docker-container" (#65) är en Archify-boundary, som ritas som en rektangel runt sina delar: containerns sju delar
   ligger därför samlade i två kolumner i mitten, webbläsarens delar till vänster, externa tjänster och `/data` till
   höger och källorna (en nod) till vänster om Hämtning. Inget utanför containern får hamna innanför rektangeln.

@@ -6,7 +6,7 @@ Klicka på bilden för den [interaktiva, animerade översikten](https://tubalain
 [Archify-specifikationen](arkitektur/varmlandsinfo.architecture.json).
 
 Översikten är skapad med [Archify](https://github.com/tt-a1i/archify) utifrån koden, och varje del hänvisar till
-källkoden. Den streckade rutan visar gränsen för Docker-containern: allt innanför körs i containern, medan
+källkoden. Den inramade rutan visar gränsen för Docker-containern: allt innanför körs i containern, medan
 webbläsaren, `/data` (en volym på värden), källorna, bildservrarna, Ollama och SearXNG ligger utanför. I den interaktiva versionen följer en animering huvudvägen genom appen (*Rörelse*/*Stilla*), och du kan
 klicka på delarna för att se hänvisningarna, följa vägar mellan dem (PATH), jämföra typer (LENS), byta tema och
 exportera bilden.

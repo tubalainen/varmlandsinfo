@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Dokumentation
+- Skärmdumparna är tagna med v0.36.0 och visar Tickster och Loppiskartan, och arkitekturbilden har 17 källor, Tickster
+  och hänvisningar till koden i v0.36.0 (#117).
+
 ## [0.36.0] - 2026-10-26
 
 ### Ändrat
