@@ -176,6 +176,14 @@ async def get_text(client: httpx.AsyncClient, url: str, source: str, headers: di
     return r.text
 
 
+async def get_bytes(client: httpx.AsyncClient, url: str, source: str) -> bytes:
+    """GET av en fil (t.ex. en signerad adress till en gzip-fil). Frågesträngen syns aldrig i felmeddelanden."""
+    where = f"{source} ({urlsplit(url).path})"
+    r = await _request(lambda: client.get(url, follow_redirects=True), where, where)
+    _check(r, source, where)
+    return r.content
+
+
 async def post_form(client: httpx.AsyncClient, url: str, data: dict, source: str) -> str:
     """POST av ett formulär (t.ex. en ASP.NET-postback för att byta sida i en lista)."""
     r = await _request(lambda: client.post(url, data=data, headers={"Accept": "text/html"}, follow_redirects=True),

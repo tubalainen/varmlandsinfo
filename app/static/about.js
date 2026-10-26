@@ -22,6 +22,7 @@
   const SOURCE_INFO = {
     visitvarmland: "Evenemang i hela Värmland via Visit Värmlands öppna API. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar.",
     ticketmaster: "Konserter, shower och sport på arenor i Värmland via Ticketmasters API (kräver API-nyckel).",
+    tickster: "Konserter, teater, shower, matcher och mat och dryck i Värmland, Karlskoga och Degerfors från Ticksters biljettförsäljning (kräver API-nyckel). Inte bio.",
     ccc: "Konserter och shower i Karlstad CCC:s konserthall Solasalen.",
     scala: "Teater, musik och humor på Scalateaterns scener i Karlstad.",
     greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",

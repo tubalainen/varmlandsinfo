@@ -55,6 +55,7 @@ aktuella när något ändras.
   CCC, Scalateatern, Great Event, Karlstad Loppis, Loppiskartan, SBF:s LoTS, Svemo TA, Profixio, Säffle, Kil och
   Skoghalls Folkets Hus är vanliga
   webbplatser).
+  Tickster: 200 anrop/timme, appen gör 2 per dag (metadata och nattens fil).
   Profixio (bandy och handboll): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
   sedan bara serierna med lag från Värmland.
   Svemo TA har 13 000+ historiska tävlingar: bläddra aldrig igenom hela listan, bara sista sidorna bakåt.
@@ -126,15 +127,15 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Ollama och SearXNG (#92). Blir *Säkerhetskontroll* röd: rätta beroendet eller föreslå användaren en PATCH-release
   (ett nytt bygge får Debians rättningar).
 - **Öppet:** inga issues. Säkerhetsanalysens alla paket (#85–#93) är klara.
-- **Möjliga nästa steg** (se Analys av källor som saknas nedan): Tickster (kräver en nyckel som användaren i så fall
-  registrerar). Fråga användaren innan det påbörjas.
+- **Tickster** (#116) är byggd. Användaren har en nyckel (`TICKSTER_API_KEY` i sin `.env`). Nyckeln får aldrig
+  checkas in, skrivas i issues eller sparas i minnet (användarens villkor 2026-10-26).
 - **Känd begränsning:** namnfrågor i Fråga AI ("Vad händer på Medis?") matchar titlar före platser, så evenemang på
   "Medis stora scen" utan Medis i titeln kommer inte med. Gäller alla platser och fanns före #79.
 
 ## Läget (v0.29.0, 2026-09-29)
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
-  standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
+  standard), Tickster (Event Dump API, kräver nyckel, av som standard, #116), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
   #82), Great Event, Karlstad Loppis + Loppiskartan (#115)
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
   **Kommunerna**, `sources/kommunerna.py`, #79), Skoghalls Folkets Hus (`sources/skoghall.py`, #96), Riksteatern
@@ -148,6 +149,21 @@ gröna och det finns inga andra grenar eller öppna PR:er.
 utanför området. motorsportivarmland.nu undersöktes som rallykälla (#51) men är en nyhetssajt utan strukturerad
 kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   sidbyte med postback (`__VIEWSTATE` + `__EVENTTARGET` från knappen med title "Next/Previous/Last Page").
+- **Tickster** (#116, `sources/tickster.py`): metadata (`/sv/api/1.0/events/dump/upcoming?key=…`) ger en signerad
+  S3-adress (http, hämtas över https) till nattens fil med alla Sveriges kommande evenemang (cirka 8 MB gzip, 50 MB
+  JSON, cirka 380 MB minne en kort stund). Samma `id` som förra gången: ingen ny hämtning. Bara platser i området
+  sparas (`area_dump`, ort eller postnummer som Ticketmaster). Bort (`is_event`): inställda, bio (`(Tal:`, taggen bio,
+  "på bio"), presentkort, årskort, säsongskort, medlemskap, bordsbokning, "Mat & Dryck"-paket, samlingar,
+  produktioner med `childEvents` (barnen kommer som egna poster) och poster över 7 dagar. Samma titel och plats blir
+  ett evenemang. Kategorier: `RULES` (titel, taggar, arrangör), `CLUB` (IF, IBK … i titeln = sport) och annars
+  `VENUE_RULES` (platsens namn). Ticksters data om Wermland Opera och Färjestadstravet är okej (licensierad via API:t,
+  till skillnad från att läsa deras webbplatser).
+- **Loppiskartan** (#115, `sources/loppiskartan.py`): ersätter loppisar.com (nedlagd oktober 2026). Sidan
+  `/loppis-lan-varmland` har alla ställen i Next.js-datan (`self.__next_f`, sätts ihop och tolkas från
+  `{"markets":[`). Bara namn med loppis/loppmarknad (användarens val: inte butiker, kedjor, antikaffärer), inte
+  Karlstad Loppis (egen källa med säsongens datum). `specific_dates` och `weekly_schedule` är JSON som text. Står
+  sommar i beskrivningen gäller veckoschemat juni–augusti. robots.txt spärrar `/api/` (bilderna), så inga bilder.
+  `events.REMOVED_SOURCES` raderar en borttagen källas sparade fil vid städningen.
 - **Kommunerna** (#79): Säffle och Kil använder Sitevision med Soleil IT:s moduler. Säffle: JSON från modulens
   appresource-anrop (`SAFFLE_ITEMS` och `SAFFLE_PATHS` ur sidans konfiguration), datum utan år (räknas fram, adressen
   ger året när den stämmer). Kil: `registerInitialState` i sidan, 25 per sida (`?start=25`), utan plats och kategori
@@ -165,8 +181,7 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   och Skoghall. Undersökningen av Folkets Hus (2026-10-01): de små husen (Årjäng, Högboda, Oleby …) har inga egna
   evenemangslistor, hyrs mest ut, och det som spelas där finns hos Visit Värmland eller Riksteatern. varmland.bio
   är bara bio (användaren vill inte ha bio i nya källor, befintliga källors filmvisningar får vara kvar).
-- **Analys av källor som saknas** (2026-09-29): möjligt nästa steg är Tickster (Event Dump API, en fil per dygn,
-  kräver nyckel). Handboll är gjord (#82). Avfärdade: Svenska kyrkan
+- **Analys av källor som saknas** (2026-09-29): Tickster (#116) och Handboll (#82) är gjorda. Avfärdade: Svenska kyrkan
   (användarens beslut), Wermland Opera (captcha), trav (Färjestadstravet förbjuder kopiering), svenskfotboll.se
   (Cloudflare), stats.innebandy.se (robots.txt spärrar AI-agenter), Nöjesfabriken (redan täckt av Visit Värmland),
   Storfors (fritext) och Karlstads universitet (mest för studenter). 2026-10-01 (#98): Folkets Hus med egna sajter

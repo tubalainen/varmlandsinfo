@@ -9,6 +9,7 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 |----------------------------|----------|
 | `data/visitvarmland.json`  | Rådata från Visit Värmland (evenemang och kommuner). |
 | `data/ticketmaster.json`   | Rådata från Ticketmaster (evenemang i Värmland). |
+| `data/tickster.json`       | Rådata från Tickster (bara evenemangen i Värmland, Karlskoga och Degerfors). |
 | `data/ccc.json`            | Karlstad CCC:s kalendersida. |
 | `data/scala.json`          | Scalateaterns föreställningslistor. |
 | `data/shl.json`            | Lagets hemmamatcher från SHL. |

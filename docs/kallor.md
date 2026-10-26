@@ -4,6 +4,7 @@
 |-------|-----|-----|
 | [Visit Värmland](https://visitvarmland.com/evenemang) | Öppet API (Turid v8) | Evenemang i hela Värmland. Omfattar även Karlstads och Hammarö kommuns evenemangskalendrar, som visar ett urval ur samma API. |
 | [Ticketmaster](https://www.ticketmaster.se) | Discovery API v2 (kräver API-nyckel) | Konserter, shower och sport på arenor i Värmland. |
+| [Tickster](https://www.tickster.com/se/sv) | Event Dump API (kräver API-nyckel) | Evenemang med biljetter hos Tickster i Värmland, Karlskoga och Degerfors: konserter, teater, shower, matcher, mat och dryck … men inte bio. |
 | [Karlstad CCC](https://www.karlstadccc.se/17/38/program-biljetter/) | Kalendersidan (HTML) | Konserter och shower i Solasalen. |
 | [Scalateatern](https://www.scalateatern.se/forestallningar/) | Föreställningslistan (HTML) | Teater, musik och humor på Scalateaterns scener. |
 | [SHL](https://www.shl.se/game-schedule) | Öppet spelschema-API | Färjestad BK:s hemmamatcher (laget går att byta med `SHL_TEAM_CODE`). |
@@ -56,6 +57,16 @@ loppisar med (ordet loppis eller loppmarknad i namnet) som har datum eller ett v
 kedjor som Myrorna och Röda Korset eller antikaffärer. Bakluckeloppisen i Karlstad kommer från Karlstad Loppis, som
 vet säsongens datum. Står det i beskrivningen att loppisen bara har öppet på sommaren gäller veckoschemat juni–augusti.
 
+**Tickster** (#116): Event Dump API ger varje natt en fil med alla kommande evenemang hos Tickster i Sverige
+(cirka 8 MB gzip, 50 MB JSON, publiceras ungefär 07:00 UTC). Appen sparar bara evenemangen på platser i Värmland,
+Karlskoga och Degerfors (ort eller postnummer, som för Ticketmaster). Med kommer inte inställda evenemang, bio och
+sändningar på bioduken, presentkort, årskort, säsongskort, medlemskap och bordsbokning, samlingar (t.ex. "Alla
+konserter på Ingesund") och produktioner som har egna föreställningar (föreställningarna finns som egna poster), och
+inte heller poster som sträcker sig över mer än en vecka. Föreställningar med samma titel på samma plats blir ett
+evenemang med flera tillfällen. Kategorierna tas ur titeln, Ticksters taggar, arrangören och platsens namn. Är dagens
+fil densamma som förra gången hämtas den inte igen. API-nyckeln skickas bara till Tickster och syns aldrig i loggen
+eller i felmeddelanden.
+
 **Kommunerna:** Säffles och Kils kommuner har egna evenemangskalendrar, som inte är kopplade till Visit Värmland. De
 visas som **en** källa, *Kommunerna*. Säffles kalender ger datum utan år, så året räknas fram (listan har bara
 tillfällen som inte är slut). Kils kalender saknar plats och kategori, så kategorierna tas ur titeln. Återkommande
@@ -99,6 +110,7 @@ En normal dag blir det ungefär:
 |-------|-------|-----------|
 | Visit Värmland | cirka 15 | Max 50 evenemang per sida. Kommunlistan hämtas en gång i veckan. Gräns: 60 anrop/minut. |
 | Ticketmaster | 1–5 | 200 evenemang per sida. Gräns: 5 anrop/sekund, 5000 per dygn. |
+| Tickster | 2 | Metadata om dagens fil och filen (cirka 8 MB), som ligger hos Amazon S3. Gräns: 200 anrop/timme. |
 | Karlstad CCC | 1 | En kalendersida. |
 | Scalateatern | cirka 5 | En sida per 25 föreställningar, med paus mellan sidorna (högst 15 sidor). |
 | SHL | 2 | Säsongsfilter och spelschema. |

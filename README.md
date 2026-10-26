@@ -25,8 +25,8 @@ Klicka på bilden för den interaktiva, animerade översikten, eller ändra
 
 ## Funktioner
 
-- **Evenemang från sexton källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
-  Karlstad CCC, Scalateatern, SHL, Bandy (Svenska Bandyförbundets matcher i Profixio), Handboll (Svenska
+- **Evenemang från sjutton källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
+  Tickster, Karlstad CCC, Scalateatern, SHL, Bandy (Svenska Bandyförbundets matcher i Profixio), Handboll (Svenska
   Handbollförbundets matcher i Profixio), Great Event, Loppisar (Karlstad Loppis och Loppiskartan), Motorsport (SBF och
   Svemo), Kommunerna (Säffles och Kils evenemangskalendrar), Skoghalls Folkets Hus (allt utom film) och
   Riksteatern (föreställningarna i Värmland).
@@ -61,6 +61,7 @@ De viktigaste inställningarna i `.env`:
 | `OLLAMA_URL` | Adress till din Ollama, t.ex. `http://host.docker.internal:11434`. Tom = Fråga AI svarar bara på sökfrågor. |
 | `SEARXNG_URL` | Adress till SearXNG för webbsökning i Fråga AI. Tom = av. |
 | `TICKETMASTER_API_KEY` | API-nyckel för Ticketmaster. Tom = källan är av. |
+| `TICKSTER_API_KEY` | API-nyckel för Tickster. Tom = källan är av. |
 | `BESOKSINFO_PASSWORD` | Lösenord till besöksstatistiken på `/besoksinfo`. Tom = ingen statistik. |
 | `VARMLANDSINFO_PORT` | Port på värden (standard `7799`). |
 

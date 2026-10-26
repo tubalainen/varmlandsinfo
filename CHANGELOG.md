@@ -12,6 +12,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
   vid städningen (#115).
 
 ### Tillagt
+- Ny källa Tickster (kräver `TICKSTER_API_KEY`): evenemang med biljetter hos Tickster i Värmland, Karlskoga och
+  Degerfors, till exempel Wermland Opera, Nöjesfabriken, Musikhögskolan Ingesund, Medis och Christinateatern. Bio,
+  presentkort, säsongskort och liknande tas inte med (#116).
 - Besöksinfo visar om besökarna har använt Fråga AI: kolumnen *Fråga AI* bland dagens besökare (antal frågor och hur
   många som gick till AI:n) och rutor för i dag och perioden. Den summerade statistiken per dag får samma siffror,
   utan IP-adresser (#114).

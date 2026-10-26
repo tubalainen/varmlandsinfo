@@ -52,6 +52,7 @@ Alla inställningar görs i `.env`, som docker compose läser automatiskt. Utgå
 | `VARMLANDSINFO_TAG`  | `latest`           | Imagetagg från ghcr.io (`latest` eller en version, t.ex. `0.11.0`). |
 | `TICKETMASTER_API_KEY` | *(tom)*          | API-nyckel för Ticketmaster. Tom betyder att källan är avstängd. |
 | `TICKETMASTER_RADIUS_KM` | `150`          | Sökradie kring Värmland (km). |
+| `TICKSTER_API_KEY`   | *(tom)*            | API-nyckel för Tickster (beställs på [developer.tickster.com](https://developer.tickster.com)). Tom betyder att källan är avstängd. |
 | `SHL_TEAM_CODE`      | `FBK`              | Lag vars hemmamatcher hämtas från SHL. |
 | `CHAT_ENABLED`       | `true`             | Visa Fråga AI. `false` döljer funktionen helt: menyvalet, sidan, texterna om AI-chatten på sidan Om och API:t för chatten (svarar 404). |
 | `OLLAMA_URL`         | *(tom)*            | Adress till Ollama. Tom betyder att AI:n är avstängd och att Fråga AI bara svarar på sökfrågor. |
