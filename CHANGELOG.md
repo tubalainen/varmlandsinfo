@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- certifi 2026.10.23 (GHSA-6q48-6c7w-9gw2, CRITICAL: rotcertifikat från emSign med läckta CA-nycklar) och
+  opentelemetry-api 1.45.1 (CVE-2026-114603), som *Säkerhetskontroll* hittade (#113).
+
 ## [0.35.2] - 2026-10-15
 
 ### Rättat
