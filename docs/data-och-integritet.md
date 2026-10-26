@@ -93,15 +93,17 @@ Besöksstatistiken är avstängd som standard. Den slås på med ett lösenord i
 sidan `/besoksinfo`, som skyddas av lösenordet (webbläsarens inloggningsruta) och inte länkas från appen. Efter 10
 felaktiga lösenord på 15 minuter spärras IP-adressen en stund.
 
-- **Vad som räknas:** sidvisningar av appen. Kända robotar och sidan `/besoksinfo` räknas inte.
+- **Vad som räknas:** sidvisningar av appen och frågor i Fråga AI. Kända robotar och sidan `/besoksinfo` räknas inte.
 - **Unika besökare** räknas per dygn utan cookies: en hash av IP-adress och webbläsare med ett slumpvärde som byts varje
   dygn. Samma person räknas en gång per dygn, men kan inte följas mellan dygnen.
 - **Dagens besökare** sparas med IP-adress, tid, antal visningar, plats (land, region och ort), enhet, webbläsare,
-  operativsystem och hänvisning (bara domänen på webbplatsen besökaren kom från). När dygnet är slut summeras det vid
+  operativsystem, hänvisning (bara domänen på webbplatsen besökaren kom från) och hur många frågor besökaren ställde i
+  Fråga AI och hur många av dem som gick till AI:n (#114, inte frågornas innehåll). Den som frågar utan att ha laddat
+  sidan samma dygn räknas som besökare med 0 visningar. När dygnet är slut summeras det vid
   nästa städning, och IP-adresserna och slumpvärdet tas bort. Högst 20 000 besökare sparas per dygn, därefter räknas
   bara sidvisningarna. `/besoksinfo` visar de 500 senaste (#89).
-- **Summerad statistik per dag** (antal visningar och unika, samt fördelningen på land, ort, enhet, webbläsare,
-  operativsystem och hänvisning, utan IP-adresser) sparas i 13 månader. Varje fördelning har högst 100 rader per dag,
+- **Summerad statistik per dag** (antal visningar och unika, antal besökare som använde Fråga AI med antal frågor och
+  AI-frågor, samt fördelningen på land, ort, enhet, webbläsare, operativsystem och hänvisning, utan IP-adresser) sparas i 13 månader. Varje fördelning har högst 100 rader per dag,
   resten räknas som "Övriga" (#89).
 - **Plats** slås upp lokalt i DB-IP:s fria databas *IP to City Lite* ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/),
   [DB-IP](https://db-ip.com)). Databasen hämtas från db-ip.com när den saknas och sedan en gång i månaden. Inga uppgifter

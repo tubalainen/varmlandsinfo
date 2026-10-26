@@ -270,6 +270,9 @@ async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | No
     if sessions.store.begin(session) == "busy":
         return JSONResponse({"error": "Vänta tills svaret på förra frågan är klart."}, status_code=409)
     ip = access.client_ip(request)
+    user_agent = request.headers.get("user-agent", "")
+    if visits.store:
+        visits.store.record_chat(ip, user_agent, datetime.now(TZ))
 
     def admit() -> str | None:
         """Spärrarna gäller bara frågor som går till AI:n: per session, och per IP-adress för den som skapar
@@ -282,6 +285,8 @@ async def chat_endpoint(req: ChatRequest, request: Request, session_id: str | No
                     f"Nästa fråga till AI:n går att ställa om {_minutes(wait)}. {SEARCH_STILL_WORKS}")
         access.chat_limiter.allow(ip)
         sessions.store.count_ai(session)
+        if visits.store:
+            visits.store.record_chat(ip, user_agent, datetime.now(TZ), to_ai=True)
         return None
 
     return StreamingResponse(_session_stream(session, created and bool(session_id), req.question, admit),
@@ -456,8 +461,8 @@ async def besoksinfo_page(request: Request):
     dagar = request.query_params.get("dagar", "")
     period = int(dagar) if dagar.isdigit() and int(dagar) in besoksinfo.PERIODS else 30
     report = visits.store.report(events.today(), period)
-    return HTMLResponse(besoksinfo.render(report, period, bool(visits.store.geo and visits.store.geo.available())),
-                        headers=PRIVATE_HEADERS)
+    return HTMLResponse(besoksinfo.render(report, period, bool(visits.store.geo and visits.store.geo.available()),
+                                          chat.CHAT_ENABLED), headers=PRIVATE_HEADERS)
 
 
 @app.get("/favicon.ico", include_in_schema=False)

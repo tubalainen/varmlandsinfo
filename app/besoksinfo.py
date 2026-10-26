@@ -21,7 +21,7 @@ STYLE = """
 .periods a { padding: 5px 11px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--text);
              text-decoration: none; font-size: .85rem; font-weight: 600; }
 .periods a[aria-current] { background: var(--accent); border-color: transparent; color: var(--on-accent); }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }
 .tile, .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .tile { padding: 14px 16px; }
 .tile .label { color: var(--muted); font-size: .82rem; }
@@ -95,21 +95,36 @@ def _top(title: str, items: list) -> str:
         f'<ul class="rows">{rows}</ul>{more}' if items else '<p class="empty">Inga besök under perioden.</p>') + "</section>"
 
 
-def _visitors(visitors: list[dict]) -> str:
+def _chat_use(v: dict) -> str:
+    """Fråga AI för en besökare (#114): "3 frågor, 2 till AI:n", eller "–"."""
+    n, ai = v.get("questions", 0), v.get("ai", 0)
+    if not n:
+        return "–"
+    return f'{n} {"fråga" if n == 1 else "frågor"}' + (f", {ai} till AI:n" if ai else ", ingen till AI:n")
+
+
+def _visitors(visitors: list[dict], chat: bool) -> str:
     if not visitors:
         return '<p class="empty">Inga besök i dag än.</p>'
     rows = "".join(
         f'<tr><td>{escape(v.get("ip", ""))}</td>'
         f'<td>{escape(v["first"])}–{escape(v["last"])}</td><td class="num">{v["hits"]}</td>'
         f'<td>{escape(v.get("city", ""))}</td><td>{escape(v.get("device", ""))}</td>'
-        f'<td>{escape(v.get("browser", ""))} · {escape(v.get("os", ""))}</td><td>{escape(v.get("referrer", ""))}</td></tr>'
+        f'<td>{escape(v.get("browser", ""))} · {escape(v.get("os", ""))}</td><td>{escape(v.get("referrer", ""))}</td>'
+        + (f'<td>{escape(_chat_use(v))}</td>' if chat else "") + "</tr>"
         for v in visitors[:MAX_ROWS])
     more = f'<p class="empty">+ {len(visitors) - MAX_ROWS} till</p>' if len(visitors) > MAX_ROWS else ""
     return ('<div class="scroll"><table><thead><tr><th>IP-adress</th><th>Tid</th><th class="num">Visningar</th><th>Plats</th>'
-            f'<th>Enhet</th><th>Webbläsare</th><th>Hänvisning</th></tr></thead><tbody>{rows}</tbody></table></div>{more}')
+            '<th>Enhet</th><th>Webbläsare</th><th>Hänvisning</th>' + ("<th>Fråga AI</th>" if chat else "")
+            + f'</tr></thead><tbody>{rows}</tbody></table></div>{more}')
 
 
-def render(report: dict, period: int, geo_available: bool) -> str:
+def _chat_note(stats: dict) -> str:
+    n = stats.get("questions", 0)
+    return f'{n} {"fråga" if n == 1 else "frågor"}, {stats.get("ai", 0)} till AI:n'
+
+
+def render(report: dict, period: int, geo_available: bool, chat: bool = True) -> str:
     current = ' aria-current="page"'
     periods = "".join(f'<a href="?dagar={p}"{current if p == period else ""}>{"1 år" if p == 365 else f"{p} dagar"}</a>'
                       for p in PERIODS)
@@ -122,6 +137,14 @@ def render(report: dict, period: int, geo_available: bool) -> str:
         f'<div class="tile"><div class="label">Unika besökare, {period} dagar</div><div class="value">{pr["unique"]}</div>'
         f'<div class="note">summa av unika per dygn</div></div>'
         f'<div class="tile"><div class="label">Sidvisningar, {period} dagar</div><div class="value">{pr["visits"]}</div></div>')
+    if chat:
+        tiles += (
+            f'<div class="tile"><div class="label">Använde Fråga AI i dag</div><div class="value">{t.get("chat", 0)}</div>'
+            f'<div class="note">{_chat_note(t)}</div></div>'
+            f'<div class="tile"><div class="label">Använde Fråga AI, {period} dagar</div>'
+            f'<div class="value">{pr.get("chat", 0)}</div><div class="note">{_chat_note(pr)}</div></div>')
+    chat_note = (" Frågor i Fråga AI räknas på besökaren som ställde dem. Till AI:n betyder att frågan besvarades av"
+                 " AI:n, inte direkt av appen (sökfrågor och sparade svar)." if chat else "")
     tops = "".join(_top(LABELS[dim], report["top"][dim]) for dim in LABELS)
     return f"""<!doctype html>
 <html lang="sv">
@@ -144,9 +167,9 @@ def render(report: dict, period: int, geo_available: bool) -> str:
   <div class="tiles">{tiles}</div>
   <section class="panel"><h2>Unika besökare per {"månad" if period > 90 else "dag"}</h2>{_chart(report["series"])}</section>
   <div class="grid">{tops}</div>
-  <section class="panel" style="margin-top:14px"><h2>Dagens besökare</h2>{_visitors(report["visitors"])}</section>
+  <section class="panel" style="margin-top:14px"><h2>Dagens besökare</h2>{_visitors(report["visitors"], chat)}</section>
   <p class="foot">Unika besökare räknas per dygn utan cookies. Dagens besökare visas med IP-adress till städningen efter
-  dygnets slut, därefter finns bara summerad statistik kvar i 13 månader. Robotar räknas inte.{since}{geo_note}
+  dygnets slut, därefter finns bara summerad statistik kvar i 13 månader. Robotar räknas inte.{chat_note}{since}{geo_note}
   <a href="{geoip.ATTRIBUTION_URL}">{geoip.ATTRIBUTION}</a>.</p>
 </main>
 </body>

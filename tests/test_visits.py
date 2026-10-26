@@ -56,7 +56,7 @@ def test_unique_per_day_and_bots(tmp_path):
     assert not s.record("1.2.3.4", "curl/8.5.0", None, "app", DAY)
     assert not s.record("1.2.3.4", "", None, "app", DAY)
     r = s.report(DAY.date(), 7)
-    assert r["today"] == {"unique": 3, "visits": 4}
+    assert r["today"] == {"unique": 3, "visits": 4, "chat": 0, "questions": 0, "ai": 0}
     first = next(v for v in r["visitors"] if v["browser"] == "Chrome" and v["ip"] == "81.230.12.4")
     assert first["hits"] == 2 and first["first"] == "10:15" and first["last"] == "11:15"
     assert first["city"] == "Karlstad, Värmland (Sverige)" and first["referrer"] == "google.com"
@@ -77,7 +77,8 @@ def test_cleanup_removes_ip_addresses_and_old_days(tmp_path):
     assert "81.230.12.4" not in saved and "salt" not in saved                   # inga IP-adresser efter städningen
     again = store(tmp_path)
     again.load()
-    assert again.report(date(2026, 9, 30), 7)["period"] == {"days": 7, "unique": 1, "visits": 1}
+    assert again.report(date(2026, 9, 30), 7)["period"] == {"days": 7, "unique": 1, "visits": 1, "chat": 0, "questions": 0,
+                                                             "ai": 0}
 
 
 def test_saved_at_most_once_a_minute(tmp_path):
@@ -173,3 +174,53 @@ def test_render_empty_and_year(tmp_path):
     report["visitors"] = [{"ip": "1.2.3.4", "first": "10:00", "last": "10:00", "hits": 1, "city": "<script>x</script>",
                            "device": "Dator", "browser": "Chrome", "os": "Windows", "referrer": "Direkt"}]
     assert "<script>" not in besoksinfo.render(report, 7, True)                 # allt från besökarna escapas
+
+
+def test_chat_use_per_visitor(tmp_path):
+    s = store(tmp_path)
+    s.record("81.230.12.4", CHROME, None, "app", DAY)
+    s.record_chat("81.230.12.4", CHROME, DAY.replace(hour=11))                  # sökfråga, besvaras utan AI
+    s.record_chat("81.230.12.4", CHROME, DAY.replace(hour=11))
+    s.record_chat("81.230.12.4", CHROME, DAY.replace(hour=11), to_ai=True)      # samma fråga gick till AI:n
+    s.record_chat("81.230.12.9", IPHONE, DAY.replace(hour=12))                  # sidan laddades i går
+    s.record_chat("1.2.3.4", "curl/8.5.0", DAY)                                  # robotar räknas inte
+    r = s.report(DAY.date(), 7)
+    assert r["today"] == {"unique": 2, "visits": 1, "chat": 2, "questions": 3, "ai": 1}
+    first = next(v for v in r["visitors"] if v["ip"] == "81.230.12.4")
+    assert (first["hits"], first["questions"], first["ai"], first["last"]) == (1, 2, 1, "11:15")
+    late = next(v for v in r["visitors"] if v["ip"] == "81.230.12.9")
+    assert (late["hits"], late["questions"], late["first"]) == (0, 1, "12:15")
+    s.cleanup(date(2026, 9, 30))
+    assert {k: s.daily["2026-09-29"][k] for k in visits.CHAT_KEYS} == {"chat": 2, "questions": 3, "ai": 1}
+    assert s.report(date(2026, 9, 30), 7)["period"]["questions"] == 3
+
+
+def test_chat_questions_are_counted(app, monkeypatch):
+    import chat
+    import sessions
+    from test_sessions import fake_ai
+    monkeypatch.setattr(sessions, "store", sessions.SessionStore())
+    monkeypatch.setattr(access, "chat_limiter", access.IpLimiter(limit=20))
+    monkeypatch.setattr(chat, "cache", None)
+    app.get("/")
+    app.post("/api/chat", json={"question": "Vad händer idag?"})                # sökfråga, utan AI
+    fake_ai(monkeypatch)
+    app.post("/api/chat", json={"question": "Vad passar en 8-åring?"})          # till AI:n
+    (v,) = visits.store.report(events.today(), 1)["visitors"]
+    assert (v["hits"], v["questions"], v["ai"]) == (1, 2, 1)
+    page = app.get("/besoksinfo", headers=auth("hemligt")).text
+    assert "Använde Fråga AI i dag" in page and "2 frågor, 1 till AI:n" in page
+    monkeypatch.setattr(chat, "CHAT_ENABLED", False)
+    assert "Fråga AI" not in app.get("/besoksinfo", headers=auth("hemligt")).text
+
+
+def test_render_chat_column(tmp_path):
+    import besoksinfo
+    report = store(tmp_path).report(date(2026, 9, 29), 7)
+    base = {"ip": "1.2.3.4", "first": "10:00", "last": "10:00", "hits": 1, "city": "", "device": "Dator",
+            "browser": "Chrome", "os": "Windows", "referrer": "Direkt"}
+    report["visitors"] = [base, {**base, "questions": 1}, {**base, "questions": 3, "ai": 2}]
+    html = besoksinfo.render(report, 7, True)
+    assert "<th>Fråga AI</th>" in html and "<td>–</td>" in html
+    assert "1 fråga, ingen till AI:n" in html and "3 frågor, 2 till AI:n" in html
+    assert "<th>Fråga AI</th>" not in besoksinfo.render(report, 7, True, chat=False)

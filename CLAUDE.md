@@ -248,7 +248,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `data/schema.json` (#104). `POST /api/refresh` räknas som dagens hämtning för källorna som lyckades. Ingen åtkomstlogg (`--no-access-log`), och Dockers logg roteras (3 × 10 MB).
   Ny lagrad data ska rensas där när den blir inaktuell, och läggas till i tabellen i `docs/data-och-integritet.md`.
 - **Besöksstatistik** (#66, `visits.py`, `besoksinfo.py`, `geoip.py`): av som standard, på med `BESOKSINFO_PASSWORD`.
-  `GET /` räknas (inte robotar, `HeadlessChrome` eller prefetch). Unika per dygn: sha256 av dygnets salt + IP +
+  `GET /` räknas (inte robotar, `HeadlessChrome` eller prefetch). Frågor i Fråga AI räknas på besökaren
+  (`record_chat` från `chat_endpoint`: `questions`, och `ai` i `admit` när frågan går till AI:n, #114). Unika per dygn: sha256 av dygnets salt + IP +
   User-Agent. `data/besoksinfo.json`: `days` (dagens besökare med IP, plats, enhet, webbläsare, OS, hänvisning) och
   `daily` (summerat). `cleanup` summerar dygn som är slut (IP-adresserna och saltet tas bort) och rensar dagar äldre än
   13 månader. Sparas högst en gång i minuten och vid avslut. `/besoksinfo`: HTTP Basic (valfritt användarnamn),

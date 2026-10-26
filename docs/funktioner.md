@@ -70,7 +70,10 @@ Med ett lösenord i `BESOKSINFO_PASSWORD` visar den dolda sidan `/besoksinfo`:
 - unika besökare och sidvisningar i dag och för en vald period (7, 30 eller 90 dagar eller ett år), med ett diagram per
   dag (per månad för ett år) och en tabell
 - de vanligaste länderna, orterna, enheterna, webbläsarna, operativsystemen och hänvisningarna
-- dagens besökare med IP-adress, tid, antal visningar, plats, enhet, webbläsare och hänvisning
+- hur många besökare som använde Fråga AI i dag och under perioden, med antal frågor och hur många som gick till AI:n
+  (när Fråga AI är påslagen)
+- dagens besökare med IP-adress, tid, antal visningar, plats, enhet, webbläsare, hänvisning och om de har använt Fråga
+  AI (antal frågor och hur många som gick till AI:n)
 
 Hur statistiken räknas och hur länge den sparas står i [Data och integritet](data-och-integritet.md#besöksstatistik).
 

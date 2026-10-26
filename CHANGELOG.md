@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Tillagt
+- Besöksinfo visar om besökarna har använt Fråga AI: kolumnen *Fråga AI* bland dagens besökare (antal frågor och hur
+  många som gick till AI:n) och rutor för i dag och perioden. Den summerade statistiken per dag får samma siffror,
+  utan IP-adresser (#114).
+
 ### Säkerhet
 - certifi 2026.10.23 (GHSA-6q48-6c7w-9gw2, CRITICAL: rotcertifikat från emSign med läckta CA-nycklar) och
   opentelemetry-api 1.45.1 (CVE-2026-114603), som *Säkerhetskontroll* hittade (#113).

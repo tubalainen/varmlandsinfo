@@ -30,6 +30,7 @@ SAVE_INTERVAL = 60                # sekunder mellan sparningarna
 MAX_VISITORS_PER_DAY = 20000
 MAX_PER_DIMENSION = 100
 DIMENSIONS = ("country", "city", "device", "browser", "os", "referrer")
+CHAT_KEYS = ("chat", "questions", "ai")
 
 BOT_RE = re.compile(
     r"bot\b|bot/|crawl|spider|slurp|curl|wget|python|httpx|aiohttp|go-http|java/|okhttp|headless|lighthouse"
@@ -128,30 +129,53 @@ class VisitStats:
         """Räknar en sidvisning. Robotar räknas inte. Returnerar True om besöket räknades."""
         if not user_agent or BOT_RE.search(user_agent):
             return False
-        day = now.date().isoformat()
         with self._lock:
-            d = self.days.setdefault(day, {"salt": secrets.token_hex(16), "visits": 0, "visitors": {}})
+            d = self._day(now)
             d["visits"] += 1
-            key = hashlib.sha256(f"{d['salt']}|{ip}|{user_agent}".encode()).hexdigest()[:20]
-            visitor = d["visitors"].get(key)
-            if visitor is None and len(d["visitors"]) >= MAX_VISITORS_PER_DAY:
-                pass                                    # taket nått: bara sidvisningen räknas
-            elif visitor is None:
-                d["visitors"][key] = {"ip": ip, "first": now.strftime("%H:%M"), "last": now.strftime("%H:%M"), "hits": 1,
-                                      **_place(ip, self.geo), **parse_user_agent(user_agent),
-                                      "referrer": referrer_domain(referer, host)}
-            else:
+            if visitor := self._visitor(d, ip, user_agent, referer, host, now):    # None: taket nått, bara sidvisningen
                 visitor["hits"] += 1
-                visitor["last"] = now.strftime("%H:%M")
+        self._save_soon()
+        return True
+
+    def record_chat(self, ip: str, user_agent: str, now: datetime, to_ai: bool = False) -> None:
+        """Räknar en fråga i Fråga AI på dagens besökare (#114), eller med to_ai att frågan gick till AI:n.
+        Den som frågar utan att ha laddat sidan i dag läggs till med 0 visningar."""
+        if not user_agent or BOT_RE.search(user_agent):
+            return
+        with self._lock:
+            if visitor := self._visitor(self._day(now), ip, user_agent, None, None, now):
+                field = "ai" if to_ai else "questions"
+                visitor[field] = visitor.get(field, 0) + 1
+        self._save_soon()
+
+    def _day(self, now: datetime) -> dict:
+        return self.days.setdefault(now.date().isoformat(), {"salt": secrets.token_hex(16), "visits": 0, "visitors": {}})
+
+    def _visitor(self, d: dict, ip: str, user_agent: str, referer: str | None, host: str | None,
+                 now: datetime) -> dict | None:
+        """Dagens besökare med den här IP-adressen och webbläsaren (ny vid behov), None när taket är nått."""
+        key = hashlib.sha256(f"{d['salt']}|{ip}|{user_agent}".encode()).hexdigest()[:20]
+        visitor = d["visitors"].get(key)
+        if visitor is None:
+            if len(d["visitors"]) >= MAX_VISITORS_PER_DAY:
+                return None
+            visitor = d["visitors"][key] = {"ip": ip, "first": now.strftime("%H:%M"), "hits": 0, **_place(ip, self.geo),
+                                            **parse_user_agent(user_agent), "referrer": referrer_domain(referer, host)}
+        visitor["last"] = now.strftime("%H:%M")
+        return visitor
+
+    def _save_soon(self) -> None:
         if self.clock() - self._saved > SAVE_INTERVAL:     # högst en gång i minuten (och vid städning och avslut)
             self.save()
-        return True
 
     @staticmethod
     def summarize(detail: dict) -> dict:
         """Summerad statistik för ett dygn, utan IP-adresser."""
         visitors = list((detail.get("visitors") or {}).values())
-        out = {"visits": detail.get("visits", 0), "unique": len(visitors)}
+        out = {"visits": detail.get("visits", 0), "unique": len(visitors),
+               # Fråga AI (#114): besökare som frågade, antal frågor och hur många av dem som gick till AI:n
+               "chat": sum(1 for v in visitors if v.get("questions")),
+               "questions": sum(v.get("questions", 0) for v in visitors), "ai": sum(v.get("ai", 0) for v in visitors)}
         for dim in DIMENSIONS:
             counts = Counter(v.get(dim) or "Okänd" for v in visitors).most_common()
             out[dim] = dict(counts[:MAX_PER_DIMENSION])
@@ -191,9 +215,11 @@ class VisitStats:
             for dim in DIMENSIONS:
                 top[dim].update(per_day.get(d, {}).get(dim) or {})
         t = per_day.get(today.isoformat(), {})
+        chat = {k: sum(per_day.get(d, {}).get(k, 0) for d in days) for k in CHAT_KEYS}
         return {
-            "today": {"unique": t.get("unique", 0), "visits": t.get("visits", 0)},
-            "period": {"days": period, "unique": sum(s["unique"] for s in series), "visits": sum(s["visits"] for s in series)},
+            "today": {"unique": t.get("unique", 0), "visits": t.get("visits", 0), **{k: t.get(k, 0) for k in CHAT_KEYS}},
+            "period": {"days": period, "unique": sum(s["unique"] for s in series), "visits": sum(s["visits"] for s in series),
+                       **chat},
             "series": series,
             "top": {dim: c.most_common() for dim, c in top.items()},
             "visitors": visitors,
