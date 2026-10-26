@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-10-26
+
 ### Ändrat
 - Loppiskartan ersätter loppisar.com, som har lagts ned, i källan Loppisar: loppisar i Värmland med datum eller
   öppettider per vecka, men inte second hand-butiker och antikaffärer. Den sparade datan från loppisar.com raderas
@@ -574,7 +576,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.2...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.0...HEAD
+[0.36.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.2...v0.36.0
 [0.35.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.1...v0.35.2
 [0.35.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.0...v0.35.1
 [0.35.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.34.1...v0.35.0

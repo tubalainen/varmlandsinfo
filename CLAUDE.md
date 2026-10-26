@@ -89,9 +89,9 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-10-15, efter v0.35.2)
+## Återuppta arbetet (senast uppdaterat 2026-10-26, efter v0.36.0)
 
-Läs detta först i en ny session. Senaste releasen är **v0.35.2**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.36.0**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0–v0.30.3, `docs/sakerhet.md` med status per paket). Åtta
@@ -109,7 +109,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.35.2 innehåller bildproxyns varning en gång per värd och timme med orsaken
+- **Inte släppt:** inget. v0.36.0 innehåller Loppiskartan i stället för loppisar.com (#115), den nya källan
+  Tickster (#116), Fråga AI i Besöksinfo (#114) och certifi/opentelemetry-api med rättningar (#113). Skärmdumparna
+  och arkitekturbilden visar ännu inte Tickster och Loppiskartan (tas om när användaren ber om det). v0.35.2 innehåller bildproxyns varning en gång per värd och timme med orsaken
   (`images.host_problem`, `ImageProxy._refused`, #111) och DNS 1.1.1.1 med 8.8.8.8 som reserv för containern (`dns:` i
   `docker-compose.yaml`, #112). v0.35.1 innehåller datumrubriken i listan som klistrar sig fast under mobilraden
   (`--mobilebar-h` i `style.css`, #110), Bandy som tolkar matcher utan tid och med resultat och hoppar över en serie
