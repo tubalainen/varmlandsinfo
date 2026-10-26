@@ -11,7 +11,7 @@
 | [Handboll (Profixio)](https://www.profixio.com/app/lx/SHF) | Svenska Handbollförbundets matcher i Profixio (HTML) | Handbollsmatcher i Värmland för seniorer, herr och dam: nationella serier, Svenska cupen och Handbollförbundet Västs division 2–4 (inte ungdom, motion eller para). |
 | [Great Event](https://www.greateventofkarlstad.se/kommande-evenemang/) | Sidan Kommande evenemang (HTML) | Konserter och evenemang på bland annat Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ. |
 | [Karlstad Loppis](https://karlstadloppis.se/) | Startsidan (HTML) | Bakluckeloppisen på I2 Norra Fältet i Karlstad (nästa datum, söndagar 10–15). |
-| [loppisar.com](https://www.loppisar.com/sokning.html) | Sökningen för Värmland (HTML) | Loppisar i Värmland med öppettider per dag, 30 dagar framåt. |
+| [Loppiskartan](https://loppiskartan.se/loppis-lan-varmland) | Sidan för Värmland (HTML med sidans data) | Loppisar i Värmland med fasta datum eller öppettider per vecka (30 dagar framåt), inte second hand-butiker och antikaffärer. |
 | [Svensk Bilsport (SBF)](https://www.sbf.se/tavlingar/tavlingskalender) | Tävlingskalendern LoTS (HTML) | Bilsport: folkrace, rally, rallycross, crosskart, karting, bilcross, racing, drifting … |
 | [Svemo](https://ta.svemo.se) | Tävlingskalendern Svemo TA (HTML) | MC- och snöskotersport: motocross, enduro, speedway, trial … |
 | [Säffle kommun](https://saffle.se/uppleva-och-gora/visit-saffle/evenemang.html) | Kommunens evenemangskalender (JSON) | Evenemang i Säffle som inte finns hos Visit Värmland: Medis, Sagabiografen, biblioteket, Silvénska villan, bygdegårdar … |
@@ -49,9 +49,12 @@ Forshaga). Serierna har oftast bara något enstaka lag från Värmland, så appe
 hela seriers spelscheman. Säsongen 2026/27 är det IF Hellton Karlstad (Dam 1, Herr 2 Väst och utvecklingslaget i Dam 3
 Väst), IFK Hammarö (Herr 3 Väst) och IFK Kristinehamn (Herr 4 Väst).
 
-**Loppisar:** Karlstad Loppis och loppisar.com visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten
+**Loppisar:** Karlstad Loppis och Loppiskartan visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten
 och på sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
-`/api/health`.
+`/api/health`. Loppiskartan ersätter loppisar.com, som lades ned i oktober 2026 (#115). Från Loppiskartan tas bara
+loppisar med (ordet loppis eller loppmarknad i namnet) som har datum eller ett veckoschema, inte second hand-butiker,
+kedjor som Myrorna och Röda Korset eller antikaffärer. Bakluckeloppisen i Karlstad kommer från Karlstad Loppis, som
+vet säsongens datum. Står det i beskrivningen att loppisen bara har öppet på sommaren gäller veckoschemat juni–augusti.
 
 **Kommunerna:** Säffles och Kils kommuner har egna evenemangskalendrar, som inte är kopplade till Visit Värmland. De
 visas som **en** källa, *Kommunerna*. Säffles kalender ger datum utan år, så året räknas fram (listan har bara
@@ -73,7 +76,7 @@ slutna (skolföreställningar och liknande), inställda och flyttade tas bort, o
 bioduken tas med. De flesta finns också hos Visit Värmland och slås ihop. De mindre Folkets Hus i Värmland har inga
 egna evenemangslistor (de hyrs mest ut), och det som spelas där finns hos Visit Värmland eller Riksteatern (#98).
 
-**Webbsidor utan API:** Profixio (bandy och handboll), CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF, Svemo, Säffle och Kil saknar API, så
+**Webbsidor utan API:** Profixio (bandy och handboll), CCC, Scalateatern, Great Event, Karlstad Loppis, Loppiskartan, SBF, Svemo, Säffle och Kil saknar API, så
 deras webbsidor läses. Ändras sidornas struktur och inga evenemang hittas, visas felet i menyn, på sidan
 *Om applikationen* och i `/api/health`.
 
@@ -103,7 +106,7 @@ En normal dag blir det ungefär:
 | Handboll | cirka 10 | Lagsidan och lagets kommande matcher (15 st, Livewire-anrop som i webbläsaren) för varje lag från Värmland, 2 anrop per lag och 2 s paus. En gång i veckan dessutom tävlingslistan och första sidan av varje seniorserie (cirka 15 anrop) för att hitta lagen. |
 | Great Event | 1 | Sidan Kommande evenemang. |
 | Karlstad Loppis | 1 | Startsidan med nästa datum. |
-| loppisar.com | 1 | Sökningen för Värmland, 30 dagar framåt. Bilderna hämtas inte (`/images/` är spärrad i robots.txt). |
+| Loppiskartan | 1 | Sidan för Värmland, med alla ställen i länet. Bilderna hämtas inte (`/api/` är spärrad i robots.txt). |
 | Svensk Bilsport (SBF) | cirka 12 | Alla kommande tävlingar i Sverige, 50 per sida. Sidbyte med postback, 1,5 s paus mellan sidorna. |
 | Svemo | cirka 3 | Datumfiltret fungerar inte där, så bara första sidan, sista sidan och sidorna bakåt till dagens datum läses. |
 | Säffle kommun | 1 | Kalenderns lista som JSON, alla kommande tillfällen i ett anrop. |

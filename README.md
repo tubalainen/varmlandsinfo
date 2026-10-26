@@ -27,7 +27,7 @@ Klicka på bilden för den interaktiva, animerade översikten, eller ändra
 
 - **Evenemang från sexton källor**, sammanslagna så att samma evenemang visas en gång: Visit Värmland, Ticketmaster,
   Karlstad CCC, Scalateatern, SHL, Bandy (Svenska Bandyförbundets matcher i Profixio), Handboll (Svenska
-  Handbollförbundets matcher i Profixio), Great Event, Loppisar (Karlstad Loppis och loppisar.com), Motorsport (SBF och
+  Handbollförbundets matcher i Profixio), Great Event, Loppisar (Karlstad Loppis och Loppiskartan), Motorsport (SBF och
   Svemo), Kommunerna (Säffles och Kils evenemangskalendrar), Skoghalls Folkets Hus (allt utom film) och
   Riksteatern (föreställningarna i Värmland).
 - **Lista och kalender** dag för dag, med filter på kategori, kommun, källa och datum.

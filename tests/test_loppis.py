@@ -1,63 +1,89 @@
-"""Källorna loppisar.com och Karlstad Loppis (#43)."""
+"""Källorna Loppiskartan (#115, ersätter loppisar.com) och Karlstad Loppis (#43)."""
 
+import json
 from datetime import date, timedelta
 
 from merge import merge, similar
-from sources import karlstadloppis, loppisar
+from sources import karlstadloppis, loppiskartan
 from sources.karlstadloppis import KarlstadLoppis
-from sources.loppisar import Loppisar
+from sources.loppiskartan import Loppiskartan
 
-MONTHS = list(loppisar.MONTHS)
-WEEKDAYS = ["Måndagen", "Tisdagen", "Onsdagen", "Torsdagen", "Fredagen", "Lördagen", "Söndagen"]
+MONTHS = list(karlstadloppis.MONTHS)
 D1 = date.today() + timedelta(days=3)
-D2 = D1 + timedelta(days=1)
+CLOSED = {"isOpen": False, "start": "", "end": ""}
 
 
-def header(d: date) -> str:
-    return (f"<tr><td><h4 style='margin:0px; margin-top:5px;'>{WEEKDAYS[d.weekday()]} den {d.day} "
-            f"{MONTHS[d.month - 1]} {d.year}:</h4></td></tr>")
+def week(**days):
+    """Veckoschemat som Loppiskartan har det (JSON som text), t.ex. week(sunday=("12:00", "17:00"))."""
+    return json.dumps({d: {"isOpen": True, "start": t[0], "end": t[1]} if (t := days.get(d)) else CLOSED
+                       for d in loppiskartan.WEEKDAYS})
 
 
-def row(lid, slug, name, times, place, kind="Säsongsloppis"):
-    return f'''<tr> <td class="sokrow"> <img src="images/loppisar/thumbnail-x.jpg" align="left" />
-      <a href="l{lid}/{slug}.html"><strong>{name}</strong></a> - {times} ({kind}) <br />
-      <span style="font-size:11px"><strong>Plats:</strong> {place}</span> </td> </tr>'''
+def market(mid, name, hours_type=None, weekly=None, dates=None, kommun="Karlstad", **extra):
+    return {"id": mid, "slug": f"m-{mid}", "name": name, "description": extra.pop("description", ""),
+            "latitude": 59.4, "longitude": 13.5, "address": "Östanås 610, SE-655 98 Molkom, Sverige",
+            "hours_type": hours_type, "weekly_schedule": weekly,
+            "specific_dates": json.dumps([{"date": d, "start": "11:00", "end": "16:00"} for d in dates or []]),
+            "hours_note": extra.pop("hours_note", None), "website": extra.pop("website", ""), "facebook": None,
+            "instagram": None, "kommun": kommun, **extra}
 
 
-def search_page(*parts):
-    return "<html><h2>Sökresultat</h2><table>" + "".join(parts) + "</table></html>"
+def page(markets: list[dict]) -> str:
+    """Sidan som Next.js skickar den: datan uppdelad i flera skript."""
+    data = '1:["$","div"]\n27:["$","$L2c",null,' + json.dumps({"markets": markets, "areaName": "Värmland"}) + "]\n"
+    parts = [data[:40], data[40:300], data[300:]]
+    return "<html>" + "".join(f"<script>self.__next_f.push([1,{json.dumps(p)}])</script>" for p in parts) + "</html>"
 
 
-def test_loppisar_groups_days_per_loppis():
-    page = search_page(
-        header(D1),
-        row(4124, "z-loppis", "Z loppis", "11:00-11:00", "Zakrisdalsslingan 2, 653 42 Karlstad, Karlstads kommun"),
-        row(3630, "johans", "Johans Diversehandel", "11:00-18:00", "Arvika Maskingränd 2 67141 Arvika , Arvika kommun"),
-        header(D2),
-        row(4124, "z-loppis", "Z loppis", "9:00-18:00", "Zakrisdalsslingan 2, 653 42 Karlstad, Karlstads kommun"),
-        row(1, "hagfors", "Loppis i Hagfors", "10:00-14:00", "Storgatan 1, Hagfors kommun", kind="Engångsloppis"),
-        '<tr><td><h4>Söndagen den 99 september 2026:</h4></td></tr>',   # ogiltigt datum
-        row(2, "x", "Utan giltigt datum", "10:00-14:00", "Någonstans, Kils kommun"),
-    )
-    events = {e["title"]: e for e in Loppisar().normalize({"html": page})}
-    assert set(events) == {"Z loppis", "Johans Diversehandel", "Loppis i Hagfors"}
-
-    z = events["Z loppis"]
-    assert z["id"] == "loppisar-4124" and z["url"] == "https://www.loppisar.com/l4124/z-loppis.html"
-    assert [(o["date_start"], o["time_start"], o["time_end"]) for o in z["occasions"]] == [
-        (D1.isoformat(), "11:00", None),                               # samma start- och sluttid = ingen sluttid
-        (D2.isoformat(), "09:00", "18:00")]
-    assert z["municipality"] == "Karlstad" and z["place"]["address"] == "Zakrisdalsslingan 2, 653 42 Karlstad"
-    assert z["categories"][0]["title"] == "Loppis"
-    assert z["images"] == []                                           # /images/ är spärrad i robots.txt
-    assert events["Johans Diversehandel"]["place"]["address"] == "Arvika Maskingränd 2 67141 Arvika"
-    assert events["Loppis i Hagfors"]["municipality"] == "Hagfors"     # inte "Hagfor"
-    assert events["Loppis i Hagfors"]["summary"].startswith("Engångsloppis")
+def test_loppiskartan_reads_the_page_data():
+    ms = [market(1, "Loppisen där oppe", "specific", dates=[D1.isoformat()]), market(2, "Myrorna")]
+    assert [m["name"] for m in loppiskartan.markets(page(ms))] == ["Loppisen där oppe", "Myrorna"]
+    try:
+        loppiskartan.markets("<html>Ny sida</html>")
+        raise AssertionError("borde ge ett fel")
+    except loppiskartan.SourceError as exc:
+        assert "Loppiskartan" in str(exc)
 
 
-def test_loppisar_search_url_asks_for_varmland():
-    url = loppisar.search_url(date(2026, 9, 25))
-    assert "slanID=15" in url and "sdatum=2026-09-25" in url and "srangetime=30" in url
+def test_loppiskartan_only_flea_markets_with_hours(monkeypatch):
+    first = date(2026, 10, 26)                                          # en måndag
+    monkeypatch.setattr(loppiskartan, "today", lambda: first)
+    monkeypatch.setattr("common.today", lambda: first)
+    ms = [
+        market(1, "Loppisen där oppe", "specific", dates=["2026-10-31", "2026-08-08"], kommun="Säffle",
+               hours_note="Även öppet efter överenskommelse", website="www.example.se"),
+        market(2, "Bäverland Loppis & Secondhand", "weekly", week(sunday=("12:00", "17:00"))),
+        market(3, "Myrorna", "weekly", week(monday=("10:00", "18:00"))),                  # butik
+        market(4, "Röda Korset Second hand Karlstad", "weekly", week(monday=("10:00", "18:00"))),
+        market(5, "Lions Loppmarknad"),                                                     # utan öppettider
+        market(6, "Loppis Gustav Adolf 44", "weekly", week(friday=("12:00", "16:00")),
+               description="Loppis vid Värmlandsgården, öppet fredagar under sommaren."),
+        market(7, "Karlstad Loppis AB Bakluckeloppis", "weekly", week(sunday=("10:00", "15:00"))),   # egen källa
+    ]
+    events = {e["title"]: e for e in Loppiskartan().normalize({"markets": ms})}
+    assert set(events) == {"Loppisen där oppe", "Bäverland Loppis & Secondhand"}
+
+    oppe = events["Loppisen där oppe"]
+    assert oppe["id"] == "loppiskartan-1" and oppe["url"] == "https://loppiskartan.se/markets/m-1"
+    assert oppe["occasions"] == [{"date_start": "2026-10-31", "date_end": "2026-10-31",
+                                  "time_start": "11:00", "time_end": "16:00"}]        # passerade datum tas bort
+    assert oppe["municipality"] == "Säffle" and oppe["website_link"] == "https://www.example.se"
+    assert "Även öppet efter överenskommelse" in oppe["description"]
+    assert oppe["categories"][0]["title"] == "Loppis" and oppe["images"] == []
+
+    bv = events["Bäverland Loppis & Secondhand"]
+    assert [o["date_start"] for o in bv["occasions"]] == ["2026-11-01", "2026-11-08", "2026-11-15", "2026-11-22"]
+    assert bv["next"]["time_start"] == "12:00" and bv["next"]["time_end"] == "17:00"
+    assert bv["place"]["address"] == "Östanås 610, 655 98 Molkom" and bv["municipality"] == "Karlstad"
+
+
+def test_loppiskartan_summer_schedule_only_in_summer(monkeypatch):
+    monkeypatch.setattr("common.today", lambda: date(2027, 6, 1))
+    m = market(6, "Loppis Gustav Adolf 44", "weekly", week(friday=("12:00", "16:00")),
+               description="Öppet fredagar under sommaren.")
+    [e] = [x for x in [loppiskartan.normalize_market(m, date(2027, 6, 1))] if x]
+    assert [o["date_start"] for o in e["occasions"]][:2] == ["2027-06-04", "2027-06-11"]
+    assert loppiskartan.normalize_market(m, date(2026, 10, 26)) is None
 
 
 def test_loppis_word_does_not_merge_different_flea_markets():
@@ -91,8 +117,7 @@ def test_karlstadloppis_event():
 def test_flea_markets_from_both_sources_stay_apart():
     d = date.today() + timedelta(days=2)
     kl = KarlstadLoppis().normalize({"html": f"Nästa loppis {d.day} {MONTHS[d.month - 1]} {d.year}"})
-    lc = Loppisar().normalize({"html": search_page(header(d), row(4124, "z", "Z loppis", "11:00-16:00",
-                                                                  "Zakrisdalsslingan 2, Karlstads kommun"))})
+    lc = Loppiskartan().normalize({"markets": [market(9, "Z loppis", "specific", dates=[d.isoformat()])]})
     assert len(merge([kl, lc])) == 2
 
 
@@ -136,12 +161,12 @@ def test_flea_market_sources_are_shown_as_one(tmp_path, monkeypatch):
     use_tmp_data(tmp_path, monkeypatch)
     d = date.today() + timedelta(days=2)
     monkeypatch.setitem(events._payloads, "karlstadloppis", {"html": f"Nästa loppis {d.day} {MONTHS[d.month - 1]} {d.year}"})
-    monkeypatch.setitem(events._payloads, "loppisar", {"html": search_page(
-        header(d), row(4124, "z", "Z loppis", "11:00-16:00", "Zakrisdalsslingan 2, Karlstads kommun"))})
+    monkeypatch.setitem(events._payloads, "loppiskartan", {"markets": [market(9, "Z loppis", "specific",
+                                                                              dates=[d.isoformat()])]})
     events.rebuild()
     names = {s["name"] for e in events.state["events"] for s in e["sources"]}
     assert names == {"Loppisar"}                                           # ett namn i gränssnittet
     info = events.state["sources"]
-    assert info["karlstadloppis"]["group"] == info["loppisar"]["group"] == "Loppisar"
-    assert info["karlstadloppis"]["count"] == 1 and info["loppisar"]["count"] == 1   # status per källa finns kvar
+    assert info["karlstadloppis"]["group"] == info["loppiskartan"]["group"] == "Loppisar"
+    assert info["karlstadloppis"]["count"] == 1 and info["loppiskartan"]["count"] == 1   # status per källa finns kvar
     assert info["visitvarmland"]["group"] == "Visit Värmland"

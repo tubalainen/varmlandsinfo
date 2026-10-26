@@ -205,7 +205,7 @@ def refine(categories: list[dict], title: str, summary: str) -> list[dict]:
         if t not in titles:
             titles.append(t)
     vague = all(t in (OTHER, FREE) for t in titles)
-    # Loppisar och motorsport har egna källor och regler (loppisar.com har t.ex. "… restaurang & cafe" som namn)
+    # Loppisar och motorsport har egna källor och regler (t.ex. "Loppis & café" som namn)
     rules = [] if LOPPIS in titles or MOTORSPORT in titles else KEYWORD_RULES
     for name, pattern in rules:
         if name not in titles and (pattern.search(title or "") or (vague and name not in TITLE_ONLY and pattern.search(summary or ""))):

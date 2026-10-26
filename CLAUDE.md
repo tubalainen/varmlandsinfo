@@ -52,7 +52,7 @@ aktuella när något ändras.
   ska rapportera "Inga kontrastproblem". Granska även skärmdumparna i `tools/screenshots/`.
 - **Checka aldrig in privata adresser** (t.ex. användarens Ollama-IP) eller `.env`.
 - Var snäll mot källorna (Visit Värmland: 60 anrop/minut; Ticketmaster: 5/sekund och 5000/dygn;
-  CCC, Scalateatern, Great Event, Karlstad Loppis, loppisar.com, SBF:s LoTS, Svemo TA, Profixio, Säffle, Kil och
+  CCC, Scalateatern, Great Event, Karlstad Loppis, Loppiskartan, SBF:s LoTS, Svemo TA, Profixio, Säffle, Kil och
   Skoghalls Folkets Hus är vanliga
   webbplatser).
   Profixio (bandy och handboll): varje sida är cirka 0,5 MB. Gå igenom serierna bara en gång i veckan (`DISCOVER_DAYS`), och hämta
@@ -135,7 +135,7 @@ gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Källor** (`app/sources/`, prioritetsordning): Visit Värmland (API), Ticketmaster (API, kräver nyckel, av som
   standard), Karlstad CCC, Scalateatern, SHL (Färjestads hemmamatcher), Bandy (Profixio, #72), Handboll (Profixio,
-  #82), Great Event, Karlstad Loppis + loppisar.com
+  #82), Great Event, Karlstad Loppis + Loppiskartan (#115)
   (grupp **Loppisar**), SBF/LoTS + Svemo TA (grupp **Motorsport**, `sources/motorsport.py`), Säffle + Kil (grupp
   **Kommunerna**, `sources/kommunerna.py`, #79), Skoghalls Folkets Hus (`sources/skoghall.py`, #96), Riksteatern
   (`sources/riksteatern.py`, #98). En källas

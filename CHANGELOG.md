@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Ändrat
+- Loppiskartan ersätter loppisar.com, som har lagts ned, i källan Loppisar: loppisar i Värmland med datum eller
+  öppettider per vecka, men inte second hand-butiker och antikaffärer. Den sparade datan från loppisar.com raderas
+  vid städningen (#115).
+
 ### Tillagt
 - Besöksinfo visar om besökarna har använt Fråga AI: kolumnen *Fråga AI* bland dagens besökare (antal frågor och hur
   många som gick till AI:n) och rutor för i dag och perioden. Den summerade statistiken per dag får samma siffror,

@@ -28,7 +28,7 @@ NEXT = re.compile(r"Nästa loppis\s*(?:(?:mån|tis|ons|tors|fre|lör|sön)\w*\s+
 class KarlstadLoppis:
     key = "karlstadloppis"
     title = "Karlstad Loppis"
-    group = "Loppisar"          # visas som en källa i gränssnittet, tillsammans med loppisar.com
+    group = "Loppisar"          # visas som en källa i gränssnittet, tillsammans med Loppiskartan
     homepage = URL
 
     def config_error(self) -> str | None:

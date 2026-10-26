@@ -6,7 +6,7 @@ from sources.greatevent import GreatEvent
 from sources.handboll import Handboll
 from sources.karlstadloppis import KarlstadLoppis
 from sources.kommunerna import Kil, Saffle
-from sources.loppisar import Loppisar
+from sources.loppiskartan import Loppiskartan
 from sources.motorsport import SBF, Svemo
 from sources.riksteatern import Riksteatern
 from sources.scala import Scala
@@ -17,5 +17,5 @@ from sources.visitvarmland import VisitVarmland
 
 # Ordningen avgör prioritet vid sammanslagning av dubbletter: den första är rikast.
 SOURCES = [VisitVarmland(), Ticketmaster(), CCC(), Scala(), SHL(), Bandy(), Handboll(), GreatEvent(), KarlstadLoppis(),
-           Loppisar(), SBF(), Svemo(), Saffle(), Kil(), SkoghallsFolketsHus(),
+           Loppiskartan(), SBF(), Svemo(), Saffle(), Kil(), SkoghallsFolketsHus(),
            Riksteatern()]

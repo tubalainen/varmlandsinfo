@@ -37,6 +37,10 @@ _refresh_task: asyncio.Task | None = None
 _refresh_keys: list[str] | None = None
 
 
+# Källor som tagits bort ur appen: deras sparade data raderas vid städningen (loppisar.com lades ned, #115)
+REMOVED_SOURCES = ("loppisar",)
+
+
 def cache_file(key: str) -> Path:
     return DATA_DIR / f"{key}.json"
 
@@ -207,6 +211,13 @@ def purge_old(cutoff: Callable[[str], datetime]) -> list[str]:
     och data från avstängda källor, både ur minnet och från disken. Kvarglömda temporära filer raderas också.
     Returnerar källorna som städades."""
     purged = []
+    for key in REMOVED_SOURCES:
+        try:
+            if cache_file(key).exists():
+                cache_file(key).unlink()
+                log.info("Raderade data från den borttagna källan %s", key)
+        except OSError as exc:
+            log.warning("Kunde inte radera %s: %s", cache_file(key), exc)
     for s in SOURCES:
         info = state["sources"][s.key]
         path = cache_file(s.key)

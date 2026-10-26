@@ -26,7 +26,7 @@
     scala: "Teater, musik och humor på Scalateaterns scener i Karlstad.",
     greatevent: "Konserter och evenemang från Great Event of Karlstad, bland annat på Löfbergs Arena, Nöjesfabriken och Julins Backyard BBQ.",
     Loppisar: "Loppisar i Värmland: bakluckeloppisen på I2 Norra Fältet i Karlstad med nästa datum från arrangören "
-      + "Karlstad Loppis, och loppisar med öppettider per dag från loppisar.com. Kontakta gärna loppisen innan du åker långt.",
+      + "Karlstad Loppis, och loppisar med datum eller öppettider per vecka från Loppiskartan (inte second hand-butiker). Kontakta gärna loppisen innan du åker långt.",
     Motorsport: "Motorsporttävlingar och prova på-dagar i Värmland och Karlskoga: bilsport (folkrace, rally, rallycross, crosskart, karting …) "
       + "från Svensk Bilsports tävlingskalender och MC-sport (motocross, enduro, speedway …) från Svemo.",
     shl: "Färjestad BK:s hemmamatcher i Löfbergs Arena, med tider från SHL:s spelschema.",

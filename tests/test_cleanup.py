@@ -42,6 +42,7 @@ def test_purge_removes_data_older_than_the_cutoff(tmp_path, monkeypatch):
     events.save_cache("scala", {"pages": []}, YESTERDAY)
     (tmp_path / "data" / "ccc.json.tmp").write_text("halvskriven")
     (tmp_path / "data" / "annat.json").write_text("{}")                   # andra filer rörs inte
+    (tmp_path / "data" / "loppisar.json").write_text("{}")                # borttagen källa (#115)
     events.load_cache()
     monkeypatch.setitem(events.state["sources"]["scala"], "error", "Kunde inte nå Scalateatern")
 

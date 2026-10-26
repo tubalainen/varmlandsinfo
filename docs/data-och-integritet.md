@@ -16,7 +16,7 @@ monteras som volym till `/data` i containern och skapas automatiskt.
 | `data/handboll.json`       | Kommande handbollsmatcher från Profixio och vilka lag som är från Värmland. |
 | `data/greatevent.json`     | Sidan Kommande evenemang hos Great Event. |
 | `data/karlstadloppis.json` | Startsidan hos Karlstad Loppis. |
-| `data/loppisar.json`       | Sökresultatet för Värmland hos loppisar.com. |
+| `data/loppiskartan.json`   | Loppiskartans ställen i Värmland. |
 | `data/sbf.json`            | Kommande bilsporttävlingar från SBF:s kalender. |
 | `data/svemo.json`          | Kommande MC-tävlingar från Svemos kalender. |
 | `data/saffle.json`         | Kommande evenemang i Säffle kommuns kalender. |

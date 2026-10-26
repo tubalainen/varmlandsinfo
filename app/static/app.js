@@ -212,7 +212,7 @@ function showStatus(data) {
   if (data.release_url) v.href = data.release_url;
 }
 
-/** Källorna som de visas: källor med samma grupp (t.ex. Karlstad Loppis och loppisar.com = Loppisar) blir en. */
+/** Källorna som de visas: källor med samma grupp (t.ex. Karlstad Loppis och Loppiskartan = Loppisar) blir en. */
 function groupSources(sources) {
   const groups = new Map();
   for (const [key, s] of Object.entries(sources || {})) {
