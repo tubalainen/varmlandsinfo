@@ -68,6 +68,8 @@ def parse_dates(text: str) -> list[tuple[date, date]]:
 
     "Fre 23 oktober 2026" -> en dag, "Fre-lör 19-20 februari 2027" -> två dagar i följd,
     "6/11, 20/11, 8/12 2026" -> tre dagar, "30 januari – 2 februari 2027" -> fyra dagar i följd.
+    Årtalet sist gäller datumen före det, men över ett årsskifte ("19/12, 2/1 2027") hör datumen före nyår till
+    året innan.
     """
     years = [(m.start(), int(m.group(1))) for m in YEAR.finditer(text)]
     tokens = []
@@ -77,17 +79,25 @@ def parse_dates(text: str) -> list[tuple[date, date]]:
         month = MONTHS[m.group(3).lower()] if m.group(3) else int(m.group(4))
         if not 1 <= month <= 12:
             continue
-        year = next((y for pos, y in years if pos >= m.end()), years[-1][1] if years else None)
+        year_pos, year = next(((pos, y) for pos, y in years if pos >= m.end()), years[-1] if years else (None, None))
         d1, d2 = int(m.group(1)), int(m.group(2) or m.group(1))
         try:
             y = _year_for(month, d1, year)
-            tokens.append((m.start(), m.end(), date(y, month, d1), date(y, month, d2)))
+            tokens.append([m.start(), m.end(), date(y, month, d1), date(y, month, d2), year_pos])
         except ValueError:
             continue
+    # Samma årtal efter flera datum: ett datum som ligger efter nästa datum är från året innan
+    for i in range(len(tokens) - 2, -1, -1):
+        this, after = tokens[i], tokens[i + 1]
+        if this[4] is not None and this[4] == after[4] and this[2] > after[2]:
+            try:
+                this[2], this[3] = this[2].replace(year=this[2].year - 1), this[3].replace(year=this[3].year - 1)
+            except ValueError:
+                del tokens[i]
     result = []
     i = 0
     while i < len(tokens):
-        start, end_pos, lo, hi = tokens[i]
+        start, end_pos, lo, hi, _ = tokens[i]
         # "30 januari – 2 februari": två datum med bindestreck emellan är en period
         if i + 1 < len(tokens) and re.fullmatch(r"\s*[-–]\s*", text[end_pos:tokens[i + 1][0]]):
             hi = tokens[i + 1][3]

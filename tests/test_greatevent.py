@@ -43,6 +43,9 @@ def test_parse_dates_formats():
     assert parse_dates("30 januari – 2 februari 2027") == [(date(2027, 1, 30), date(2027, 2, 2))]
     assert parse_dates("Lör 5 december 2026 och sön 10 januari 2027") == [(date(2026, 12, 5),) * 2,
                                                                           (date(2027, 1, 10),) * 2]
+    assert parse_dates("19/12, 20/12, 2/1 2027") == [(date(2026, 12, 19),) * 2, (date(2026, 12, 20),) * 2,
+                                                     (date(2027, 1, 2),) * 2]   # över årsskiftet
+    assert parse_dates("30 december – 2 januari 2027") == [(date(2026, 12, 30), date(2027, 1, 2))]
     assert parse_dates("31/2 2027") == []
     assert parse_dates("Kommer snart") == []
 
