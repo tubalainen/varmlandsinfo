@@ -89,9 +89,9 @@ aktuella när något ändras.
   och lista, `calendar.js` kalendern, `chat.js` Fråga AI, `about.js` Om applikationen och `icons.js`
   SVG-ikonerna. Nya funktioner ska beskrivas på sidan Om applikationen (`about.js`)
 
-## Återuppta arbetet (senast uppdaterat 2026-11-09, efter v0.36.1)
+## Återuppta arbetet (senast uppdaterat 2026-11-09, efter v0.36.2)
 
-Läs detta först i en ny session. Senaste releasen är **v0.36.1**. Allt är pushat till `main`, CI och Docker-bygget är
+Läs detta först i en ny session. Senaste releasen är **v0.36.2**. Allt är pushat till `main`, CI och Docker-bygget är
 gröna och det finns inga andra grenar eller öppna PR:er.
 
 - **Säkerhetsanalysen är klar** (2026-09-30, v0.30.0–v0.30.3, `docs/sakerhet.md` med status per paket). Åtta
@@ -109,7 +109,9 @@ gröna och det finns inga andra grenar eller öppna PR:er.
   Kommunerna (#79, v0.28.0), bara kommuner i filtret Kommun (#81, v0.28.1), arkitekturbilden med 13 källor och
   aktuella kodhänvisningar (#80, v0.28.2), källan Handboll och arkitekturbilden med 14 källor (#82, v0.29.0) och
   skärmdumparna med Handboll (#83).
-- **Inte släppt:** inget. v0.36.1 (2026-11-09) innehåller en ny image med Debians rättningar av apt och zlib1g
+- **Inte släppt:** inget. v0.36.2 (2026-11-09) innehåller rättningen av Handboll, som stod som fel: IF Hellton
+  Karlstad har åkt ur Svenska cupen (dam), och lagets cupschema med bara spelade matcher stoppade hela källan (#120).
+  v0.36.1 (2026-11-09) innehåller en ny image med Debians rättningar av apt och zlib1g
   (CVE-2026-109518, CVE-2026-76844, CVE-2026-85091), som *Säkerhetskontroll* körning 8 hittade i v0.36.0 (#118), Great
   Events datum före nyår på en datumrad med årtalet sist (`greatevent.parse_dates`, #119: testet fallerade 8–21
   november) och skärmdumparna med v0.36.0 och arkitekturbilden på revision 808bee0 med 17 källor (#117). v0.36.0
