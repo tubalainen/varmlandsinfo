@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.36.1] - 2026-11-09
+
 ### Säkerhet
 - Ny image med Debians rättningar av apt och libapt-pkg7.0 3.0.4 (CVE-2026-109518) och zlib1g
   1:1.3.dfsg+really1.3.1-1+deb13u1 (CVE-2026-76844, CVE-2026-85091), som *Säkerhetskontroll* hittade (#118).
@@ -588,7 +590,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.0...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.1...HEAD
+[0.36.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.0...v0.36.1
 [0.36.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.2...v0.36.0
 [0.35.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.1...v0.35.2
 [0.35.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.0...v0.35.1
