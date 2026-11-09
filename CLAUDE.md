@@ -396,7 +396,10 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
   `CLUBS` (Hellton → Karlstad, Brukspôjkera → Forshaga). Matchens kommun: arenan, annars hemmalaget. "U" i lagnamnet är
   ett utvecklingslag (seniorer). Klubbar i Värmland: Arvika HK, Forshaga HK, HK Brukspôjkera, HK Grums, IF Hellton,
   IFK Hammarö, IFK Kristinehamn, Karlskoga HK, Kils AIKs HF, Skåre HK och Torsby IF. 2026/27 har bara Hellton, Hammarö
-  och Kristinehamn seniorlag i serierna.
+  och Kristinehamn seniorlag i serierna. Ett lag som inte går att läsa hoppas över, källan blir röd bara om inget lag
+  går att läsa (#120). Ett lag som åkt ur en cup har bara spelade matcher bland de kommande (utan `kickoff`, med
+  `hasResult: true`), och de räknas inte som fel i `profixio.parse_checked`. Seriesidorna har också lagen som JSON i
+  `<script id="competition-search-index">` (`profixio._search_index`), skripten tas bort innan länkarna läses.
 - **Docker går att köra i molnmiljön** (#91): starta daemonen med `(timeout 1800 dockerd > <scratchpad>/dockerd.log 2>&1 &)`.
   `docker pull` fungerar genom proxyn (Docker Hub kan svara 429, använd då ghcr.io, t.ex.
   `ghcr.io/aquasecurity/trivy`). Containrar når inte internet, så appen i en container belastar aldrig källorna.

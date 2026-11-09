@@ -37,21 +37,33 @@ def parse_leagues(page: str) -> list[dict]:
     return leagues
 
 
-def parse_teams(page: str) -> list[str]:
-    """Seriens lag (länkarna till lagens sidor)."""
-    names = {" ".join(_lines(n)) for n in re.findall(r'/teams/\d+"[^>]*>(.*?)</a>', page, re.S)}
-    return sorted(n for n in names if n)
+def _search_index(page: str) -> list[dict]:
+    """Seriens lag ur sökrutans JSON (competition-search-index), som har alla lag, även de utan länk på sidan (#120)."""
+    m = re.search(r'<script[^>]*id="competition-search-index"[^>]*>(.*?)</script>', page, re.S)
+    try:
+        teams = json.loads(m.group(1))["teams"] if m else []
+        return [{"id": t[0], "name": html.unescape(x["name"]).strip()} for x in teams
+                if (t := re.findall(r"/teams/(\d+)", x.get("href") or "")) and x.get("name")]
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return []
 
 
 def parse_team_links(page: str) -> list[dict]:
-    """Seriens lag med id: [{"id": "1577172", "name": "IFK Hammarö"}]."""
+    """Seriens lag med id: [{"id": "1577172", "name": "IFK Hammarö"}]. Länkarna på sidan (utan skripten, där lagen
+    också står som JSON) och sökrutans lista."""
     teams, seen = [], set()
-    for tid, name in re.findall(r'/teams/(\d+)"[^>]*>(.*?)</a>', page, re.S):
-        name = " ".join(_lines(name))
-        if tid not in seen and name:
-            seen.add(tid)
-            teams.append({"id": tid, "name": name})
+    links = re.findall(r'/teams/(\d+)"[^>]*>(.*?)</a>', re.sub(r"<script.*?</script>", "", page, flags=re.S), re.S)
+    found = [{"id": tid, "name": " ".join(_lines(name))} for tid, name in links] + _search_index(page)
+    for t in found:
+        if t["id"] not in seen and t["name"]:
+            seen.add(t["id"])
+            teams.append(t)
     return teams
+
+
+def parse_teams(page: str) -> list[str]:
+    """Seriens lagnamn."""
+    return sorted({t["name"] for t in parse_team_links(page)})
 
 
 # Raden med datum och tid: "16 okt • 19:00" (svenska) eller "Oct 16 • 19:00" (engelska). Tiden tas ur tidsstämpeln.
@@ -89,10 +101,17 @@ def parse_matches(page: str) -> list[dict]:
     return matches
 
 
+def _unplayed(page: str) -> int:
+    """Antalet matcher på sidan som inte är spelade (spelade har hasResult: true)."""
+    return sum(not re.match(r"[^)]*hasResult:\s*true", part) for part in page.split("registerMatch(")[1:])
+
+
 def parse_checked(page: str, source: str) -> list[dict]:
-    """parse_matches, men ett tydligt fel när sidan har matcher som inte går att tolka (i stället för 0 matcher)."""
+    """parse_matches, men ett tydligt fel när sidan har kommande matcher som inte går att tolka (i stället för 0
+    matcher). Spelade matcher räknas inte: ett lag som åkt ur en cup har bara de spelade matcherna kvar bland de
+    kommande, i en annan layout och utan avsparkstid (#120)."""
     matches = parse_matches(page)
-    if not matches and "registerMatch(" in page:
+    if not matches and _unplayed(page):
         raise SourceError(f"Kunde inte tolka matcherna hos {source}, sidans struktur kan ha ändrats")
     return matches
 

@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Rättat
+- Handboll stod som fel: IF Hellton Karlstad har åkt ur Svenska cupen (dam), och lagets cupschema med bara spelade
+  matcher gick inte att tolka, vilket stoppade hela källan. Spelade matcher räknas inte längre som ett fel, ett lag som
+  inte går att läsa hoppas över, och lagen läses rätt ur seriesidorna (som nu också har lagen som JSON) (#120).
+
 ## [0.36.1] - 2026-11-09
 
 ### Säkerhet

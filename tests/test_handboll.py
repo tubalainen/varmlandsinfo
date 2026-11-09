@@ -10,7 +10,7 @@ import chat
 from categories import refine
 from sources import handboll
 from sources.handboll import Handboll, league_name, municipality, normalize_match, senior_league, team_municipality
-from sources.profixio import parse_matches
+from sources.profixio import parse_checked, parse_matches, parse_team_links
 from test_bandy import DAY, match, snapshot
 
 LISTING = "".join(f'<a href="https://www.profixio.com/app/lx/competition/leagueid{i}">{n}</a>' for i, n in [
@@ -149,6 +149,58 @@ def test_fetch_fails_clearly_when_structure_changes(monkeypatch):
         assert "struktur" in str(exc)
     else:
         raise AssertionError("inget fel")
+
+
+def played(mid, home, away):
+    """En spelad match som i ett utslaget lags cupschema: resultat, ingen avsparkstid och datumet efter lagen (#120)."""
+    return f'''<div x-data="{{ init() {{ $store.matches.registerMatch(
+      {mid},
+      'SHF.SE.HB',
+      {{ homegoals: '47', awaygoals: '17', hasLivescore: false, hasResult: true, winner: 'H', gamestate: null, setup: null, }}
+    ); }} }}" wire:key="mc_mini_{mid}">
+      <div>16-del 3 (2/2)</div><div>•</div><div>Svenska cupens slutspel</div>
+      <div>{home}</div><div>47</div><div>-</div><div>17</div><div>17:00</div><div>{away}</div><div>23 aug</div>
+    </div>'''
+
+
+def test_played_cup_matches_are_not_a_structure_change():
+    """Ett lag som åkt ur cupen har bara spelade matcher bland de kommande. Det är inget fel (#120)."""
+    assert parse_checked(played(1, "Skara HF", "IF Hellton Karlstad"), "Handboll") == []
+    try:                                                         # en kommande match som inte går att tolka är det
+        parse_checked(match(2, DAY, "19:00", "IFK Hammarö", "Rya HF").replace(" • ", " – "), "Handboll")
+    except Exception as exc:
+        assert "tolka" in str(exc)
+    else:
+        raise AssertionError("inget fel")
+
+
+def test_one_unreadable_team_does_not_stop_the_source(monkeypatch):
+    """Ett lag vars matcher inte går att tolka hoppas över, de andra hämtas ändå (#120)."""
+    monkeypatch.setattr(handboll, "PAGE_DELAY", 0)
+    odd = {"101": match(1, DAY, "12:00", "IFK Hammarö", "Rya HF").replace(" • ", " – "), "201": SCHEDULES["201"]}
+    payload, _ = run(handler_for(odd))
+    assert [m["id"] for m in payload["matches"]] == ["3"]
+
+    # Går inget lag att läsa är det ett fel
+    try:
+        run(handler_for({**odd, "201": odd["101"]}))
+    except Exception as exc:
+        assert "tolka" in str(exc)
+    else:
+        raise AssertionError("inget fel")
+
+
+def test_teams_from_links_and_search_index():
+    """Seriesidan har lagen både som länkar och som JSON i ett skript, som inte får tolkas som en länk (#120)."""
+    index = {"teams": [
+        {"name": "Ale Handboll", "href": "https://www.profixio.com/app/lx/competition/leagueid1/teams/11", "logo": None},
+        {"name": "IK Baltic", "href": "https://www.profixio.com/app/lx/competition/leagueid1/teams/12", "logo": None},
+        {"name": "IFK Hammarö", "href": "https://www.profixio.com/app/lx/competition/leagueid1/teams/13"}]}
+    page = ('<input placeholder="Sök grupp eller lag"/><a href="#">Stäng</a>'
+            f'<script type="application/json" id="competition-search-index">{json.dumps(index)}</script>'
+            + league_page([(13, "IFK Hammarö"), (11, "Ale Handboll")]))
+    assert parse_team_links(page) == [{"id": "13", "name": "IFK Hammarö"}, {"id": "11", "name": "Ale Handboll"},
+                                      {"id": "12", "name": "IK Baltic"}]
 
 
 def test_category_and_chat():

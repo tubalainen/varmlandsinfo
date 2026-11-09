@@ -13,6 +13,7 @@ stället för hela seriers spelscheman hämtas lagens egna sidor:
 Bara matcher som spelas i Värmland (eller Karlskoga) tas med: arenan avgör kommunen, och i andra hand hemmalaget.
 """
 
+import logging
 import re
 from datetime import date, datetime, timedelta
 
@@ -22,6 +23,8 @@ from common import TZ, SourceError, category, finalize, get_text, pause, today
 from kommuner import KOMMUNER, kommun
 from sources.profixio import (BASE, HEADERS, lazy_component, load_lazy, parse_checked, parse_leagues,
                               parse_team_links)
+
+log = logging.getLogger(__name__)
 
 COMPETITIONS_URL = f"{BASE}/lx/SHF?t=competitions"
 PAGE_DELAY = 2                   # sekunder mellan anropen
@@ -107,10 +110,17 @@ class Handboll:
             teams, discovered = prev["teams"], checked
         else:
             teams, discovered = await self._discover(client), today().isoformat()
-        matches = []
+        matches, failed = [], []
         for team in teams:
-            for m in await self._team_matches(client, team):
-                matches.append({**m, "league": team["league"]})
+            try:
+                found = await self._team_matches(client, team)
+            except SourceError as exc:       # ett lag som inte går att läsa stoppar inte de andra (#120)
+                log.warning("%s: hoppar över %s i %s: %s", self.title, team["name"], team["league"], exc)
+                failed.append(exc)
+                continue
+            matches += [{**m, "league": team["league"]} for m in found]
+        if failed and len(failed) == len(teams):
+            raise failed[0]
         return {"discovered": discovered, "teams": teams, "matches": matches}
 
     def normalize(self, payload: dict) -> list[dict]:

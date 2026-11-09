@@ -49,6 +49,10 @@ ett värmländskt hemmalag (ort i lagnamnet eller en känd klubb, t.ex. IF Hellt
 Forshaga). Serierna har oftast bara något enstaka lag från Värmland, så appen läser lagens egna sidor i stället för
 hela seriers spelscheman. Säsongen 2026/27 är det IF Hellton Karlstad (Dam 1, Herr 2 Väst och utvecklingslaget i Dam 3
 Väst), IFK Hammarö (Herr 3 Väst) och IFK Kristinehamn (Herr 4 Väst).
+Ett lag vars matcher inte går att tolka hoppas över (med en varning i loggen) i stället för att stoppa hela källan, och
+bara om inget lag går att läsa blir källan röd. Ett lag som åkt ur Svenska cupen har bara sina spelade matcher kvar
+bland de kommande. De saknar avsparkstid och räknas inte som ett fel. Lagen läses ur seriesidans länkar och sökrutans
+lista över lagen (#120).
 
 **Loppisar:** Karlstad Loppis och Loppiskartan visas som **en** källa, *Loppisar*, i menyn, i filtret Källa, på korten
 och på sidan *Om applikationen*. I bakgrunden är de fortfarande två källor, med egen hämtning, lagring och status i
