@@ -6,6 +6,10 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- Ny image med Debians rättningar av apt och libapt-pkg7.0 3.0.4 (CVE-2026-109518) och zlib1g
+  1:1.3.dfsg+really1.3.1-1+deb13u1 (CVE-2026-76844, CVE-2026-85091), som *Säkerhetskontroll* hittade (#118).
+
 ### Dokumentation
 - Skärmdumparna är tagna med v0.36.0 och visar Tickster och Loppiskartan, och arkitekturbilden har 17 källor, Tickster
   och hänvisningar till koden i v0.36.0 (#117).
