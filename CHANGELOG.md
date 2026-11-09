@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.36.2] - 2026-11-09
+
 ### Rättat
 - Handboll stod som fel: IF Hellton Karlstad har åkt ur Svenska cupen (dam), och lagets cupschema med bara spelade
   matcher gick inte att tolka, vilket stoppade hela källan. Spelade matcher räknas inte längre som ett fel, ett lag som
@@ -595,7 +597,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.1...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.2...HEAD
+[0.36.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.1...v0.36.2
 [0.36.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.0...v0.36.1
 [0.36.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.2...v0.36.0
 [0.35.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.1...v0.35.2
