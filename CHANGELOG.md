@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+### Säkerhet
+- opentelemetry-api 1.45.2 (CVE-2026-126360, ReDoS i `traceparent`), som *Säkerhetskontroll* hittade (#121).
+
 ## [0.36.2] - 2026-11-09
 
 ### Rättat
