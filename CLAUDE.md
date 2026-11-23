@@ -312,6 +312,8 @@ kalender, och SBF har redan rallyna. LoTS och Svemo är ASP.NET/Telerik:
 ## Beslut och önskemål från användaren (gäller framåt)
 
 - Release bara när användaren ber om det. Rena dokumentationsändringar (t.ex. README) committas utan release.
+- **Inga nya skärmdumpar eller arkitekturbild efter ändringar i backend** (beroenden, källor, säkerhetsrättningar).
+  De tas om bara när gränssnittet ändras synligt eller när användaren ber om det (användarens beslut 2026-11-23).
 - Fråga AI: bara frågor om evenemang som finns i appen. Allt annat stoppas **innan** AI eller webb anropas
   (exempel: Arvikamarten ok, Liseberg nej). Nya källor och kategorier ska också fungera i Fråga AI:
   `CATEGORY_WORDS`, `EVENT_WORDS` och ord i spärren.
