@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och pr
 
 ## [Unreleased]
 
+## [0.36.3] - 2026-11-23
+
 ### Säkerhet
 - opentelemetry-api 1.45.2 (CVE-2026-126360, ReDoS i `traceparent`), som *Säkerhetskontroll* hittade (#121).
 
@@ -600,7 +602,8 @@ Första releasen.
 ### Rättat
 - `REFRESH_MINUTES=0` gav en evig hämtloop i den första versionen. Nu betyder 0 alltid "av" (#9)
 
-[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.2...HEAD
+[Unreleased]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.3...HEAD
+[0.36.3]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.2...v0.36.3
 [0.36.2]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.1...v0.36.2
 [0.36.1]: https://github.com/tubalainen/varmlandsinfo/compare/v0.36.0...v0.36.1
 [0.36.0]: https://github.com/tubalainen/varmlandsinfo/compare/v0.35.2...v0.36.0
